@@ -1,0 +1,5 @@
+
+ADD_EXECUTABLE(aubo_joint_trajectory_action joint_trajectory_action.cpp)
+TARGET_LINK_LIBRARIES(aubo_joint_trajectory_action industrial_robot_client ${catkin_LIBRARIES})
+
+#add_dependencies(aubo_joint_trajectory_action industrial_robot_client_gencpp)

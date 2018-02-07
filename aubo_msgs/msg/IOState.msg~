@@ -1,0 +1,6 @@
+Digital[] digital_in_states
+Digital[] digital_out_states
+Analog[] analog_in_states
+Analog[] analog_out_states
+Digital[] tool_io_states
+Analog[] tool_ai_states

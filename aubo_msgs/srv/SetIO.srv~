@@ -1,0 +1,10 @@
+int8 FUN_SET_RobotBoardUserDO = 1
+int8 FUN_SET_RobotBoardUserAO = 2
+int8 FUN_SET_ToolDigitalIO = 3
+int8 FUN_SET_RobotToolAO = 4
+int8 FUN_SET_ToolPowerType = 5
+int8 fun
+int8 pin
+float32 state
+---
+bool success
