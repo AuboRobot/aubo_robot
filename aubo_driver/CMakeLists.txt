@@ -32,7 +32,11 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 #FIND_PACKAGE(control_api REQUIRED)
 #INCLUDE_DIRECTORIES(${libcontrolAPI} m ${libev} pthread)
 
-link_directories(${catkin_LIB_DIRS}  lib/lib32)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	link_directories(${catkin_LIB_DIRS}  lib/lib64)
+else()
+       link_directories(${catkin_LIB_DIRS}  lib/lib32)
+endif()
 
 ## Declare a C++ executable
 set(${PROJECT_NAME}_SOURCES
