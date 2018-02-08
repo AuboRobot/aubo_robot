@@ -46,7 +46,7 @@ add_executable(aubo_driver ${${PROJECT_NAME}_SOURCES})
 
 #LINK_LIBRARIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-target_link_libraries(aubo_driver ${catkin_LIBRARIES} ${libev} pthread)
+target_link_libraries(aubo_driver ${catkin_LIBRARIES} pthread)
 #target_link_libraries(aubo_driver ${catkin_LIBRARIES} libauborobotcontroller.a)
 target_link_libraries(aubo_driver ${catkin_LIBRARIES} libauborobotcontroller.so)
 

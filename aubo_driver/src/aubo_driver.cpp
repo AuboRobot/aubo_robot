@@ -28,6 +28,8 @@ AuboDriver::AuboDriver():BufferSize(100),io_flag_delay_(0.02)
     jointtarget_pub = nh.advertise<std_msgs::Float32MultiArray>("real_pose", 50);
     robot_status_pub = nh.advertise<industrial_msgs::RobotStatus>("robot_status", 100);
 
+    io_pub = nh.advertise<aubo_msgs::IOState>("aubo_driver/io_state", 1);
+
     rib_pub = nh.advertise<std_msgs::Int32MultiArray>("rib_status", 100);
     io_srv_ = nh.advertiseService("aubo_driver/set_io",&AuboDriver::setIO, this);
 
@@ -424,16 +426,17 @@ void AuboDriver::run()
     timer.start();
 
     //get the io states of the robot
-    mb_publish_thread_ = new std::thread(boost::bind(&AuboDriver::publishIOMsg, this));
+    io_publish_timer = nh.createTimer(ros::Duration(0.1),&AuboDriver::publishIOMsg,this);
+//    io_publish_timer = new std::thread(boost::bind(&AuboDriver::publishIOMsg, this));
 }
 
-void AuboDriver::publishIOMsg()
+void AuboDriver::publishIOMsg(const ros::TimerEvent& e)
 {
     int ret = 0;
-    ros::Publisher io_pub = nh.advertise<aubo_msgs::IOState>("aubo_driver/io_state", 1);
-    ros::Rate update_rate(100);
-    while (ros::ok())
-    {
+
+//    ros::Rate update_rate(100);
+//    while (ros::ok())
+//    {
         aubo_msgs::IOState io_msg;
 //        std::mutex msg_lock; // The values are locked for reading in the class, so just use a dummy mutex
 //        msg_lock.lock();
@@ -520,9 +523,9 @@ void AuboDriver::publishIOMsg()
         io_pub.publish(io_msg);
 
 //        msg_lock.unlock();
-        update_rate.sleep();
-        ros::spinOnce();
-    }
+//        update_rate.sleep();
+//        ros::spinOnce();
+//    }
 }
 
 bool AuboDriver::setIO(aubo_msgs::SetIORequest& req, aubo_msgs::SetIOResponse& resp)
