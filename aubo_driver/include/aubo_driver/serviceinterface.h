@@ -87,8 +87,6 @@ This product includes software written by Tim Hudson (tjh@cryptsoft.com)
 
 
 
-
-
 #ifndef SERVICEINTERFACE_H
 #define SERVICEINTERFACE_H
 
@@ -497,8 +495,15 @@ public:
      * @param IsBolck　　　　　　　　　　　　　　　是否阻塞　　　参考robotServiceJointMove函数的解释
      * @return　调用成功返回ErrnoSucc;错误返回错误号
      */
+    //不进行运动
+    int getJointAngleByTargetPositionKeepCurrentOri(const aubo_robot_namespace::CoordCalibrateByJointAngleAndTool &coordSystem,
+                                                    const aubo_robot_namespace::Pos &toolEndPositionOnUserCoord,
+                                                    const aubo_robot_namespace::ToolInEndDesc   &toolInEndDesc,     //相对于用户坐标系的目标位置
+                                                    double jointAngle[aubo_robot_namespace::ARM_DOF]);
+
+
     int robotMoveLineToTargetPosition(const aubo_robot_namespace::CoordCalibrateByJointAngleAndTool  &userCoord,
-                                      const aubo_robot_namespace::Pos             &positionOnUserCoord,
+                                      const aubo_robot_namespace::Pos             &toolEndPositionOnUserCoord,
                                       const aubo_robot_namespace::ToolInEndDesc   &toolInEndDesc,     //相对于用户坐标系的目标位置
                                       bool IsBolck = false);                                          //是否阻塞
 
@@ -1006,7 +1011,7 @@ public:
      * @param value   IO状态
      * @return　调用成功返回ErrnoSucc;错误返回错误号
      */
-    int robotServiceSetBoardIOStatus(aubo_robot_namespace::RobotIoType type, int addr, double value);
+    int robotServiceSetBoardIOStatus(aubo_robot_namespace::RobotIoType type, int    addr,      double value);
 
 
     /**
@@ -1088,6 +1093,21 @@ public:
       */
     int robotServiceGetToolPowerVoltageStatus(double &value);
 
+    /**
+     * @brief robotServiceSetToolPowerTypeAndDigitalIOType  设置工具端电源电压类型and所有数字量IO的类型
+     * @param type
+     * @param io0
+     * @param io1
+     * @param io2
+     * @param io3
+     * @return
+     */
+    int robotServiceSetToolPowerTypeAndDigitalIOType(aubo_robot_namespace::ToolPowerType type,
+                                                     aubo_robot_namespace::ToolIOType io0,
+                                                     aubo_robot_namespace::ToolIOType io1,
+                                                     aubo_robot_namespace::ToolIOType io2,
+                                                     aubo_robot_namespace::ToolIOType io3);
+
 
     /**
      * @brief 设置工具端数字量IO的类型    输入或者输出
@@ -1095,7 +1115,7 @@ public:
      * @param 类型  输入或者输出
      * @return　调用成功返回ErrnoSucc;错误返回错误号
      */
-    int robotServiceSetToolDigitalIOType(aubo_robot_namespace::ToolDigitalIOAddr addr,  aubo_robot_namespace::RobotIoType type);
+    int robotServiceSetToolDigitalIOType(aubo_robot_namespace::ToolDigitalIOAddr addr,  aubo_robot_namespace::ToolIOType type);
 
 
     /**
@@ -1144,6 +1164,14 @@ public:  //固件升级
     int  robotServiceGetBoardFirmwareUpdateResultService(bool &value);
 
     int  robotServiceGetRobotEthernetDeviceName(std::string &ethernetDeviceName);
+
+public:
+    /**
+     * @brief 设置关节碰撞补偿（范围0.00~0.51度）
+     * @param jointOffset
+     * @return
+     */
+    int robotServiceSetRobotJointOffset(aubo_robot_namespace::RobotJointOffset &jointOffset);
 
 
 private:   /**SDK内部使用 开发者不需要关心**/

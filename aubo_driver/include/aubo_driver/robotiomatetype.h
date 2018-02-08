@@ -102,9 +102,4 @@
 #define UESR_IO_AO_03_ADDR  0X03
 
 
-
-
-
-
-
 #endif // ROBOTIOMATETYPE_H

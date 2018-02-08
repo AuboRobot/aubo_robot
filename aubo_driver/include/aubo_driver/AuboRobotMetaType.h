@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <stdint.h>
-
 #include "robotiomatetype.h"
 
 
@@ -192,6 +191,7 @@ typedef enum {
     RELEASE_SAFEGUARD_MODE_BY_TRI_STATE_SWITCH,
     ENTER_REDUCE_MODE,
     RELEASE_REDUCE_MODE,
+    REMOTE_CLEAR_ALARM_SIGNAL
 }InterfaceBoardSafeIoEventCode;
 
 
@@ -786,6 +786,12 @@ typedef struct
 
 }ToolDynamicsParam;
 
+
+//关节碰撞补偿（范围0.00~0.51度）
+typedef struct
+{
+    double jointOffset[ARM_DOF];
+}RobotJointOffset;
 
 
 /** 坐标系标定方法枚举 **/
