@@ -19,29 +19,29 @@ int AuboDriver::dataCount = false;
 int AuboDriver::controlOption = aubo_driver::RosMoveIt;
 std::string AuboDriver::jointname[ARM_DOF] = {"shoulder_joint","upperArm_joint","foreArm_joint","wrist1_joint","wrist2_joint","wrist3_joint"};
 
-
 AuboDriver::AuboDriver():BufferSize(100),io_flag_delay_(0.02)
 {
+    rs.robot_controller = ROBOT_CONTROLLER;
     ribstatus.data.resize(3);
     oldribstatus[0] = 0; oldribstatus[1] = 0;oldribstatus[2] = 0;
     jointstates_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 50);
     jointtarget_pub = nh.advertise<std_msgs::Float32MultiArray>("real_pose", 50);
     robot_status_pub = nh.advertise<industrial_msgs::RobotStatus>("robot_status", 100);
 
+    rib_pub = nh.advertise<std_msgs::Int32MultiArray>("rib_status", 100);
+    io_srv_ = nh.advertiseService("aubo_driver/set_io",&AuboDriver::setIO, this);
+
     //    update_joint_state
     moveIt_controller_subs = nh.subscribe("moveItController_cmd", 1000, &AuboDriver::MoveItPosCallback,this);
     teach_subs = nh.subscribe("teach_cmd", 10, &AuboDriver::TeachCallback,this);
     moveAPI_subs = nh.subscribe("moveAPI_cmd", 10, &AuboDriver::AuboAPICallback,this);
 
-    rib_pub = nh.advertise<std_msgs::Int32MultiArray>("rib_status", 100);
     plan_type_sub = nh.subscribe("plan_type", 1, &AuboDriver::plantypeCallback,this);
-
-    io_srv_ = nh.advertiseService("aubo_driver/set_io",&AuboDriver::setIO, this);
 }
 
 AuboDriver::~AuboDriver()
 {
-    /** leave Tcp2CanbusMode　**/
+    /** leave Tcp2CanbusMode**/
     robotService.robotServiceLeaveTcp2CanbusMode();
     /** log out　**/
     robotService.robotServiceLogout();
@@ -86,7 +86,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
         robotstatus.error_code          = (int32)rs.code;
         robot_status_pub.publish(robotstatus);
     }
-    if(controlMode == aubo_driver::SynchronizeWithRealRobot)
+    if(controlMode == aubo_driver::SynchronizeWithRealRobot /*|| rs.robot_controller == ROBOT_CONTROLLER*/)
     {
         if(ControllerConnectedFlag)
         {
@@ -228,6 +228,7 @@ bool AuboDriver::setRobotJointsByMoveIt()
         {
             startMove = false;
             robotService.robotServiceLeaveTcp2CanbusMode();
+            rs.robot_controller = ROBOT_CONTROLLER;
             std::cout<<"leave Tcp2CanbusMode:";
         }
     }
@@ -263,7 +264,17 @@ void AuboDriver::MoveItPosCallback(const sensor_msgs::JointState::ConstPtr &msg)
             {
                 //there is a problem, if the size is less than BufferSize, then the robot will not move!!
                 startMove = true;
-                robotService.robotServiceEnterTcp2CanbusMode();
+                if(aubo_robot_namespace::InterfaceCallSuccCode != robotService.robotServiceEnterTcp2CanbusMode())
+                {
+                    //enter moveit control mode fail, notify the simulator controller to stop the trajectory execution
+//                    robotstatus.in_motion.val       = (int8)rs.state;
+                    rs.robot_controller = ROBOT_CONTROLLER;
+                }
+                else
+                {
+//                    robotstatus.in_motion.val       =  5;
+                    rs.robot_controller = ROS_CONTROLLER;
+                }
                 std::cout<<"Enter Tcp2CanbusMode."<<std::endl;
             }
         }
@@ -302,7 +313,6 @@ void AuboDriver::TeachCallback(const std_msgs::Float32MultiArray::ConstPtr &msg)
                 //update the current joint angle directly
 //                memcpy(currentJoints, joints, sizeof(double) * ARM_DOF);
             }
-
         }
         else
         {
@@ -345,34 +355,31 @@ void AuboDriver::AuboAPICallback(const std_msgs::Float32MultiArray::ConstPtr &ms
 }
 
 #define server_port 8899
-#define server_host "192.168.1.5"
-//#define server_host "127.0.0.1"
 void AuboDriver::run()
 {
     ros::Rate wait(10);
-    std::string s = "0";
-    while(s == "0")
+    std::string startSignal = "0";
+    while(startSignal == "0")
     {
-        ros::param::get("/driver_start",s);
+        ros::param::get("/driver_start",startSignal);
         wait.sleep();
     }
     ROS_INFO("Start the driver!");
     int ret1 = aubo_robot_namespace::InterfaceCallSuccCode;
     int ret2 = aubo_robot_namespace::InterfaceCallSuccCode;
-//    std::string server_host;
-//    int server_port;
-//    std::string s;
-//    ros::param::get("/server_port",s);
-//    server_port = (s=="")?8899:atoi(s.c_str());
-//    ros::param::get("/server_host",s);
-//    server_host = (s=="")?"192.168.1.5":s;
+    std::string server_host;
+    std::string s;
+
+    ros::param::get("aubo_driver/server_port",s);
+    server_host = (s=="")?"192.168.80.5":s;
+    std::cout<<"server_host:"<<server_host<<std::endl;
 
     /** log in ***/
     int MaxLinkTimes = 3;
     int count = 0;
     do {
         count++;
-        ret1 = robotService.robotServiceLogin(server_host, server_port, "aubo", "123456");
+        ret1 = robotService.robotServiceLogin(server_host.c_str(), server_port, "aubo", "123456");
     }while(ret1 != aubo_robot_namespace::InterfaceCallSuccCode && count < MaxLinkTimes);
 
     if(ret1 == aubo_robot_namespace::InterfaceCallSuccCode)
@@ -395,7 +402,7 @@ void AuboDriver::run()
             jointtarget_pub.publish(robotjoints);
             ros::param::set("/IsRobotConnected","1");
         }
-        ret2 = robotService1.robotServiceLogin(server_host, server_port, "aubo", "123456");
+        ret2 = robotService1.robotServiceLogin(server_host.c_str(), server_port, "aubo", "123456");
         ControllerConnectedFlag  = 1;
         std::cout<<"login success."<<std::endl;
         /** 接口调用: 获取真实臂是否存在 **/
@@ -417,11 +424,11 @@ void AuboDriver::run()
     timer.start();
 
     //get the io states of the robot
-    mb_publish_thread_ = new std::thread(boost::bind(&AuboDriver::publishMbMsg, this));
+    mb_publish_thread_ = new std::thread(boost::bind(&AuboDriver::publishIOMsg, this));
 }
-void AuboDriver::publishMbMsg()
+
+void AuboDriver::publishIOMsg()
 {
-    bool warned = false;
     int ret = 0;
     ros::Publisher io_pub = nh.advertise<aubo_msgs::IOState>("aubo_driver/io_state", 1);
     ros::Rate update_rate(100);
@@ -436,18 +443,19 @@ void AuboDriver::publishMbMsg()
         std::vector<aubo_robot_namespace::RobotIoDesc> statusVectorOut;
         std::vector<aubo_robot_namespace::RobotIoType>  ioTypeIn;
         std::vector<aubo_robot_namespace::RobotIoType>  ioTypeOut;
-        int i_max = 18;
-        for(int i = 0; i < i_max; i++)
-        {
-            ioTypeIn.push_back(aubo_robot_namespace::RobotBoardUserDI);
-            ioTypeOut.push_back(aubo_robot_namespace::RobotBoardUserDO);
-        }
+        ioTypeIn.push_back(aubo_robot_namespace::RobotBoardUserDI);
+        ioTypeOut.push_back(aubo_robot_namespace::RobotBoardUserDO);
         ret = robotService1.robotServiceGetBoardIOStatus(ioTypeIn,statusVectorIn);
         ret = robotService1.robotServiceGetBoardIOStatus(ioTypeOut,statusVectorOut);
-        for (unsigned int i = 0; i < statusVectorIn.size(); i++)
+        //F1-F6 are reserved.
+        char num[2];
+        for (unsigned int i = 6; i < statusVectorIn.size(); i++)
         {
             aubo_msgs::Digital digi;
-            digi.pin = statusVectorIn[i].ioAddr - 36;
+            num[0] = statusVectorIn[i].ioName[5];
+            num[1] = statusVectorIn[i].ioName[6];
+            digi.pin = std::atoi(num);
+//            digi.pin = statusVectorIn[i].ioAddr - 36;
             digi.state = statusVectorIn[i].ioValue;
             digi.flag = 0;
             io_msg.digital_in_states.push_back(digi);
@@ -455,7 +463,10 @@ void AuboDriver::publishMbMsg()
         for (unsigned int i = 0; i < statusVectorOut.size(); i++)
         {
             aubo_msgs::Digital digo;
-            digo.pin = statusVectorOut[i].ioAddr - 32;
+            num[0] = statusVectorOut[i].ioName[5];
+            num[1] = statusVectorOut[i].ioName[6];
+            digo.pin = std::atoi(num);
+//            digo.pin = statusVectorOut[i].ioAddr - 32;
             digo.state = statusVectorOut[i].ioValue;
             digo.flag = 1;
             io_msg.digital_out_states.push_back(digo);
@@ -465,12 +476,8 @@ void AuboDriver::publishMbMsg()
         statusVectorOut.clear();
         ioTypeIn.clear();
         ioTypeOut.clear();
-        i_max = 4;
-        for(int i = 0; i < i_max; i++)
-        {
-            ioTypeIn.push_back(aubo_robot_namespace::RobotBoardUserAI);
-            ioTypeOut.push_back(aubo_robot_namespace::RobotBoardUserAO);
-        }
+        ioTypeIn.push_back(aubo_robot_namespace::RobotBoardUserAI);
+        ioTypeOut.push_back(aubo_robot_namespace::RobotBoardUserAO);
         ret = robotService1.robotServiceGetBoardIOStatus(ioTypeIn,statusVectorIn);
         ret = robotService1.robotServiceGetBoardIOStatus(ioTypeOut,statusVectorOut);
         for (unsigned int i = 0; i < statusVectorIn.size(); i++)
@@ -486,10 +493,10 @@ void AuboDriver::publishMbMsg()
             aubo_msgs::Analog ana;
             ana.pin = statusVectorOut[i].ioAddr;
             ana.state = statusVectorOut[i].ioValue;
-            io_msg.analog_in_states.push_back(ana);
+            io_msg.analog_out_states.push_back(ana);
         }
 
-        // robot control board IO
+        // robot tool IO
         statusVectorIn.clear();
         statusVectorOut.clear();
         ret = robotService1.robotServiceGetAllToolDigitalIOStatus(statusVectorIn);
@@ -497,8 +504,8 @@ void AuboDriver::publishMbMsg()
         for (unsigned int i = 0; i < statusVectorIn.size(); i++)
         {
             aubo_msgs::Digital digo;
-            digo.pin = statusVectorOut[i].ioAddr;
-            digo.state = statusVectorOut[i].ioValue;
+            digo.pin = statusVectorIn[i].ioAddr;
+            digo.state = statusVectorIn[i].ioValue;
             digo.flag = (statusVectorIn[i].ioType == aubo_robot_namespace::RobotToolDI)? 0 : 1;
             io_msg.tool_io_states.push_back(digo);
         }
@@ -510,7 +517,6 @@ void AuboDriver::publishMbMsg()
             ana.state = statusVectorOut[i].ioValue;
             io_msg.tool_ai_states.push_back(ana);
         }
-
         io_pub.publish(io_msg);
 
 //        msg_lock.unlock();
@@ -522,7 +528,6 @@ void AuboDriver::publishMbMsg()
 bool AuboDriver::setIO(aubo_msgs::SetIORequest& req, aubo_msgs::SetIOResponse& resp)
 {
     resp.success = true;
-    //if (req.fun == ur_msgs::SetIO::Request::FUN_SET_DIGITAL_OUT) {
     if (req.fun == 1)
     {
         robotService.robotServiceSetBoardIOStatus(aubo_robot_namespace::RobotBoardUserDO,req.pin + 32, req.state);

@@ -32,7 +32,6 @@ catkin_package(
     LIBRARIES ${PROJECT_NAME}_dummy
 )
 
-
 include_directories(include  ${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})

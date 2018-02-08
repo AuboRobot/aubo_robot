@@ -173,7 +173,7 @@ namespace aubo_driver
             void timerCallback(const ros::TimerEvent& e);
             bool setRobotJointsByMoveIt();
             void plantypeCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
-            void publishMbMsg();
+            void publishIOMsg();
 
             bool reverse_connected_;
 

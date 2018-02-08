@@ -3,11 +3,6 @@
   <!-- The planning and execution components of MoveIt! configured to run -->
   <!-- using the ROS-Industrial interface. -->
  
-  <!-- Non-standard joint names:
-       - Create a file [robot_moveit_config]/config/joint_names.yaml
-           controller_joint_names: [joint_1, joint_2, ... joint_N] 
-       - Update with joint names for your robot (in order expected by rbt controller)
-       - and uncomment the following line: -->
   <rosparam command="load" file="$(find aubo_i5l_moveit_config)/config/joint_names.yaml"/>
 
   <!-- the "sim" argument controls whether we connect to a Simulated or Real robot -->
@@ -29,12 +24,14 @@
   <!-- run the "real robot" interface nodes -->
   <!--   - this typically includes: robot_state, motion_interface, and joint_trajectory_action nodes -->
   <!--   - replace these calls with appropriate robot-specific calls or launch files -->
-  <group unless="$(arg sim)">
+  <!--<group unless="$(arg sim)">
     <include file="$(find aubo_i5l_moveit_config)/launch/robot_interface.launch" >
       <arg name="robot_ip" value="$(arg robot_ip)"/>
     </include>
-  </group>
+  </group> -->
 
+  <param name="aubo_driver/server_port" value="192.168.80.5"/>
+	
   <!-- publish the robot state (tf transforms) -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
@@ -46,6 +43,6 @@
     <arg name="config" value="true"/>
   </include>
   
-  <include file="$(find aubo_i5l_moveit_config)/launch/default_warehouse_db.launch" />
+  <!--<include file="$(find aubo_i5l_moveit_config)/launch/default_warehouse_db.launch" />-->
 
 </launch>
