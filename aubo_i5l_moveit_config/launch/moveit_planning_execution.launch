@@ -30,7 +30,9 @@
     </include>
   </group> -->
 
-  <param name="aubo_driver/server_port" value="192.168.80.5"/>
+ <!-- publish the robot state (tf transforms) -->
+  <!--<node name="aubo_driver" pkg="aubo_driver" type="aubo_driver" /> -->
+   <param name="aubo_driver/server_port" value="192.168.80.5"/>
 	
   <!-- publish the robot state (tf transforms) -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />

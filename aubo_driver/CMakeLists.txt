@@ -28,10 +28,6 @@ endif()
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-# find OUR_API
-#FIND_PACKAGE(control_api REQUIRED)
-#INCLUDE_DIRECTORIES(${libcontrolAPI} m ${libev} pthread)
-
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         link_directories(${catkin_LIB_DIRS}  lib/lib64)
 else()
@@ -39,10 +35,14 @@ else()
 endif()
 
 ## Declare a C++ executable
-set(${PROJECT_NAME}_SOURCES
+set(${PROJECT_NAME}_SOURCES1
     src/aubo_driver.cpp
 )
-add_executable(aubo_driver ${${PROJECT_NAME}_SOURCES})
+set(${PROJECT_NAME}_SOURCES2
+    src/testIO.cpp
+)
+add_executable(aubo_driver ${${PROJECT_NAME}_SOURCES1})
+add_executable(testIO ${${PROJECT_NAME}_SOURCES2})
 
 #LINK_LIBRARIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
@@ -50,6 +50,7 @@ target_link_libraries(aubo_driver ${catkin_LIBRARIES} pthread)
 #target_link_libraries(aubo_driver ${catkin_LIBRARIES} libauborobotcontroller.a)
 target_link_libraries(aubo_driver ${catkin_LIBRARIES} libauborobotcontroller.so)
 
+target_link_libraries(testIO ${catkin_LIBRARIES})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
@@ -60,6 +61,6 @@ install(DIRECTORY include/${PROJECT_NAME}/
  )
 
 add_dependencies(aubo_driver aubo_msgs_gencpp)
-
+add_dependencies(testIO aubo_msgs_gencpp)
 
 

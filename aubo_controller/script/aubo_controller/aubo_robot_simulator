@@ -36,7 +36,6 @@ import Queue
 # Publish
 from sensor_msgs.msg import JointState
 from control_msgs.msg import FollowJointTrajectoryFeedback
-from industrial_msgs.msg import RobotStatus
 from std_msgs.msg import Int32MultiArray
 from std_msgs.msg import Float32MultiArray
 
@@ -49,8 +48,6 @@ from industrial_msgs.srv import GetRobotInfo, GetRobotInfoResponse
 
 # Reference
 from industrial_msgs.msg import TriState, RobotMode, ServiceReturnCode, DeviceInfo
-
-
 
 
 """
@@ -98,12 +95,12 @@ class MotionControllerSimulator():
         self.positionUpdatedFlag = '0'
 
         rospy.logdebug("Creating joint state publisher")
-        self.moveit_joint_state_pub = rospy.Publisher('moveItController_cmd', JointState, queue_size=2500)
+        self.moveit_joint_state_pub = rospy.Publisher('moveItController_cmd', JointState, queue_size=2000)
 
         rospy.logdebug("Creating joint state subscriber!")
         self.update_joint_state_subs = rospy.Subscriber('real_pose', Float32MultiArray, self.update_joint_state_callback)
 
-        self.MinimumBufferSize = 400
+        self.MinimumBufferSize = 250
         # Shutdown signal
         self.sig_shutdown = False
 
@@ -336,9 +333,6 @@ class AuboRobotSimulatorNode():
         rospy.logdebug("Creating joint feedback publisher")
         self.joint_feedback_pub = rospy.Publisher('feedback_states', FollowJointTrajectoryFeedback, queue_size=100)
 
-        # rospy.logdebug("Creating robot status publisher")
-        # self.robot_status_pub = rospy.Publisher('robot_status', RobotStatus, queue_size=100)
-
         # Subscribe to a joint trajectory
         rospy.loginfo("Creating joint trajectory subscriber")
         self.joint_path_sub = rospy.Subscriber('joint_path_command', JointTrajectory, self.trajectory_callback)
@@ -395,7 +389,7 @@ class AuboRobotSimulatorNode():
                     joint_state_msg.name = self.joint_names
                     joint_state_msg.position = self.motion_ctrl.get_joint_positions()
 
-                    self.joint_state_pub.publish(joint_state_msg)
+                    # self.joint_state_pub.publish(joint_state_msg)
 
                     #Joint feedback
                     joint_fb_msg.header.stamp = time
@@ -421,21 +415,6 @@ class AuboRobotSimulatorNode():
 
     The value of 'in_motion' is derived from the state of the MotionControllerSimulator.
     """
-    def robot_status_publisher(self):
-        if self.EnableFlag == 1 and self.motion_ctrl.positionUpdatedFlag == '1':
-            try:
-                msg = RobotStatus()
-                msg.mode.val            = RobotMode.AUTO
-                msg.e_stopped.val       = TriState.FALSE
-                msg.drives_powered.val  = TriState.TRUE
-                msg.motion_possible.val = TriState.TRUE
-                msg.in_motion.val       = self.motion_ctrl.is_in_motion()
-                msg.in_error.val        = TriState.FALSE
-                msg.error_code          = 0
-                self.robot_status_pub.publish(msg)
-
-            except Exception as e:
-                rospy.logerr('Unexpected exception: %s', e)
 
     def rib_status_callback(self, data):
         try:

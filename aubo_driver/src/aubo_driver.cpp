@@ -19,12 +19,12 @@ int AuboDriver::dataCount = false;
 int AuboDriver::controlOption = aubo_driver::RosMoveIt;
 std::string AuboDriver::jointname[ARM_DOF] = {"shoulder_joint","upperArm_joint","foreArm_joint","wrist1_joint","wrist2_joint","wrist3_joint"};
 
-AuboDriver::AuboDriver():BufferSize(100),io_flag_delay_(0.02)
+AuboDriver::AuboDriver():BufferSize(200),io_flag_delay_(0.02)
 {
     rs.robot_controller = ROBOT_CONTROLLER;
     ribstatus.data.resize(3);
     oldribstatus[0] = 0; oldribstatus[1] = 0;oldribstatus[2] = 0;
-    jointstates_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 50);
+    jointstates_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 300);
     jointtarget_pub = nh.advertise<std_msgs::Float32MultiArray>("real_pose", 50);
     robot_status_pub = nh.advertise<industrial_msgs::RobotStatus>("robot_status", 100);
 
@@ -34,7 +34,7 @@ AuboDriver::AuboDriver():BufferSize(100),io_flag_delay_(0.02)
     io_srv_ = nh.advertiseService("aubo_driver/set_io",&AuboDriver::setIO, this);
 
     //    update_joint_state
-    moveIt_controller_subs = nh.subscribe("moveItController_cmd", 1000, &AuboDriver::MoveItPosCallback,this);
+    moveIt_controller_subs = nh.subscribe("moveItController_cmd", 2000, &AuboDriver::MoveItPosCallback,this);
     teach_subs = nh.subscribe("teach_cmd", 10, &AuboDriver::TeachCallback,this);
     moveAPI_subs = nh.subscribe("moveAPI_cmd", 10, &AuboDriver::AuboAPICallback,this);
 
@@ -75,7 +75,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
         }
 
         ret = robotService1.robotServiceGetRobotCurrentState(rs.state);
-        robotService1.getErrDescByCode(rs.code);
+//        robotService1.getErrDescByCode(rs.code);
     }
     {
         // pub robot_status information to the controller action server.
@@ -84,8 +84,8 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
         robotstatus.drives_powered.val  = (int8)rs.robotDiagnosisInfo.armPowerStatus;
         robotstatus.motion_possible.val = (int8)rs.state;
         robotstatus.in_motion.val       = (int8)rs.state;
-        robotstatus.in_error.val        = (int8)rs.code;
-        robotstatus.error_code          = (int32)rs.code;
+//        robotstatus.in_error.val        = (int8)rs.code;
+//        robotstatus.error_code          = (int32)rs.code;
         robot_status_pub.publish(robotstatus);
     }
     if(controlMode == aubo_driver::SynchronizeWithRealRobot /*|| rs.robot_controller == ROBOT_CONTROLLER*/)
@@ -101,7 +101,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
                 joint_state.name[i] = jointname[i];
                 joint_state.position[i] = currentJoints[i];
             }
-            jointstates_pub.publish(joint_state);
+//            jointstates_pub.publish(joint_state);
 
             memcpy(lastRecievePoint, currentJoints, sizeof(double) * ARM_DOF);
             memcpy(targetPoint, currentJoints, sizeof(double) * ARM_DOF);
@@ -113,19 +113,19 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
     }
     else if(controlMode == aubo_driver::SendTargetGoal)
     {
+        sensor_msgs::JointState joint_state;
+        joint_state.header.stamp = ros::Time::now();
+        joint_state.name.resize(ARM_DOF);
+        joint_state.position.resize(ARM_DOF);
+        for(int i = 0; i<ARM_DOF; i++)
+        {
+            joint_state.name[i] = jointname[i];
+            joint_state.position[i] = currentJoints[i];
+        }
+        jointstates_pub.publish(joint_state);
+
         if(controlOption == aubo_driver::AuboAPI)
         {
-            sensor_msgs::JointState joint_state;
-            joint_state.header.stamp = ros::Time::now();
-            joint_state.name.resize(ARM_DOF);
-            joint_state.position.resize(ARM_DOF);
-            for(int i = 0; i<ARM_DOF; i++)
-            {
-                joint_state.name[i] = jointname[i];
-                joint_state.position[i] = currentJoints[i];
-            }
-            jointstates_pub.publish(joint_state);
-
             memcpy(targetPoint, currentJoints, sizeof(double) * ARM_DOF);
             std_msgs::Float32MultiArray joints;
             joints.data.resize(ARM_DOF);
@@ -212,11 +212,10 @@ bool AuboDriver::setRobotJointsByMoveIt()
         if(ControllerConnectedFlag)
         {
             ret = robotService.robotServiceSetRobotPosData2Canbus(ps.currentJointPos);
-            struct timeb tb;
-            ftime(&tb);
+//            struct timeb tb;
+//            ftime(&tb);
 //            std::cout<<tb.millitm<<std::endl;
 //            std::cout<<ps.currentJointPos[0]<<","<<ps.currentJointPos[1]<<","<<ps.currentJointPos[2]<<","<<ps.currentJointPos[3]<<","<<ps.currentJointPos[4]<<","<<ps.currentJointPos[5]<<std::endl;
-
         }
         else
         {
@@ -422,25 +421,21 @@ void AuboDriver::run()
     }
 
     //communication Timer between ros node and real robot controller.
-    timer = nh.createTimer(ros::Duration(0.030),&AuboDriver::timerCallback,this);
+    timer = nh.createTimer(ros::Duration(0.020),&AuboDriver::timerCallback,this);
     timer.start();
 
     //get the io states of the robot
-    io_publish_timer = nh.createTimer(ros::Duration(0.1),&AuboDriver::publishIOMsg,this);
-//    io_publish_timer = new std::thread(boost::bind(&AuboDriver::publishIOMsg, this));
+    mb_publish_thread_ = new std::thread(boost::bind(&AuboDriver::publishIOMsg, this));
 }
 
-void AuboDriver::publishIOMsg(const ros::TimerEvent& e)
+void AuboDriver::publishIOMsg()
 {
     int ret = 0;
 
-//    ros::Rate update_rate(100);
-//    while (ros::ok())
-//    {
+    ros::Rate update_rate(100);
+    while (ros::ok())
+    {
         aubo_msgs::IOState io_msg;
-//        std::mutex msg_lock; // The values are locked for reading in the class, so just use a dummy mutex
-//        msg_lock.lock();
-
         // robot control board IO
         std::vector<aubo_robot_namespace::RobotIoDesc> statusVectorIn;
         std::vector<aubo_robot_namespace::RobotIoDesc> statusVectorOut;
@@ -469,6 +464,7 @@ void AuboDriver::publishIOMsg(const ros::TimerEvent& e)
             num[0] = statusVectorOut[i].ioName[5];
             num[1] = statusVectorOut[i].ioName[6];
             digo.pin = std::atoi(num);
+            int addr = statusVectorOut[i].ioAddr;
 //            digo.pin = statusVectorOut[i].ioAddr - 32;
             digo.state = statusVectorOut[i].ioValue;
             digo.flag = 1;
@@ -523,9 +519,9 @@ void AuboDriver::publishIOMsg(const ros::TimerEvent& e)
         io_pub.publish(io_msg);
 
 //        msg_lock.unlock();
-//        update_rate.sleep();
-//        ros::spinOnce();
-//    }
+        update_rate.sleep();
+        ros::spinOnce();
+    }
 }
 
 bool AuboDriver::setIO(aubo_msgs::SetIORequest& req, aubo_msgs::SetIOResponse& resp)

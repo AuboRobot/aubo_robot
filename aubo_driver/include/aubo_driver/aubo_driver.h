@@ -26,7 +26,7 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #ifndef AUBO_DRIVER_H_
 #define AUBO_DRIVER_H_
 
-//#include <thread>
+#include <thread>
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32.h>
@@ -153,7 +153,8 @@ namespace aubo_driver
             ServiceInterface robotService1;     //receive
 
             RobotState rs;
-//            std::condition_variable msg_cond_;
+//            std::thread* mb_publish_thread_;
+
 
             BufQueue  bufQueue;
             aubo_msgs::JointPos cur_pos;
@@ -174,7 +175,7 @@ namespace aubo_driver
             void timerCallback(const ros::TimerEvent& e);
             bool setRobotJointsByMoveIt();
             void plantypeCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
-            void publishIOMsg(const ros::TimerEvent& e);
+            void publishIOMsg();
 
             bool reverse_connected_;
 
@@ -185,7 +186,7 @@ namespace aubo_driver
             ros::Timer io_publish_timer;
 
             ros::ServiceServer io_srv_;
-//            std::thread* mb_publish_thread_;
+            std::thread* mb_publish_thread_;
 
             double io_flag_delay_;
             static int ribbuffersize;
