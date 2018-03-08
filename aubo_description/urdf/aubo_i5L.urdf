@@ -10,7 +10,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/base_link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/base_link.STL"/>
       </geometry>
      <material name="black">
         <color rgba="0.25098 0.25098 0.25098"/>
@@ -19,7 +19,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/base_link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/base_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -32,7 +32,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/shoulder_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/shoulder_Link.STL"/>
       </geometry>
        <material name="orange">
         <color rgba="1 0.65098 0 1"/>
@@ -41,7 +41,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/shoulder_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/shoulder_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -61,7 +61,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/upperArm_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/upperArm_Link.STL"/>
       </geometry>
        <material name="orange">
         <color rgba="1 0.65098 0 1"/>
@@ -70,7 +70,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/upperArm_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/upperArm_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -90,7 +90,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/foreArm_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/foreArm_Link.STL"/>
       </geometry>
         <material name="orange">
         <color rgba="1 0.65098 0 1"/>
@@ -99,7 +99,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/foreArm_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/foreArm_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -119,7 +119,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/wrist1_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/wrist1_Link.STL"/>
       </geometry>
      <material name="orange">
         <color rgba="1 0.65098 0 1"/>
@@ -128,7 +128,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/wrist1_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/wrist1_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -148,7 +148,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/wrist2_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/wrist2_Link.STL"/>
       </geometry>
       <material name="orange">
         <color rgba="1 0.65098 0 1"/>
@@ -157,7 +157,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/wrist2_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/wrist2_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -177,7 +177,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/wrist3_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/wrist3_Link.STL"/>
       </geometry>
       <material name="black">
         <color rgba="0.25098 0.25098 0.25098"/>
@@ -186,7 +186,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/wrist3_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/wrist3_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -206,7 +206,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/w2_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/w2_Link.STL"/>
       </geometry>
       <material name="black">
         <color rgba="0.25098 0.25098 0.25098"/>
@@ -215,7 +215,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/w2_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/w2_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -234,7 +234,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/w1_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/w1_Link.STL"/>
       </geometry>
       <material name="black">
         <color rgba="0.25098 0.25098 0.25098"/>
@@ -243,7 +243,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/w1_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/w1_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -262,7 +262,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/u_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/u_Link.STL"/>
       </geometry>
       <material name="black">
         <color rgba="0.25098 0.25098 0.25098"/>
@@ -271,7 +271,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/u_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/u_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -290,7 +290,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/f1_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/f1_Link.STL"/>
       </geometry>
       <material name="black">
         <color rgba="0.25098 0.25098 0.25098"/>
@@ -299,7 +299,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/f1_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/f1_Link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -318,7 +318,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/s_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/s_Link.STL"/>
       </geometry>
       <material name="black">
         <color rgba="0.25098 0.25098 0.25098"/>
@@ -327,7 +327,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://aubo_description/meshesL/s_Link.STL"/>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/s_Link.STL"/>
       </geometry>
     </collision>
   </link>
