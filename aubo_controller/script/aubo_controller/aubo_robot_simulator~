@@ -1,0 +1,545 @@
+#!/usr/bin/env python
+#
+# Software License Agreement (BSD License)
+# Copyright (c) 2017-2018, Aubo Robotics
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#  * Neither the name of the Southwest Research Institute, nor the names
+#    of its contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+import rospy
+import copy
+import threading
+import Queue
+
+# Publish
+from sensor_msgs.msg import JointState
+from control_msgs.msg import FollowJointTrajectoryFeedback
+from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import Float32MultiArray
+
+# Subscribe
+from trajectory_msgs.msg import JointTrajectory
+from trajectory_msgs.msg import JointTrajectoryPoint
+
+# Services
+from industrial_msgs.srv import GetRobotInfo, GetRobotInfoResponse
+
+# Reference
+from industrial_msgs.msg import TriState, RobotMode, ServiceReturnCode, DeviceInfo
+
+
+"""
+MotionController
+
+This class simulates the motion controller for an Aubo robot.
+
+This class IS threadsafe
+
+"""
+class MotionControllerSimulator():
+    """
+    Constructor of motion controller simulator
+    """
+    def __init__(self, num_joints, update_rate = 200, buffer_size = 0):
+        # Class lock
+        self.lock = threading.Lock()
+
+        # Motion loop update rate (higher update rates result in smoother simulated motion)
+        self.update_rate = update_rate
+        rospy.logdebug("Setting motion update rate (hz): %f", self.update_rate)
+
+        # Initialize motion buffer (contains joint position lists)
+        self.motion_buffer = Queue.Queue(buffer_size)
+        rospy.logdebug("Setting motion buffer size: %i", buffer_size)
+
+        def_joint_names = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+        self.joint_names = rospy.get_param('controller_joint_names', def_joint_names)
+
+        initial_joint_state = rospy.get_param('initial_joint_state', [0]*num_joints)
+        same_len = len(initial_joint_state) == len(self.joint_names)
+        all_num  = all(type(x) is int or type(x) is float for x in initial_joint_state)
+        if not same_len or not all_num:
+            initial_joint_state = [0]*num_joints
+            rospy.logwarn("Invalid initial_joint_state parameter, defaulting to all-zeros "
+                "(len: %s, types: %s).", same_len, all_num)
+        rospy.loginfo("Using initial joint state: %s", str(initial_joint_state))
+
+         # Initialize joint position
+        self.joint_positions = initial_joint_state
+        rospy.logdebug("Setting initial joint state: %s", str(initial_joint_state))
+
+        self.ribBufferSize = 0
+        self.ControllerConnectedFlag = 1
+        self.positionUpdatedFlag = '0'
+
+        rospy.logdebug("Creating joint state publisher")
+        self.moveit_joint_state_pub = rospy.Publisher('moveItController_cmd', JointState, queue_size=2000)
+
+        rospy.logdebug("Creating joint state subscriber!")
+        self.update_joint_state_subs = rospy.Subscriber('real_pose', Float32MultiArray, self.update_joint_state_callback)
+
+        self.MinimumBufferSize = 250
+        # Shutdown signal
+        self.sig_shutdown = False
+
+        # Stop signal
+        self.sig_stop = False
+
+        # Motion thread
+        self.motion_thread = threading.Thread(target=self._motion_worker)
+        self.motion_thread.daemon = True
+        self.motion_thread.start()
+
+
+    """
+    Update the joint position from extern controller.
+    """
+    def update_joint_state_callback(self, msg_in):
+        if not self.is_in_motion():
+            self.joint_positions = msg_in.data
+            rospy.loginfo('update joints, %s' , str(self.joint_positions))
+
+
+    def add_motion_waypoint(self, point):
+    # When add new trajectory into the buffer, here need to handle the accelerations!!
+        self.motion_buffer.put(point)
+
+    def get_joint_positions(self):
+        with self.lock:
+            return self.joint_positions[:]
+
+    """
+    return the status of the controller.
+    """
+    def is_in_motion(self):
+        return not self.motion_buffer.empty()
+
+    def shutdown(self):
+        self.sig_shutdown = True
+        rospy.logdebug('Motion_Controller shutdown signaled')
+
+    def stop(self):
+        rospy.logdebug('Motion_Controller stop signaled')
+        with self.lock:
+            self._clear_buffer()
+            self.sig_stop = True
+
+    """
+    def interpolate(self, last_pt, current_pt, alpha):
+        intermediate_pt = JointTrajectoryPoint()
+        for last_joint, current_joint in zip(last_pt.positions, current_pt.positions):
+            intermediate_pt.positions.append(last_joint + alpha*(current_joint-last_joint))
+        intermediate_pt.time_from_start = last_pt.time_from_start + rospy.Duration(alpha*(current_pt.time_from_start.to_sec() - last_pt.time_from_start.to_sec()))
+        return intermediate_pt
+    """
+
+    def _clear_buffer(self):
+        with self.motion_buffer.mutex:
+            self.motion_buffer.queue.clear()
+
+    def joint_state_publisher(self):
+        try:
+            joint_state_msg = JointState()
+            time = rospy.Time.now()
+
+            with self.lock:
+                #Joint states
+                joint_state_msg.header.stamp = time
+                joint_state_msg.name = self.joint_names
+                joint_state_msg.position = self.joint_positions
+
+                rospy.loginfo('Moved to position: %s', str(self.joint_positions))
+                self.moveit_joint_state_pub.publish(joint_state_msg)
+
+        except Exception as e:
+            rospy.loginfo('Unexpected exception in joint state publisher: %s', e)
+
+
+    """
+    update the motion controller state combining with the robot controller information
+    """
+    def _move_to(self, point, dur):
+        while self.ribBufferSize > self.MinimumBufferSize:
+            rospy.loginfo('too fast!!')
+            rospy.sleep(dur)
+
+
+        if self.ribBufferSize == 0 and self.ControllerConnectedFlag == 0:      # motion start or no robot connected!
+            rospy.sleep(dur)
+
+        if self.ribBufferSize == 0 and self.ControllerConnectedFlag == 1:      # motion start but with robot connected!
+            pass
+            # rospy.loginfo('too slow slow!!')
+
+        with self.lock:
+            if not self.sig_stop:
+                self.joint_positions = point
+                # self.joint_state_publisher()                #publish the control command to the robot
+                rospy.logdebug('Moved to position: %s in %s', str(self.joint_positions), str(dur))
+            else:
+                rospy.loginfo('Stopping motion immediately, clearing stop signal')
+                self.sig_stop = False
+
+    """
+    """
+    def _motion_worker(self):
+        rospy.set_param('/driver_start','1')
+        # first update the robot real postion
+        self.positionUpdatedFlag = rospy.get_param('/IsRobotConnected', '0')
+        while self.positionUpdatedFlag == '0':
+            rospy.sleep( self.update_rate/400)
+            self.positionUpdatedFlag = rospy.get_param('/IsRobotConnected', '0')
+
+        rospy.loginfo('Starting motion worker in motion controller simulator')
+        move_duration = rospy.Duration()
+        if self.update_rate <> 0.:
+            update_duration = rospy.Duration(1./self.update_rate)
+        last_goal_point = JointTrajectoryPoint()
+
+        with self.lock:
+            last_goal_point.positions = self.joint_positions[:]
+
+        while not self.sig_shutdown:
+            try:
+                current_goal_point = self.motion_buffer.get()
+
+                # If the current time from start is less than or equal to the last, then it's a new trajectory
+                if current_goal_point.time_from_start <= last_goal_point.time_from_start:
+                    move_duration = current_goal_point.time_from_start
+                # Else it's an existing trajectory and subtract the two
+                else:
+                    # If current move duration is greater than update_duration, interpolate the joint positions to form a smooth trajectory
+                    # Provide an exception to this rule: if update rate is <=0, do not add interpolated points
+                    T = current_goal_point.time_from_start.to_sec() - last_goal_point.time_from_start.to_sec()
+                    # five degree polynomial interpolation
+                    # a0 = last_goal_point.positions[:]
+                    a1 = last_goal_point.velocities[:]
+                    N = len(a1)
+                    T2 = T * T
+                    T3 = T2 * T
+                    T4 = T3 * T
+                    T5 = T4 * T
+                    a2 = [0] *N
+                    h  = [0] *N
+                    a3 = [0] *N
+                    a4 = [0] *N
+                    a5 = [0] *N
+                    for i in range(0,N):
+                        a2[i] = 0.5 * last_goal_point.accelerations[i]
+                        h[i] = current_goal_point.positions[i] - last_goal_point.positions[i]
+                        a3[i] =0.5/T3*(20*h[i] - (8*current_goal_point.velocities[i] + 12*last_goal_point.velocities[i])*T - (3*last_goal_point.accelerations[i] -current_goal_point.accelerations[i])*T2)
+                        a4[i] =0.5/T4*(-30*h[i] + (14*current_goal_point.velocities[i] + 16*last_goal_point.velocities[i])*T + (3*last_goal_point.accelerations[i] - 2*current_goal_point.accelerations[i])*T2)
+                        a5[i] =0.5/T5*(12*h[i] - 6*(current_goal_point.velocities[i] + last_goal_point.velocities[i])*T + (current_goal_point.accelerations[i] - last_goal_point.accelerations[i])*T2)
+                    if self.update_rate > 0:
+                        tt = last_goal_point.time_from_start.to_sec()
+                        ti = tt
+                        while tt < current_goal_point.time_from_start.to_sec():
+                            intermediate_goal_point = [0]*N
+                            t1 = tt - ti
+                            t2 = t1 * t1
+                            t3 = t2 * t1
+                            t4 = t3 * t1
+                            t5 = t4 * t1
+                            for i in range(0,N):
+                                intermediate_goal_point[i] = last_goal_point.positions[i] +a1[i]*t1+a2[i]*t2 +a3[i]*t3 +a4[i]*t4 +a5[i]*t5
+                            tt = tt + update_duration.to_sec()
+                            self._move_to(intermediate_goal_point, update_duration.to_sec())
+                            self.joint_state_publisher()
+
+                        # here need to do some adjustment to make the trajectory smoother
+                        move_duration = current_goal_point.time_from_start.to_sec() - tt
+
+                self._move_to(current_goal_point.positions[:], move_duration)
+                self.joint_state_publisher()
+                last_goal_point = copy.deepcopy(current_goal_point)
+
+            except Exception as e:
+                rospy.logerr('Unexpected exception: %s', e)
+
+        rospy.logdebug("Shutting down motion controller")
+
+
+
+
+"""
+AuboRobotSimulator
+
+This class simulates an Aubo robot controller.  The simulator
+adheres to the ROS-Industrial robot driver specification:
+
+http://www.ros.org/wiki/Industrial/Industrial_Robot_Driver_Spec
+
+TODO: Currently the simulator only supports the bare minimum motion interface.
+
+TODO: Interfaces to add:
+Joint streaming
+All services
+"""
+class AuboRobotSimulatorNode():
+    """
+    Constructor of aubo robot simulator
+    """
+    def __init__(self):
+        rospy.init_node('aubo_robot_simulator')
+
+        # Class lock
+        self.lock = threading.Lock()
+
+        # Publish rate (hz)
+        self.pub_rate = rospy.get_param('pub_rate', 50.0)
+        rospy.loginfo("Setting publish rate (hz) based on parameter: %f", self.pub_rate)
+
+        # Joint names
+        def_joint_names = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+        self.joint_names = rospy.get_param('controller_joint_names', def_joint_names)
+        if len(self.joint_names) == 0:
+            rospy.logwarn("Joint list is empty, did you set controller_joint_name?")
+        rospy.loginfo("Simulating manipulator with %d joints: %s", len(self.joint_names), ", ".join(self.joint_names))
+
+        # Setup initial joint positions
+        num_joints = len(self.joint_names)
+
+        # retrieve update rate
+        motion_update_rate = rospy.get_param('motion_update_rate', 200.)  #set param to 0 to ignore interpolated motion
+        self.motion_ctrl = MotionControllerSimulator(num_joints, update_rate=motion_update_rate)
+
+        # Published to joint states
+        rospy.logdebug("Creating joint state publisher")
+        self.joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=100)
+
+        # Published to joint feedback
+        rospy.logdebug("Creating joint feedback publisher")
+        self.joint_feedback_pub = rospy.Publisher('feedback_states', FollowJointTrajectoryFeedback, queue_size=100)
+
+        # Subscribe to a joint trajectory
+        rospy.loginfo("Creating joint trajectory subscriber")
+        self.joint_path_sub = rospy.Subscriber('joint_path_command', JointTrajectory, self.trajectory_callback)
+
+         # Subscribe to a joint trajectory
+        rospy.loginfo("Enable Switch")
+        self.plan_type_sub = rospy.Subscriber('rib_status', Int32MultiArray, self.rib_status_callback)
+
+        # JointStates timed task (started automatically)
+        period = rospy.Duration(1.0/self.pub_rate)
+        rospy.logdebug('Setting up publish worker with period (sec): %s', str(period.to_sec()))
+        self.EnableFlag = 1
+        rospy.Timer(period, self.publish_worker)
+
+        # GetRobotInfo service server and pre-cooked svc response
+        self.get_robot_info_response = self._init_robot_info_response()
+        self.svc_get_robot_info = rospy.Service('get_robot_info', GetRobotInfo, self.cb_svc_get_robot_info)
+
+        rospy.loginfo("Clean up init")
+        rospy.on_shutdown(self.motion_ctrl.shutdown)
+
+
+    """
+    Service callback for GetRobotInfo() service. Returns fake information.
+    """
+    def cb_svc_get_robot_info(self, req):
+        # return cached response instance
+        return self.get_robot_info_response
+
+
+    """
+    The publish worker is executed at a fixed rate.  This publishes the various
+    state and status information to the action controller.
+    """
+    def publish_worker(self, event):
+        self.joint_state_publisher()
+        # self.robot_status_publisher()         # robot_status message is published by aubo_driver
+
+
+    """
+    The joint state publisher publishes the current joint state and the current
+    feedback state (as these are closely related)
+    """
+    def joint_state_publisher(self):
+        if self.EnableFlag == 1 and self.motion_ctrl.positionUpdatedFlag == '1':
+            try:
+                joint_state_msg = JointState()
+                joint_fb_msg = FollowJointTrajectoryFeedback()
+                time = rospy.Time.now()
+
+                with self.lock:
+                    #Joint states
+                    joint_state_msg.header.stamp = time
+                    joint_state_msg.name = self.joint_names
+                    joint_state_msg.position = self.motion_ctrl.get_joint_positions()
+
+                    # self.joint_state_pub.publish(joint_state_msg)
+
+                    #Joint feedback
+                    joint_fb_msg.header.stamp = time
+                    joint_fb_msg.joint_names = self.joint_names
+                    joint_fb_msg.actual.positions = self.motion_ctrl.get_joint_positions()
+
+                    self.joint_feedback_pub.publish(joint_fb_msg)
+
+            except Exception as e:
+                rospy.loginfo('Unexpected exception in joint state publisher: %s', e)
+
+
+    """
+    The robot status publisher publishes the current simulated robot status.
+
+    The following values are hard coded:
+     - robot always in AUTO mode
+     - drives always powered
+     - motion always possible
+     - robot never E-stopped
+     - no error code
+     - robot never in error
+
+    The value of 'in_motion' is derived from the state of the MotionControllerSimulator.
+    """
+
+    def rib_status_callback(self, data):
+        try:
+            if  data.data[1] == 1:
+                self.EnableFlag = 1
+                rospy.logdebug('True True %d',  self.EnableFlag)
+            else:
+                self.EnableFlag = 0
+                rospy.logdebug('False False %d',  self.EnableFlag)
+            self.motion_ctrl.ribBufferSize = data.data[0]
+            self.motion_ctrl.ControllerConnectedFlag = data.data[2]
+            # rospy.loginfo('mode %d', data.data[1])
+
+        except Exception as e:
+            rospy.logerr('Unexpected exception: %s', e)
+
+
+    """
+    Trajectory subscription callback (gets called whenever a "joint_path_command" message is received).
+    @param msg_in: joint trajectory message
+    @type  msg_in: JointTrajectory
+    """
+    def trajectory_callback(self, msg_in):
+        if (len(msg_in.points) == 0) or (self.EnableFlag == 0):
+            # if the JointTrajectory is null or the robot is controlled by other controller.
+            pass
+        else:
+            rospy.logdebug('handle joint_path_command')
+            try:
+                rospy.loginfo('Received trajectory with %s points, executing callback', str(len(msg_in.points)))
+
+                if self.motion_ctrl.is_in_motion():
+                    if len(msg_in.points) > 0:
+                        rospy.logerr('Received trajectory while still in motion, trajectory splicing not supported')
+                    else:
+                        rospy.logdebug('Received empty trajectory while still in motion, stopping current trajectory')
+                    #maybe no need to stop the controller, just feedback the status of the controller to outside!!
+                    self.motion_ctrl.stop()
+
+                else:
+                    for point in msg_in.points:
+                        # first remaps point to controller joint order, the add the point to the controller.
+                        point = self._to_controller_order(msg_in.joint_names, point)
+                        self.motion_ctrl.add_motion_waypoint(point)
+
+            except Exception as e:
+                rospy.logerr('Unexpected exception: %s', e)
+
+            rospy.logdebug('Exiting trajectory callback')
+
+    """
+    Remaps point to controller joint order
+
+    @param point:  joint trajectory point
+    @type  point:  JointTrajectoryPoint
+    @return point: reorder point
+    """
+    def _to_controller_order(self, keys, point):
+        pt_rtn = copy.deepcopy(point)
+        pt_rtn.positions = self._remap_order(self.joint_names, keys, point.positions)
+        pt_rtn.velocities = self._remap_order(self.joint_names, keys, point.velocities)
+        pt_rtn.accelerations = self._remap_order(self.joint_names, keys, point.accelerations)
+
+        return pt_rtn
+
+    def _remap_order(self, ordered_keys, value_keys, values):
+        #rospy.loginfo('remap order, ordered_keys: %s, value_keys: %s, values: %s', str(ordered_keys), str(value_keys), str(values))
+        ordered_values = []
+
+        ordered_values = [0]*len(ordered_keys)
+        mapping = dict(zip(value_keys, values))
+        #rospy.loginfo('maping: %s', str(mapping))
+
+        for i in range(len(ordered_keys)):
+            ordered_values[i] = mapping[ordered_keys[i]]
+            pass
+
+        return ordered_values
+
+    """
+    Constructs a GetRobotInfoResponse instance with either default data.
+    """
+    def _init_robot_info_response(self):
+        if not rospy.has_param('~robot_info'):
+            # if user did not provide data, we generate some
+            import rospkg
+            rp = rospkg.RosPack()
+            irs_version = rp.get_manifest('industrial_robot_simulator').version
+            robot_info = dict(
+                controller=dict(
+                    model='Aubo Robot Simulator Controller',
+                    serial_number='0123456789',
+                    sw_version=irs_version),
+                robots=[
+                    dict(
+                        model='Aubo Robot Simulator Manipulator',
+                        serial_number='9876543210',
+                        sw_version=irs_version)
+                ])
+        else:
+            # otherwise use only the data user has provided (and nothing more)
+            robot_info = rospy.get_param('~robot_info')
+
+        resp = GetRobotInfoResponse()
+        resp.controller = DeviceInfo(**robot_info['controller'])
+
+        # add info on controlled robot / motion group
+        if len(robot_info['robots']) > 0:
+            robot = robot_info['robots'][0]
+            resp.robots.append(DeviceInfo(**robot))
+
+        if len(robot_info['robots']) > 1:
+            # simulator simulates a single robot / motion group
+            rospy.logwarn("Multiple robots / motion groups defined in "
+                "'robot_info' parameter, ignoring all but first element")
+
+        # always successfull
+        resp.code.val = ServiceReturnCode.SUCCESS
+        return resp
+
+
+if __name__ == '__main__':
+    try:
+        rospy.loginfo('Starting aubo_controller_simulator')
+        controller = AuboRobotSimulatorNode()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass

@@ -1,7 +1,7 @@
 /*
  * Software License Agreement (BSD License)
  *
- * Copyright (c) 2011, Southwest Research Institute
+ * Copyright (c) 2017-2018, AUBO Robotics
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

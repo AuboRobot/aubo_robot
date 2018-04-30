@@ -1,0 +1,16 @@
+1. support controlling diffrent robots at the same time.
+   1)Remapping /joint_states topic
+     When you run a move group node, you may need to remap the topic /joint_states to /robot/joint_states, otherwise MoveIt! won’t have feedback from the joints. To do this remapping you could make a simple launch file for your node as follows:
+	<node pkg="moveit_ros_move_group" type="move_group" name="any_name" output="screen">
+	  <remap from="joint_states" to="robot/joint_states"/>
+	</node>
+    Or you can make a subscriber with the correct topic name and then ensure that the starting robot state for your move group corresponds to a correct joints angle by using the call back of this subscriber.
+
+2. Aubo robot Calibration Toolbox
+   1) camera calibration
+   2) tool and workpiece calibration
+
+3. Add constrained IK 
+
+4. Add under-defined Cartesian trajectories for path planning problem.
+   http://wiki.ros.org/descartes

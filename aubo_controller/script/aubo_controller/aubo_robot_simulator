@@ -52,17 +52,14 @@ from industrial_msgs.msg import TriState, RobotMode, ServiceReturnCode, DeviceIn
 
 """
 MotionController
-
 This class simulates the motion controller for an Aubo robot.
-
 This class IS threadsafe
-
 """
 class MotionControllerSimulator():
     """
     Constructor of motion controller simulator
     """
-    def __init__(self, num_joints, update_rate = 250, buffer_size = 0):
+    def __init__(self, num_joints, update_rate = 200, buffer_size = 0):
         # Class lock
         self.lock = threading.Lock()
 
@@ -83,7 +80,7 @@ class MotionControllerSimulator():
         if not same_len or not all_num:
             initial_joint_state = [0]*num_joints
             rospy.logwarn("Invalid initial_joint_state parameter, defaulting to all-zeros "
-                "(len: %s, types: %s).", same_len, all_num)
+                          "(len: %s, types: %s).", same_len, all_num)
         rospy.loginfo("Using initial joint state: %s", str(initial_joint_state))
 
          # Initialize joint position
@@ -112,7 +109,6 @@ class MotionControllerSimulator():
         self.motion_thread.daemon = True
         self.motion_thread.start()
 
-
     """
     Update the joint position from extern controller.
     """
@@ -120,7 +116,6 @@ class MotionControllerSimulator():
         if not self.is_in_motion():
             self.joint_positions = msg_in.data
             rospy.loginfo('update joints, %s' , str(self.joint_positions))
-
 
     def add_motion_waypoint(self, point):
     # When add new trajectory into the buffer, here need to handle the accelerations!!
@@ -146,14 +141,12 @@ class MotionControllerSimulator():
             self._clear_buffer()
             self.sig_stop = True
 
-    """
     def interpolate(self, last_pt, current_pt, alpha):
         intermediate_pt = JointTrajectoryPoint()
         for last_joint, current_joint in zip(last_pt.positions, current_pt.positions):
             intermediate_pt.positions.append(last_joint + alpha*(current_joint-last_joint))
         intermediate_pt.time_from_start = last_pt.time_from_start + rospy.Duration(alpha*(current_pt.time_from_start.to_sec() - last_pt.time_from_start.to_sec()))
         return intermediate_pt
-    """
 
     def _clear_buffer(self):
         with self.motion_buffer.mutex:
@@ -176,7 +169,6 @@ class MotionControllerSimulator():
         except Exception as e:
             rospy.loginfo('Unexpected exception in joint state publisher: %s', e)
 
-
     """
     update the motion controller state combining with the robot controller information
     """
@@ -184,7 +176,6 @@ class MotionControllerSimulator():
         while self.ribBufferSize > self.MinimumBufferSize:
             rospy.loginfo('too fast!!')
             rospy.sleep(dur)
-
 
         if self.ribBufferSize == 0 and self.ControllerConnectedFlag == 0:      # motion start or no robot connected!
             rospy.sleep(dur)
@@ -202,12 +193,10 @@ class MotionControllerSimulator():
                 rospy.loginfo('Stopping motion immediately, clearing stop signal')
                 self.sig_stop = False
 
-    """
-    """
     def _motion_worker(self):
         rospy.set_param('/driver_start','1')
         # first update the robot real postion
-        self.positionUpdatedFlag = rospy.get_param('/IsRobotConnected', '0')
+        self.positionUpdatedFlag = rospy.get_param('/aubo_driver/robot_connected', '0')
         while self.positionUpdatedFlag == '0':
             rospy.sleep( self.update_rate/400)
             self.positionUpdatedFlag = rospy.get_param('/IsRobotConnected', '0')
@@ -280,9 +269,6 @@ class MotionControllerSimulator():
 
         rospy.logdebug("Shutting down motion controller")
 
-
-
-
 """
 AuboRobotSimulator
 
@@ -322,7 +308,7 @@ class AuboRobotSimulatorNode():
         num_joints = len(self.joint_names)
 
         # retrieve update rate
-        motion_update_rate = rospy.get_param('motion_update_rate', 200.)  #set param to 0 to ignore interpolated motion
+        motion_update_rate = rospy.get_param('motion_update_rate', 200.)  # set param to 0 to ignore interpolated motion
         self.motion_ctrl = MotionControllerSimulator(num_joints, update_rate=motion_update_rate)
 
         # Published to joint states
@@ -337,15 +323,16 @@ class AuboRobotSimulatorNode():
         rospy.loginfo("Creating joint trajectory subscriber")
         self.joint_path_sub = rospy.Subscriber('joint_path_command', JointTrajectory, self.trajectory_callback)
 
-         # Subscribe to a joint trajectory
+        # Subscribe to a joint trajectory
         rospy.loginfo("Enable Switch")
         self.plan_type_sub = rospy.Subscriber('rib_status', Int32MultiArray, self.rib_status_callback)
 
         # JointStates timed task (started automatically)
         period = rospy.Duration(1.0/self.pub_rate)
         rospy.logdebug('Setting up publish worker with period (sec): %s', str(period.to_sec()))
-        self.EnableFlag = 1
         rospy.Timer(period, self.publish_worker)
+
+        self.EnableFlag = 1
 
         # GetRobotInfo service server and pre-cooked svc response
         self.get_robot_info_response = self._init_robot_info_response()
@@ -354,14 +341,12 @@ class AuboRobotSimulatorNode():
         rospy.loginfo("Clean up init")
         rospy.on_shutdown(self.motion_ctrl.shutdown)
 
-
     """
     Service callback for GetRobotInfo() service. Returns fake information.
     """
     def cb_svc_get_robot_info(self, req):
         # return cached response instance
         return self.get_robot_info_response
-
 
     """
     The publish worker is executed at a fixed rate.  This publishes the various
@@ -370,7 +355,6 @@ class AuboRobotSimulatorNode():
     def publish_worker(self, event):
         self.joint_state_publisher()
         # self.robot_status_publisher()         # robot_status message is published by aubo_driver
-
 
     """
     The joint state publisher publishes the current joint state and the current
@@ -401,7 +385,6 @@ class AuboRobotSimulatorNode():
             except Exception as e:
                 rospy.loginfo('Unexpected exception in joint state publisher: %s', e)
 
-
     """
     The robot status publisher publishes the current simulated robot status.
 
@@ -415,7 +398,6 @@ class AuboRobotSimulatorNode():
 
     The value of 'in_motion' is derived from the state of the MotionControllerSimulator.
     """
-
     def rib_status_callback(self, data):
         try:
             if  data.data[1] == 1:
@@ -430,7 +412,6 @@ class AuboRobotSimulatorNode():
 
         except Exception as e:
             rospy.logerr('Unexpected exception: %s', e)
-
 
     """
     Trajectory subscription callback (gets called whenever a "joint_path_command" message is received).
@@ -451,7 +432,7 @@ class AuboRobotSimulatorNode():
                         rospy.logerr('Received trajectory while still in motion, trajectory splicing not supported')
                     else:
                         rospy.logdebug('Received empty trajectory while still in motion, stopping current trajectory')
-                    #maybe no need to stop the controller, just feedback the status of the controller to outside!!
+                    # maybe no need to stop the controller, just feedback the status of the controller to outside!!
                     self.motion_ctrl.stop()
 
                 else:
@@ -534,7 +515,6 @@ class AuboRobotSimulatorNode():
         # always successfull
         resp.code.val = ServiceReturnCode.SUCCESS
         return resp
-
 
 if __name__ == '__main__':
     try:

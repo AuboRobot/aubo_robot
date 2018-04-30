@@ -45,9 +45,10 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include "sensor_msgs/JointState.h"
 
 #define BufferQueueSize 2000
-#define THRESHHOLD 0.000001
 #define ARM_DOF 6
 #define MAXALLOWEDDELAY 20
+#define MAXALLOWEDDELAY 20
+#define server_port 8899
 
 namespace aubo_driver
 {
@@ -56,7 +57,7 @@ namespace aubo_driver
     //    double currentPosition[aubo_robot_namespace::ARM_DOF];
     //    double currentVelocity[ARM_DOF];
     //    double currentAcceleration[ARM_DOF];
-        double currentJointPos[ARM_DOF];
+        double current_joint_pos_[ARM_DOF];
     };
     enum ROBOT_CONTROLLER_MODE
     {
@@ -72,7 +73,7 @@ namespace aubo_driver
                 front = rear = 0;
             }
             ~BufQueue(){}    //析构函数
-            bool Empty()                          //判断队列是否为空
+            bool empty()                          //判断队列是否为空
             {
                 if(front == rear)
                     return true;
@@ -80,22 +81,22 @@ namespace aubo_driver
                     return false;
             }
 
-            void EnQueue(PlanningState x)
+            void enQueue(PlanningState x)
             {
                 if(((rear + 1) % BufferQueueSize) == front)             //判断队列是否已满
-                    DeQueue();
+                    deQueue();
 
                 rear = (rear + 1) % BufferQueueSize;             //移动尾指针指向下一个空间
                 buf[rear] = x;                        //元素x入队
             }
 
-            PlanningState DeQueue()                    //队头元素出栈
+            PlanningState deQueue()                    //队头元素出栈
             {
                 front = (front + 1) % BufferQueueSize;        //移动队头指针指向下一个空间，即被删元素所在位置
                 return buf[front];               //返回被删除的元素的值
             }
 
-            int GetQueueSize()
+            int getQueueSize()
             {
                 return ((rear+BufferQueueSize-front)%BufferQueueSize);
             }
@@ -109,13 +110,13 @@ namespace aubo_driver
     public:
 //        RobotState();
 //        ~RobotState();
-        aubo_robot_namespace::JointStatus jointStatus[6];
-        aubo_robot_namespace::RobotDiagnosis robotDiagnosisInfo;
+        aubo_robot_namespace::JointStatus joint_status_[ARM_DOF];
+        aubo_robot_namespace::RobotDiagnosis robot_diagnosis_info_;
         bool IsRealRobotExist;
         bool isRobotControllerConnected;
-        ROBOT_CONTROLLER_MODE robot_controller;
-        aubo_robot_namespace::RobotState state;
-        aubo_robot_namespace::RobotErrorCode code;
+        ROBOT_CONTROLLER_MODE robot_controller_;
+        aubo_robot_namespace::RobotState state_;
+        aubo_robot_namespace::RobotErrorCode code_;
         unsigned char getRobotMode();
         bool isReady();
 
@@ -130,7 +131,7 @@ namespace aubo_driver
         public:
             AuboDriver();
             ~AuboDriver();
-            bool road_point_compare(double *point1, double *point2);
+            bool roadPointCompare(double *point1, double *point2);
 
             double* getCurrentPosition();
             void setCurrentPosition(double *target);
@@ -141,65 +142,70 @@ namespace aubo_driver
             void run();
             bool setIO(aubo_msgs::SetIORequest& req, aubo_msgs::SetIOResponse& resp);
 
-        public:
-            static bool IsRealRobotExist;
-            static bool startMove;
-            static int controlOption;
-            static double lastRecievePoint[ARM_DOF];
-            static std::string jointname[ARM_DOF];
+            const int UPDATE_RATE_ = 500;
+            const int TIMER_SPAN_ = 50;
+            const double THRESHHOLD = 0.000001;
 
-            int BufferSize;
-            ServiceInterface robotService;      //send
-            ServiceInterface robotService1;     //receive
+        public:
+            static bool real_robot_exist_;
+            static bool start_move_;
+            static int control_option_;
+            static double last_recieve_point_[ARM_DOF];
+            static std::string joint_name_[ARM_DOF];
+
+            int buffer_size_;
+            ServiceInterface robot_send_service_;      //send
+            ServiceInterface robot_receive_service_;     //receive
 
             RobotState rs;
 //            std::thread* mb_publish_thread_;
 
 
-            BufQueue  bufQueue;
+            BufQueue  buf_queue_;
             aubo_msgs::JointPos cur_pos;
-            ros::Publisher jointstates_pub;
-            ros::Publisher jointtarget_pub;
-            ros::Publisher robot_status_pub;
-            ros::Subscriber teach_subs;
-            ros::Subscriber moveAPI_subs;
-            ros::Subscriber moveIt_controller_subs;
-            ros::Publisher io_pub;
+            ros::Publisher joint_states_pub_;
+            ros::Publisher joint_target_pub_;
+            ros::Publisher robot_status_pub_;
+            ros::Subscriber teach_subs_;
+            ros::Subscriber moveAPI_subs_;
+            ros::Subscriber moveit_controller_subs_;
+            ros::Publisher io_pub_;
 
         private:
-            void MoveItPosCallback(const sensor_msgs::JointState::ConstPtr &msg);
+            void moveItPosCallback(const sensor_msgs::JointState::ConstPtr &msg);
             void AuboAPICallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
-            void TeachCallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
+            void teachCallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
             void chatterCallback1(const std_msgs::Float32MultiArray::ConstPtr &msg);
             void chatterCallback3(const aubo_msgs::IOState::ConstPtr &msg);
             void timerCallback(const ros::TimerEvent& e);
             bool setRobotJointsByMoveIt();
-            void plantypeCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
+            void planTypeCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
             void publishIOMsg();
 
             bool reverse_connected_;
 
-            ros::NodeHandle nh;
-            ros::Publisher  rib_pub;
-            ros::Subscriber plan_type_sub;
-            ros::Timer timer;            
+            ros::NodeHandle nh_;
+            ros::Publisher  rib_pub_;
+            ros::Subscriber plan_type_sub_;
+            ros::Timer timer_;
             ros::Timer io_publish_timer;
 
             ros::ServiceServer io_srv_;
             std::thread* mb_publish_thread_;
 
             double io_flag_delay_;
-            static int ribbuffersize;
-            static int controlMode;
-            std_msgs::Int32MultiArray ribstatus;
-            industrial_msgs::RobotStatus robotstatus;
-            int oldribstatus[3];
-            static int ControllerConnectedFlag;
-            static bool dataRecieved;
-            static int dataCount;
+            std::string server_host_;
+            static int rib_buffer_size_;
+            static int control_mode_;
+            std_msgs::Int32MultiArray rib_status_;
+            industrial_msgs::RobotStatus robot_status_;
+            int old_rib_status_[3];
+            static int controller_connected_flag_;
+            static bool data_recieved_;
+            static int data_count_;
 
-            static double currentJoints[ARM_DOF];
-            static double targetPoint[ARM_DOF];
+            static double current_joints_[ARM_DOF];
+            static double target_point_[ARM_DOF];
     };
 
     enum ControMode

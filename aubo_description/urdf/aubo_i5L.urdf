@@ -337,8 +337,8 @@
     <child link="s_Link"/>
     <axis xyz="0 0 0"/>
   </joint>
-  <link name="world" />
 
+  <link name="world" />
   <joint name="world_joint" type="fixed">
     <parent link="world" />
     <child link = "base_link" />

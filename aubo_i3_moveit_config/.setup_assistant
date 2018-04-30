@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: aubo_description
+    relative_path: urdf/aubo_i3.urdf
+  SRDF:
+    relative_path: config/aubo_i3.srdf
+  CONFIG:
+    author_name: Allen Liu
+    author_email: liug@our-robotics.com
+    generated_timestamp: 1524811452
