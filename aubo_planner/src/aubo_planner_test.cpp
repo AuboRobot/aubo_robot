@@ -38,8 +38,6 @@
 #include <time.h>
 #include <string.h>
 #include <vector>
-#include <condition_variable>
-#include <boost/scoped_ptr.hpp>
 
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>

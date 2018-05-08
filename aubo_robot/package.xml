@@ -6,8 +6,8 @@
 	Description,drivers, moveit and utilities for AUBO Robot Arms.
   </description>
 
-  <author email="liug@our-robotics.com">liuxin</author>
-  <maintainer email="liug@our-robotics.com">liuxin</maintainer>
+  <author email="liug@our-robotics.com">Allen Liu</author>
+  <maintainer email="liug@our-robotics.com">Allen Liu</maintainer>
 
   <license>BSD</license>
 

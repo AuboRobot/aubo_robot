@@ -6,8 +6,8 @@
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <author email="liug@our-robotics.com">liugang</author>
-  <maintainer email="liug@our-robotics.com">liugang</maintainer>
+  <author email="liug@our-robotics.com">Allen Liu</author>
+  <maintainer email="liug@our-robotics.com">Allen Liu</maintainer>
   <url type="website">http://wiki.ros.org/aubo_driver</url>
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
