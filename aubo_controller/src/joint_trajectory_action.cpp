@@ -42,8 +42,8 @@ namespace joint_trajectory_action
 const double JointTrajectoryAction::WATCHDOG_PERIOD_ = 1.0;
 const double JointTrajectoryAction::DEFAULT_GOAL_THRESHOLD_ = 0.01;
 
-JointTrajectoryAction::JointTrajectoryAction() :
-    action_server_(node_, "aubo_i5l_controller/follow_joint_trajectory", boost::bind(&JointTrajectoryAction::goalCB, this, _1),
+JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
+    action_server_(node_, controller_name, boost::bind(&JointTrajectoryAction::goalCB, this, _1),
                    boost::bind(&JointTrajectoryAction::cancelCB, this, _1), false), has_active_goal_(false),
                        controller_alive_(false), has_moved_once_(false)
 {
@@ -328,16 +328,37 @@ bool JointTrajectoryAction::withinGoalConstraints(const control_msgs::FollowJoin
 } //joint_trajectory_action
 } //industrial_robot_client
 
+
+/** This node should be loaded after the robot description**/
 using industrial_robot_client::joint_trajectory_action::JointTrajectoryAction;
 int main(int argc, char** argv)
 {
   // initialize node
   ros::init(argc, argv, "aubo_joint_follow_action");
 
-  JointTrajectoryAction action;
+  std::string robot_name, controller_name;
+  ros::param::get("/robot_name", robot_name);
+  while(robot_name == "")
+  {
+    sleep(1);
+    ROS_INFO("Waiting for the robot description to start up!");
+  }
+  if(robot_name == "aubo_i5")
+      controller_name = "aubo_i5_controller/follow_joint_trajectory";
+  else if(robot_name == "aubo_i3")
+          controller_name = "aubo_i3_controller/follow_joint_trajectory";
+  else if(robot_name == "aubo_i7")
+          controller_name = "aubo_i7_controller/follow_joint_trajectory";
+  else if(robot_name == "aubo_i10")
+          controller_name = "aubo_i10_controller/follow_joint_trajectory";
+  else if(robot_name == "aubo_i5l")
+          controller_name = "aubo_i5l_controller/follow_joint_trajectory";
+
+  JointTrajectoryAction action(controller_name);
   action.run();
 
   return 0;
 }
+
 
 

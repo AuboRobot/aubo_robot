@@ -113,7 +113,7 @@
     <origin xyz="0.408 0 0" rpy="-3.1416 -5.1632E-18 -5.459E-16" />
     <parent link="upperArm_Link" />
     <child link="foreArm_Link" />
-    <axis xyz="0 0 -1" />
+    <axis xyz="0 0 1" />
     <limit lower="-3.05" upper="3.05" effort="0" velocity="0" />
   </joint>
 

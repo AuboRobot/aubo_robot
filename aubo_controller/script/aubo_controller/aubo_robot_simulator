@@ -199,7 +199,7 @@ class MotionControllerSimulator():
         self.positionUpdatedFlag = rospy.get_param('/aubo_driver/robot_connected', '0')
         while self.positionUpdatedFlag == '0':
             rospy.sleep( self.update_rate/400)
-            self.positionUpdatedFlag = rospy.get_param('/IsRobotConnected', '0')
+            self.positionUpdatedFlag = rospy.get_param('/aubo_driver/robot_connected', '0')
 
         rospy.loginfo('Starting motion worker in motion controller simulator')
         move_duration = rospy.Duration()

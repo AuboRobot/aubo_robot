@@ -53,7 +53,7 @@ public:
    * \brief Constructor
    *
    */
-  JointTrajectoryAction();
+  JointTrajectoryAction(std::string controller_name);
 
   /**
    * \brief Destructor

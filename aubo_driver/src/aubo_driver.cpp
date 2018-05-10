@@ -370,20 +370,20 @@ void AuboDriver::AuboAPICallback(const std_msgs::Float32MultiArray::ConstPtr &ms
 
 void AuboDriver::run()
 {
-//    ros::Rate wait(10);
-//    std::string start_signal = "0";
-//    while(start_signal == "0")
-//    {
-//        ros::param::get("/driver_start",start_signal);
-//        wait.sleep();
-//    }
+    ros::Rate wait(10);
+    std::string start_signal = "0";
+    while(start_signal == "0")
+    {
+        ros::param::get("/driver_start",start_signal);
+        wait.sleep();
+    }
     ROS_INFO("Start the driver!");
     int ret1 = aubo_robot_namespace::InterfaceCallSuccCode;
     int ret2 = aubo_robot_namespace::InterfaceCallSuccCode;
     std::string s;
 
     ros::param::get("/aubo_driver/server_host", s); //The server_host should be corresponding to the robot controller setup.
-    server_host_ = (s=="")? "192.168.80.5" : s;
+    server_host_ = (s=="")? "192.168.1.101" : s;
     std::cout<<"server_host:"<<server_host_<<std::endl;
 
     /** log in ***/
