@@ -60,3 +60,5 @@ install(TARGETS aubo_panel
 install(FILES aubo_rviz_plugins.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+
+add_dependencies(aubo_panel aubo_msgs_gencpp)

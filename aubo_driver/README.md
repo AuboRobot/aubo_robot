@@ -13,7 +13,7 @@ ___
   ```
   The last argument mean the robot is controlled by robot-controller, when you want to go back to ros-controller, just change the value **"0"** to **"1"**.
 
-* The driver maintian some of the same functionality as the previous [aubo_driver](https://github.com/auboliuxin/aubo_robot):
+* The driver maintain some of the same functionality as the previous [aubo_driver](https://github.com/auboliuxin/aubo_robot):
 
 	* Action interface on `/follow_joint_trajectory` for seamless integration with MoveIt.
 
@@ -27,7 +27,7 @@ ___
 
 	* As ros_control wants to have control over the robot at all times, ros_control compatibility is set via a parameter at launch-time.
 	* With ros_control active, the driver doesn't open the action_lib interface. This is handled by ros_control instead.
-Currently one controller is available, controlling the joint position of the robot, useable for trajectroy execution.
+	* Currently one controller is available, controlling the joint position of the robot, useable for trajectroy execution.
 
 ### Installation
 ---
