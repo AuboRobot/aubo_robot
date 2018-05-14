@@ -95,7 +95,7 @@ class MotionControllerSimulator():
         self.moveit_joint_state_pub = rospy.Publisher('moveItController_cmd', JointState, queue_size=2000)
 
         rospy.logdebug("Creating joint state subscriber!")
-        self.update_joint_state_subs = rospy.Subscriber('real_pose', Float32MultiArray, self.update_joint_state_callback)
+        self.update_joint_state_subs = rospy.Subscriber('/aubo_driver/real_pose', Float32MultiArray, self.update_joint_state_callback)
 
         self.MinimumBufferSize = 250
         # Shutdown signal
@@ -163,7 +163,7 @@ class MotionControllerSimulator():
                 joint_state_msg.name = self.joint_names
                 joint_state_msg.position = self.joint_positions
 
-                rospy.loginfo('Moved to position: %s', str(self.joint_positions))
+                # rospy.loginfo('Moved to position: %s', str(self.joint_positions))
                 self.moveit_joint_state_pub.publish(joint_state_msg)
 
         except Exception as e:
@@ -188,13 +188,12 @@ class MotionControllerSimulator():
             if not self.sig_stop:
                 self.joint_positions = point
                 # self.joint_state_publisher()                #publish the control command to the robot
-                rospy.logdebug('Moved to position: %s in %s', str(self.joint_positions), str(dur))
+                # rospy.logdebug('Moved to position: %s in %s', str(self.joint_positions), str(dur))
             else:
                 rospy.loginfo('Stopping motion immediately, clearing stop signal')
                 self.sig_stop = False
 
     def _motion_worker(self):
-        rospy.set_param('/driver_start','1')
         # first update the robot real postion
         self.positionUpdatedFlag = rospy.get_param('/aubo_driver/robot_connected', '0')
         while self.positionUpdatedFlag == '0':
@@ -325,7 +324,7 @@ class AuboRobotSimulatorNode():
 
         # Subscribe to a joint trajectory
         rospy.loginfo("Enable Switch")
-        self.plan_type_sub = rospy.Subscriber('rib_status', Int32MultiArray, self.rib_status_callback)
+        self.plan_type_sub = rospy.Subscriber('/aubo_driver/rib_status', Int32MultiArray, self.rib_status_callback)
 
         # JointStates timed task (started automatically)
         period = rospy.Duration(1.0/self.pub_rate)
@@ -440,6 +439,7 @@ class AuboRobotSimulatorNode():
                         # first remaps point to controller joint order, the add the point to the controller.
                         point = self._to_controller_order(msg_in.joint_names, point)
                         self.motion_ctrl.add_motion_waypoint(point)
+                        rospy.loginfo('Add new position: %s', str(point.positions))
 
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)

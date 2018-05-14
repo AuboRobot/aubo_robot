@@ -87,7 +87,7 @@ void AuboPanel::initROS()
     plantype_publisher_ = nh_.advertise<std_msgs::Int32MultiArray>("plan_type", 1);
 
 //    io_publisher_ = nh_.advertise<aubo_msgs::IOState> ("io_state",1);
-    update_jointstate_ = nh_.subscribe("real_pose", 1000, &AuboPanel::real_pose_Callback,this);
+    update_jointstate_ = nh_.subscribe("/aubo_driver/real_pose", 1000, &AuboPanel::real_pose_Callback,this);
     joint_pub = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
 }
 

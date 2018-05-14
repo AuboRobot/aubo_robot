@@ -17,8 +17,8 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "testIO");
 
   ros::NodeHandle n;
-  ros::ServiceClient client = n.serviceClient<aubo_msgs::SetIO>("aubo_driver/set_io");
-  ros::Subscriber io_subs = n.subscribe("aubo_driver/io_state", 100, IOCallback);
+  ros::ServiceClient client = n.serviceClient<aubo_msgs::SetIO>("/aubo_driver/set_io");
+  ros::Subscriber io_subs = n.subscribe("/aubo_driver/io_states", 100, IOCallback);
   aubo_msgs::SetIO srv;
   std::string s1, s2, s3;
   ros::Rate loop_rate(1);

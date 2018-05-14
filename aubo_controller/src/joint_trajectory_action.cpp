@@ -76,23 +76,23 @@ void JointTrajectoryAction::robotStatusCB(const industrial_msgs::RobotStatusCons
   last_robot_status_ = msg; //caching robot status for later use.
   has_moved_once_ = has_moved_once_ ? true : (last_robot_status_->in_motion.val == industrial_msgs::TriState::TRUE);
 
-  if (msg->e_stopped.val == 1 || msg->in_motion.val == 2 /*isProtectiveStopped()*/)
-  {
-      if (msg->e_stopped.val == 1)
-      {
-          ROS_INFO("Emergency stop pressed!");
-      }
-      else
-      {
-           ROS_INFO("Robot is protective stopped!");
-      }
-      if(has_active_goal_)
-      {
-          ROS_ERROR("Aborting trajectory");
-          abortGoal();
-          has_active_goal_ = false;
-      }
-  }
+//  if (msg->e_stopped.val == 1 || msg->in_motion.val == 2 /*isProtectiveStopped()*/)
+//  {
+//      if (msg->e_stopped.val == 1)
+//      {
+//          ROS_INFO("Emergency stop pressed!");
+//      }
+//      else
+//      {
+//           ROS_INFO("Robot is protective stopped!");
+//      }
+//      if(has_active_goal_)
+//      {
+//          ROS_ERROR("Aborting trajectory");
+//          abortGoal();
+//          has_active_goal_ = false;
+//      }
+//  }
 }
 
 void JointTrajectoryAction::watchdog(const ros::TimerEvent &e)

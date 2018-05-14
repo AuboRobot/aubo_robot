@@ -46,18 +46,16 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 
 #define BufferQueueSize 2000
 #define ARM_DOF 6
-#define MAXALLOWEDDELAY 20
-#define MAXALLOWEDDELAY 20
+#define MAXALLOWEDDELAY 50
 #define server_port 8899
 
 namespace aubo_driver
 {
     struct PlanningState
     {
-    //    double currentPosition[aubo_robot_namespace::ARM_DOF];
-    //    double currentVelocity[ARM_DOF];
-    //    double currentAcceleration[ARM_DOF];
-        double current_joint_pos_[ARM_DOF];
+    //    double joint_vel_[ARM_DOF];
+    //    double joint_acc_[ARM_DOF];
+        double joint_pos_[ARM_DOF];
     };
     enum ROBOT_CONTROLLER_MODE
     {
@@ -111,6 +109,7 @@ namespace aubo_driver
 //        RobotState();
 //        ~RobotState();
         aubo_robot_namespace::JointStatus joint_status_[ARM_DOF];
+        aubo_robot_namespace::wayPoint_S wayPoint_;
         aubo_robot_namespace::RobotDiagnosis robot_diagnosis_info_;
         bool IsRealRobotExist;
         bool isRobotControllerConnected;
@@ -140,6 +139,7 @@ namespace aubo_driver
 
             void updateControlStatus();
             void run();
+            bool connectToRobotController();
             bool setIO(aubo_msgs::SetIORequest& req, aubo_msgs::SetIOResponse& resp);
 
             const int UPDATE_RATE_ = 500;
@@ -147,10 +147,6 @@ namespace aubo_driver
             const double THRESHHOLD = 0.000001;
 
         public:
-            static bool real_robot_exist_;
-            static bool start_move_;
-            static int control_option_;
-            static double last_recieve_point_[ARM_DOF];
             static std::string joint_name_[ARM_DOF];
 
             int buffer_size_;
@@ -159,7 +155,6 @@ namespace aubo_driver
 
             RobotState rs;
 //            std::thread* mb_publish_thread_;
-
 
             BufQueue  buf_queue_;
             aubo_msgs::JointPos cur_pos;
@@ -179,14 +174,23 @@ namespace aubo_driver
             void chatterCallback3(const aubo_msgs::IOState::ConstPtr &msg);
             void timerCallback(const ros::TimerEvent& e);
             bool setRobotJointsByMoveIt();
-            void planTypeCallback(const std_msgs::Int32MultiArray::ConstPtr &msg);
+            void controllerSwitchCallback(const std_msgs::Int32::ConstPtr &msg);
             void publishIOMsg();
 
             bool reverse_connected_;
+            double last_recieve_point_[ARM_DOF];   /** To avoid joining the same waypoint to the queue **/
+            int control_option_;
+            bool data_recieved_;
+            int data_count_;
+            bool real_robot_exist_;
+            bool controller_connected_flag_;
+            bool start_move_;
+            double current_joints_[ARM_DOF];
+            double target_point_[ARM_DOF];
 
             ros::NodeHandle nh_;
             ros::Publisher  rib_pub_;
-            ros::Subscriber plan_type_sub_;
+            ros::Subscriber controller_switch_sub_;
             ros::Timer timer_;
             ros::Timer io_publish_timer;
 
@@ -195,17 +199,10 @@ namespace aubo_driver
 
             double io_flag_delay_;
             std::string server_host_;
-            static int rib_buffer_size_;
-            static int control_mode_;
+            int rib_buffer_size_;
+            int control_mode_;
             std_msgs::Int32MultiArray rib_status_;
             industrial_msgs::RobotStatus robot_status_;
-            int old_rib_status_[3];
-            static int controller_connected_flag_;
-            static bool data_recieved_;
-            static int data_count_;
-
-            static double current_joints_[ARM_DOF];
-            static double target_point_[ARM_DOF];
     };
 
     enum ControMode

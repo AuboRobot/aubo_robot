@@ -36,19 +36,24 @@ endif()
 
 ## Declare a C++ executable
 set(${PROJECT_NAME}_SOURCES1
-    src/aubo_driver.cpp
+    src/driver_node.cpp
 )
 set(${PROJECT_NAME}_SOURCES2
     src/testIO.cpp
 )
+set(${PROJECT_NAME}_SOURCES3
+    src/testAuboAPI.cpp
+)
 add_executable(aubo_driver ${${PROJECT_NAME}_SOURCES1})
 add_executable(testIO ${${PROJECT_NAME}_SOURCES2})
+add_executable(testAuboAPI ${${PROJECT_NAME}_SOURCES3})
 
 #LINK_LIBRARIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 target_link_libraries(aubo_driver ${catkin_LIBRARIES} pthread)
 #target_link_libraries(aubo_driver ${catkin_LIBRARIES} libauborobotcontroller.a)
 target_link_libraries(aubo_driver ${catkin_LIBRARIES} libauborobotcontroller.so)
+target_link_libraries(testAuboAPI ${catkin_LIBRARIES} libauborobotcontroller.so)
 
 target_link_libraries(testIO ${catkin_LIBRARIES})
 
