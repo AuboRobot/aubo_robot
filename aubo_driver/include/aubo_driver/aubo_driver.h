@@ -30,6 +30,7 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/String.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <aubo_msgs/SetIO.h>
 #include <aubo_msgs/SetPayload.h>
@@ -43,6 +44,7 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include "aubo_driver/AuboRobotMetaType.h"
 #include "aubo_driver/serviceinterface.h"
 #include "sensor_msgs/JointState.h"
+#include <control_msgs/FollowJointTrajectoryFeedback.h>
 
 #define BufferQueueSize 2000
 #define ARM_DOF 6
@@ -159,15 +161,18 @@ namespace aubo_driver
             BufQueue  buf_queue_;
             aubo_msgs::JointPos cur_pos;
             ros::Publisher joint_states_pub_;
+            ros::Publisher joint_feedback_pub_;
             ros::Publisher joint_target_pub_;
             ros::Publisher robot_status_pub_;
             ros::Subscriber teach_subs_;
             ros::Subscriber moveAPI_subs_;
             ros::Subscriber moveit_controller_subs_;
+            ros::Subscriber trajectory_execution_subs_;
             ros::Publisher io_pub_;
 
         private:
             void moveItPosCallback(const sensor_msgs::JointState::ConstPtr &msg);
+            void trajectoryExecutionCallback(const std_msgs::String::ConstPtr &msg);
             void AuboAPICallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
             void teachCallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
             void chatterCallback1(const std_msgs::Float32MultiArray::ConstPtr &msg);

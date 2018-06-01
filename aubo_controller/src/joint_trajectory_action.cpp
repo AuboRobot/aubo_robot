@@ -40,7 +40,7 @@ namespace industrial_robot_client
 namespace joint_trajectory_action
 {
 const double JointTrajectoryAction::WATCHDOG_PERIOD_ = 1.0;
-const double JointTrajectoryAction::DEFAULT_GOAL_THRESHOLD_ = 0.01;
+const double JointTrajectoryAction::DEFAULT_GOAL_THRESHOLD_ = 0.002;
 
 JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
     action_server_(node_, controller_name, boost::bind(&JointTrajectoryAction::goalCB, this, _1),
@@ -62,6 +62,8 @@ JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
   pub_trajectory_command_ = node_.advertise<trajectory_msgs::JointTrajectory>("joint_path_command", 100);
   sub_trajectory_state_ = node_.subscribe("feedback_states", 1, &JointTrajectoryAction::controllerStateCB, this);
   sub_robot_status_ = node_.subscribe("robot_status", 1, &JointTrajectoryAction::robotStatusCB, this);
+  trajectory_execution_subs_ = node_.subscribe("trajectory_execution_event", 1, &JointTrajectoryAction::trajectoryExecutionCallback,this);
+
 
   watchdog_timer_ = node_.createTimer(ros::Duration(WATCHDOG_PERIOD_), &JointTrajectoryAction::watchdog, this, true);
   action_server_.start();
@@ -69,6 +71,17 @@ JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
 
 JointTrajectoryAction::~JointTrajectoryAction()
 {
+}
+
+void JointTrajectoryAction::trajectoryExecutionCallback(const std_msgs::String::ConstPtr &msg)
+{
+    if(msg->data == "stop")
+    {
+        ROS_INFO("trajectory execution status: stop1");
+        // Marks the current goal as canceled.
+        active_goal_.setAborted();
+        has_active_goal_ = false;
+    }
 }
 
 void JointTrajectoryAction::robotStatusCB(const industrial_msgs::RobotStatusConstPtr &msg)
@@ -274,7 +287,7 @@ void JointTrajectoryAction::controllerStateCB(const control_msgs::FollowJointTra
       }
       else
       {
-        ROS_DEBUG("Within goal constraints but robot is still moving");
+        ROS_INFO("Within goal constraints but robot is still moving");
       }
     }
     else

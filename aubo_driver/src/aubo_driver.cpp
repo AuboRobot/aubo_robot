@@ -51,6 +51,7 @@ AuboDriver::AuboDriver():buffer_size_(200),io_flag_delay_(0.02),data_recieved_(f
 
     /** publish messages **/
     joint_states_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 300);
+    joint_feedback_pub_ = nh_.advertise<control_msgs::FollowJointTrajectoryFeedback>("feedback_states", 100);
     joint_target_pub_ = nh_.advertise<std_msgs::Float32MultiArray>("/aubo_driver/real_pose", 50);
     robot_status_pub_ = nh_.advertise<industrial_msgs::RobotStatus>("robot_status", 100);
     io_pub_ = nh_.advertise<aubo_msgs::IOState>("/aubo_driver/io_states", 10);
@@ -58,6 +59,7 @@ AuboDriver::AuboDriver():buffer_size_(200),io_flag_delay_(0.02),data_recieved_(f
     io_srv_ = nh_.advertiseService("/aubo_driver/set_io",&AuboDriver::setIO, this);
 
     /** subscribe topics **/
+    trajectory_execution_subs_ = nh_.subscribe("trajectory_execution_event", 10, &AuboDriver::trajectoryExecutionCallback,this);
     moveit_controller_subs_ = nh_.subscribe("moveItController_cmd", 2000, &AuboDriver::moveItPosCallback,this);
     teach_subs_ = nh_.subscribe("teach_cmd", 10, &AuboDriver::teachCallback,this);
     moveAPI_subs_ = nh_.subscribe("moveAPI_cmd", 10, &AuboDriver::AuboAPICallback, this);
@@ -89,7 +91,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
             robot_receive_service_.robotServiceGetRobotDiagnosisInfo(rs.robot_diagnosis_info_);
             rib_buffer_size_ = rs.robot_diagnosis_info_.macTargetPosDataSize;
 
-            robot_receive_service_.robotServiceGetRobotCurrentState(rs.state_);
+//            robot_receive_service_.robotServiceGetRobotCurrentState(rs.state_);            // this is controlled by Robot Controller
             robot_receive_service_.getErrDescByCode(rs.code_);
 
             {
@@ -97,8 +99,8 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
                 robot_status_.mode.val            = (int8)rs.robot_diagnosis_info_.orpeStatus;
                 robot_status_.e_stopped.val       = (int8)rs.robot_diagnosis_info_.softEmergency;
                 robot_status_.drives_powered.val  = (int8)rs.robot_diagnosis_info_.armPowerStatus;
-                robot_status_.motion_possible.val = (int8)rs.state_;
-                robot_status_.in_motion.val       = (int8)rs.state_;
+                robot_status_.motion_possible.val = (int)(!start_move_);
+                robot_status_.in_motion.val       = (int)start_move_;
                 //        robot_status_.in_error.val        = (int8)rs.code_;
                 robot_status_.error_code          = (int32)rs.code_;
             }
@@ -153,9 +155,13 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
     else if(control_mode_ == aubo_driver::SendTargetGoal)
     {
         sensor_msgs::JointState joint_state;
+        control_msgs::FollowJointTrajectoryFeedback joint_feedback;
+
         joint_state.header.stamp = ros::Time::now();
         joint_state.name.resize(ARM_DOF);
+        joint_feedback.joint_names.resize(ARM_DOF);
         joint_state.position.resize(ARM_DOF);
+        joint_feedback.actual.positions.resize(ARM_DOF);
         for(int i = 0; i<ARM_DOF; i++)
         {
             joint_state.name[i] = joint_name_[i];
@@ -163,8 +169,12 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
                 joint_state.position[i] = current_joints_[i];
             else
                 joint_state.position[i] = target_point_[i];
+
+            joint_feedback.joint_names[i] = joint_name_[i];
+            joint_feedback.actual.positions[i] = joint_state.position[i];
         }
         joint_states_pub_.publish(joint_state);
+        joint_feedback_pub_.publish(joint_feedback);
 
         /** If the controller is robot-controller, then synchronize the ros-controller states **/
         if(control_option_ == aubo_driver::AuboAPI)
@@ -315,6 +325,17 @@ void AuboDriver::moveItPosCallback(const sensor_msgs::JointState::ConstPtr &msg)
     {
         setTagrtPosition(jointAngle);
         rib_buffer_size_ = 0;
+    }
+}
+
+void AuboDriver::trajectoryExecutionCallback(const std_msgs::String::ConstPtr &msg)
+{
+    if(msg->data == "stop")
+    {
+        ROS_INFO("trajectory execution status: stop");
+        start_move_ = false;
+        while(!buf_queue_.empty())
+            buf_queue_.deQueue();
     }
 }
 

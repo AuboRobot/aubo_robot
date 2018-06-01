@@ -34,7 +34,7 @@
 
 #include <ros/ros.h>
 #include <actionlib/server/action_server.h>
-
+#include <std_msgs/String.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <control_msgs/FollowJointTrajectoryFeedback.h>
@@ -97,6 +97,12 @@ private:
    * robot driver).
    */
   ros::Subscriber sub_robot_status_;
+
+  /**
+   * \brief Subscribes to the trajectory execution status (typically published by the
+   * user).
+   */
+  ros::Subscriber trajectory_execution_subs_;
 
   /**
    * \brief Watchdog time used to fail the action request if the robot
@@ -213,6 +219,12 @@ private:
    *
    */
   void robotStatusCB(const industrial_msgs::RobotStatusConstPtr &msg);
+
+  /**
+   * @brief trajectoryExecutionCallback
+   * @param msg trajectory execution status
+   */
+  void trajectoryExecutionCallback(const std_msgs::String::ConstPtr &msg);
 
   /**
    * \brief Aborts the current action goal and sends a stop command

@@ -327,9 +327,9 @@ class AuboRobotSimulatorNode():
         self.plan_type_sub = rospy.Subscriber('/aubo_driver/rib_status', Int32MultiArray, self.rib_status_callback)
 
         # JointStates timed task (started automatically)
-        period = rospy.Duration(1.0/self.pub_rate)
-        rospy.logdebug('Setting up publish worker with period (sec): %s', str(period.to_sec()))
-        rospy.Timer(period, self.publish_worker)
+        # period = rospy.Duration(1.0/self.pub_rate)
+        # rospy.logdebug('Setting up publish worker with period (sec): %s', str(period.to_sec()))
+        # rospy.Timer(period, self.publish_worker)
 
         self.EnableFlag = 1
 
@@ -352,7 +352,8 @@ class AuboRobotSimulatorNode():
     state and status information to the action controller.
     """
     def publish_worker(self, event):
-        self.joint_state_publisher()
+        pass
+        # self.joint_state_publisher()
         # self.robot_status_publisher()         # robot_status message is published by aubo_driver
 
     """
@@ -371,7 +372,6 @@ class AuboRobotSimulatorNode():
                     joint_state_msg.header.stamp = time
                     joint_state_msg.name = self.joint_names
                     joint_state_msg.position = self.motion_ctrl.get_joint_positions()
-
                     # self.joint_state_pub.publish(joint_state_msg)
 
                     #Joint feedback
@@ -379,7 +379,7 @@ class AuboRobotSimulatorNode():
                     joint_fb_msg.joint_names = self.joint_names
                     joint_fb_msg.actual.positions = self.motion_ctrl.get_joint_positions()
 
-                    self.joint_feedback_pub.publish(joint_fb_msg)
+                    # self.joint_feedback_pub.publish(joint_fb_msg)
 
             except Exception as e:
                 rospy.loginfo('Unexpected exception in joint state publisher: %s', e)
