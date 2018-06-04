@@ -1,3 +1,4 @@
+string stamp 
 Digital[] digital_in_states
 Digital[] digital_out_states
 Analog[] analog_in_states

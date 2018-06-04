@@ -508,7 +508,7 @@ void AuboDriver::run()
 void AuboDriver::publishIOMsg()
 {
     int ret = 0;
-    ros::Rate update_rate(100);
+    ros::Rate update_rate(50);
     while (ros::ok())
     {
         aubo_msgs::IOState io_msg;
@@ -592,6 +592,7 @@ void AuboDriver::publishIOMsg()
             ana.state = status_vector_out[i].ioValue;
             io_msg.tool_ai_states.push_back(ana);
         }
+        io_msg.stamp = "The current IO states: " + std::to_string(ros::Time::now().toSec()) + "s";
         io_pub_.publish(io_msg);
 
         //        msg_lock.unlock();
