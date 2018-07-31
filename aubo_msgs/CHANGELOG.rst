@@ -25,8 +25,8 @@ Changelog for package aubo_msgs
 * update CHANGELOG.rst
 * Contributors: robot
 
-Forthcoming
------------
+1.3.2 (2018-07-31)
+------------------
 
 0.1.0 (2016-09-19)
 ------------------

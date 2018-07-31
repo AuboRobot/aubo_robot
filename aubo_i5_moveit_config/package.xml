@@ -1,7 +1,7 @@
 <package>
 
   <name>aubo_i5_moveit_config</name>
-  <version>1.3.1</version>
+  <version>1.3.2</version>
   <description>
      An automatically generated package with all the configuration and launch files for using the aubo_i5 with the MoveIt! Motion Planning Framework
   </description>
