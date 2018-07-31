@@ -26,7 +26,7 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler. Suggested solution: update the pkg build-essential ")
 endif()
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include include/otg ${catkin_INCLUDE_DIRS})
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         link_directories(${catkin_LIB_DIRS}  lib/lib64)
@@ -50,12 +50,9 @@ add_executable(testAuboAPI ${${PROJECT_NAME}_SOURCES3})
 
 #LINK_LIBRARIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-target_link_libraries(aubo_driver ${catkin_LIBRARIES} pthread)
-#target_link_libraries(aubo_driver ${catkin_LIBRARIES} libauborobotcontroller.a)
-target_link_libraries(aubo_driver ${catkin_LIBRARIES} libauborobotcontroller.so)
-target_link_libraries(testAuboAPI ${catkin_LIBRARIES} libauborobotcontroller.so)
-
-target_link_libraries(testIO ${catkin_LIBRARIES})
+target_link_libraries(aubo_driver pthread ${catkin_LIBRARIES} libauborobotcontroller.so libotgLib.a)
+target_link_libraries(testAuboAPI ${catkin_LIBRARIES} libauborobotcontroller.so libotgLib.a)
+target_link_libraries(testIO ${catkin_LIBRARIES} libotgLib.a)
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 

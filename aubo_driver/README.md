@@ -43,6 +43,7 @@ ___
 roslaunch robot_name_moveit_config robot_name_moveit_planning_executing.launch
 roslaunch robot_name_moveit_config moveit_rviz.launch config:=true
 ```
+There is a parameter named `"/aubo_controller/velocity_scale_factor"`, you can use it to sacle the velocity of the trajectory. The bigger the parameter is, faster the robot will move.
 ### Test
 ---
 * `tsetIO`: The message of topic `/aubo_driver/io_states` is published at a rate of 100Hz. To set IO states, you need to establish a ServiceClient to call servive on `/aubo_driver/set_io`
