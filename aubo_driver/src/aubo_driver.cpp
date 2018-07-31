@@ -37,14 +37,26 @@ namespace aubo_driver {
 
 std::string AuboDriver::joint_name_[ARM_DOF] = {"shoulder_joint","upperArm_joint","foreArm_joint","wrist1_joint","wrist2_joint","wrist3_joint"};
 
-AuboDriver::AuboDriver():buffer_size_(200),io_flag_delay_(0.02),data_recieved_(false),data_count_(0),real_robot_exist_(false),
-    controller_connected_flag_(false),start_move_(false),control_mode_ (aubo_driver::SendTargetGoal),rib_buffer_size_(0)
+AuboDriver::AuboDriver():buffer_size_(200),io_flag_delay_(0.02),data_recieved_(false),data_count_(0),real_robot_exist_(false),emergency_stopped_(false),protective_stopped_(false),normal_stopped_(false),
+    controller_connected_flag_(false),start_move_(false),control_mode_ (aubo_driver::SendTargetGoal),rib_buffer_size_(0),jti(ARM_DOF),jto(ARM_DOF),collision_class_(6)
 {
     /** initialize the parameters **/
     for(int i = 0; i < ARM_DOF; i++)
     {
         current_joints_[i] = 0;
         target_point_[i] = 0;
+        double ratio;
+        if(i < 3)
+        {
+            ratio = BIG_MODULE_RATIO;
+        }
+        else
+        {
+            ratio = SMALL_MODULE_RATIO;
+        }
+        jti.maxVelocity[i] = VMAX * ratio;
+        jti.maxAcceleration[i] = AMAX * ratio;
+        jti.maxJerk[i] = JMAX * ratio;
     }
     rs.robot_controller_ = ROBOT_CONTROLLER;
     rib_status_.data.resize(3);
@@ -60,6 +72,7 @@ AuboDriver::AuboDriver():buffer_size_(200),io_flag_delay_(0.02),data_recieved_(f
 
     /** subscribe topics **/
     trajectory_execution_subs_ = nh_.subscribe("trajectory_execution_event", 10, &AuboDriver::trajectoryExecutionCallback,this);
+    robot_control_subs_ = nh_.subscribe("robot_control", 10, &AuboDriver::robotControlCallback,this);
     moveit_controller_subs_ = nh_.subscribe("moveItController_cmd", 2000, &AuboDriver::moveItPosCallback,this);
     teach_subs_ = nh_.subscribe("teach_cmd", 10, &AuboDriver::teachCallback,this);
     moveAPI_subs_ = nh_.subscribe("moveAPI_cmd", 10, &AuboDriver::AuboAPICallback, this);
@@ -97,11 +110,11 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
             {
                 // publish robot_status information to the controller action server.
                 robot_status_.mode.val            = (int8)rs.robot_diagnosis_info_.orpeStatus;
-                robot_status_.e_stopped.val       = (int8)rs.robot_diagnosis_info_.softEmergency;
+                robot_status_.e_stopped.val       = (int8)(rs.robot_diagnosis_info_.softEmergency || emergency_stopped_);
                 robot_status_.drives_powered.val  = (int8)rs.robot_diagnosis_info_.armPowerStatus;
                 robot_status_.motion_possible.val = (int)(!start_move_);
                 robot_status_.in_motion.val       = (int)start_move_;
-                //        robot_status_.in_error.val        = (int8)rs.code_;
+                robot_status_.in_error.val        = (int)protective_stopped_;   //used for protective stop.
                 robot_status_.error_code          = (int32)rs.code_;
             }
         }
@@ -239,9 +252,44 @@ bool AuboDriver::setRobotJointsByMoveIt()
     if(!buf_queue_.empty())
     {
         PlanningState ps = buf_queue_.deQueue();
+
         if(controller_connected_flag_)      // actually no need this judgment
         {
-            ret = robot_send_service_.robotServiceSetRobotPosData2Canbus(ps.joint_pos_);
+            if(emergency_stopped_)
+            {
+                //clear the buffer, there will be a jerk
+                start_move_ = false;
+                while(!buf_queue_.empty())
+                    buf_queue_.deQueue();
+            }
+            else if(protective_stopped_ || normal_stopped_)
+            {
+                //first slow down, until the velocity to 0.
+                memcpy(&jti.currentPosition[0], ps.joint_pos_, ARM_DOF*sizeof(double));
+                memcpy(&jti.currentVelocity[0], ps.joint_vel_, ARM_DOF*sizeof(double));
+                memcpy(&jti.currentAcceleration[0], ps.joint_acc_, ARM_DOF*sizeof(double));
+                memset(&jti.targetVelocity[0], 0, ARM_DOF*sizeof(double));
+                bool update = otgVelocityModeParameterUpdate(jti);
+                int resultValue = 0;
+                while(resultValue != 1)
+                {
+                   resultValue = otgVelocityModeResult(1, jto);
+                   double jointAngle[] = {jto.newPosition[0],jto.newPosition[1],jto.newPosition[2],jto.newPosition[3],jto.newPosition[4],jto.newPosition[5]};
+                   ret = robot_send_service_.robotServiceSetRobotPosData2Canbus(jointAngle);
+                   std::cout<<jointAngle[0]<<","<<jointAngle[1]<<","<<jointAngle[2]<<","<<jointAngle[3]<<","<<jointAngle[4]<<","<<jointAngle[5]<<","<<std::endl;
+                }
+                //clear the buffer
+                start_move_ = false;
+                while(!buf_queue_.empty())
+                    buf_queue_.deQueue();
+                //clear the flag
+                if(normal_stopped_)
+                    normal_stopped_ = false;
+            }
+            else
+            {
+                ret = robot_send_service_.robotServiceSetRobotPosData2Canbus(ps.joint_pos_);
+            }
             //            struct timeb tb;
             //            ftime(&tb);
             //            std::cout<<tb.millitm<<std::endl;
@@ -301,11 +349,11 @@ void AuboDriver::controllerSwitchCallback(const std_msgs::Int32::ConstPtr &msg)
     }
 }
 
-void AuboDriver::moveItPosCallback(const sensor_msgs::JointState::ConstPtr &msg)
+void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::ConstPtr &msg)
 {
     double jointAngle[ARM_DOF];
     for(int i = 0; i < ARM_DOF; i++)
-        jointAngle[i] = msg->position[i];
+        jointAngle[i] = msg->positions[i];
     if(controller_connected_flag_)
     {
         /** The need a buffer to connect to the RIB to confirm the REAL TIME**/
@@ -315,6 +363,8 @@ void AuboDriver::moveItPosCallback(const sensor_msgs::JointState::ConstPtr &msg)
             data_count_ = 0;
             PlanningState ps;
             memcpy(ps.joint_pos_, jointAngle, sizeof(double) * ARM_DOF);
+            memcpy(ps.joint_vel_, &msg->velocities[0], sizeof(double) * ARM_DOF);
+            memcpy(ps.joint_acc_, &msg->accelerations[0], sizeof(double) * ARM_DOF);
             memcpy(last_recieve_point_, jointAngle, sizeof(double) * ARM_DOF);
             buf_queue_.enQueue(ps);
             if(buf_queue_.getQueueSize() > buffer_size_ && !start_move_)
@@ -333,9 +383,28 @@ void AuboDriver::trajectoryExecutionCallback(const std_msgs::String::ConstPtr &m
     if(msg->data == "stop")
     {
         ROS_INFO("trajectory execution status: stop");
-        start_move_ = false;
-        while(!buf_queue_.empty())
-            buf_queue_.deQueue();
+        normal_stopped_ = true;
+    }
+}
+
+void AuboDriver::robotControlCallback(const std_msgs::String::ConstPtr &msg)
+{
+    if(msg->data == "powerOn")
+    {
+        int ret = aubo_robot_namespace::InterfaceCallSuccCode;
+        aubo_robot_namespace::ToolDynamicsParam toolDynamicsParam;
+        memset(&toolDynamicsParam, 0, sizeof(toolDynamicsParam));
+        aubo_robot_namespace::ROBOT_SERVICE_STATE result;
+        ret = robot_send_service_.rootServiceRobotStartup(toolDynamicsParam/**工具动力学参数**/,
+                                                   collision_class_        /*碰撞等级*/,
+                                                   true     /*是否允许读取位姿　默认为true*/,
+                                                   true,    /*保留默认为true */
+                                                   1000,    /*保留默认为1000 */
+                                                   result); /*机械臂初始化*/
+        if(ret == aubo_robot_namespace::InterfaceCallSuccCode)
+            ROS_INFO("Initial sucess.");
+        else
+            ROS_ERROR("Initial failed.");
     }
 }
 
@@ -422,7 +491,7 @@ bool AuboDriver::connectToRobotController()
 
     std::string s;
     ros::param::get("/aubo_driver/server_host", s); //The server_host should be corresponding to the robot controller setup.
-    server_host_ = (s=="")? "127.0.0.1" : s;
+    server_host_ = (s=="")? "192.168.1.100" : s;
     std::cout<<"server_host:"<<server_host_<<std::endl;
 
     /** log in ***/
@@ -443,6 +512,7 @@ bool AuboDriver::connectToRobotController()
         if(ret2 == aubo_robot_namespace::InterfaceCallSuccCode)
         {
             (real_robot_exist_)? std::cout<<"real robot exist."<<std::endl:std::cout<<"real robot doesn't exist."<<std::endl;
+            //power on the robot.
         }
         ros::param::set("/aubo_driver/robot_connected","1");
         return true;
@@ -517,6 +587,7 @@ void AuboDriver::publishIOMsg()
         std::vector<aubo_robot_namespace::RobotIoDesc> status_vector_out;
         std::vector<aubo_robot_namespace::RobotIoType>  io_type_in;
         std::vector<aubo_robot_namespace::RobotIoType>  io_type_out;
+        //user IO
         io_type_in.push_back(aubo_robot_namespace::RobotBoardUserDI);
         io_type_out.push_back(aubo_robot_namespace::RobotBoardUserDO);
         ret = robot_receive_service_.robotServiceGetBoardIOStatus(io_type_in, status_vector_in);
@@ -551,6 +622,45 @@ void AuboDriver::publishIOMsg()
         status_vector_out.clear();
         io_type_in.clear();
         io_type_out.clear();
+        //safety digital IO
+        io_type_in.push_back(aubo_robot_namespace::RobotBoardControllerDI);
+        io_type_out.push_back(aubo_robot_namespace::RobotBoardControllerDO);
+        ret = robot_receive_service_.robotServiceGetBoardIOStatus(io_type_in,status_vector_in);
+        ret = robot_receive_service_.robotServiceGetBoardIOStatus(io_type_out,status_vector_out);
+        double digitalIn[30];
+        for (unsigned int i = 0; i < status_vector_in.size(); i++)
+        {
+            aubo_msgs::Digital digi;
+            digi.pin = status_vector_in[i].ioAddr;
+            digi.state = status_vector_in[i].ioValue;
+            digi.flag = 0;
+            digitalIn[digi.pin] = digi.state;
+            io_msg.safety_in_states.push_back(digi);
+        }
+        if(digitalIn[0] == 0 || digitalIn[8] == 0)
+            emergency_stopped_ = true;
+        else
+            emergency_stopped_ = false;
+
+        if(digitalIn[1] == 0 || digitalIn[9] == 0)
+            protective_stopped_ = true;
+        else
+            protective_stopped_ = false;
+
+//        for (unsigned int i = 0; i < status_vector_out.size(); i++)
+//        {
+//            aubo_msgs::Digital digo;
+
+//            digo.pin = status_vector_out[i].ioAddr;
+//            digo.state = status_vector_out[i].ioValue;
+//            digo.flag = 1;
+//            io_msg.safety_out_states.push_back(digo);
+//        }
+        status_vector_in.clear();
+        status_vector_out.clear();
+        io_type_in.clear();
+        io_type_out.clear();
+
         io_type_in.push_back(aubo_robot_namespace::RobotBoardUserAI);
         io_type_out.push_back(aubo_robot_namespace::RobotBoardUserAO);
         ret = robot_receive_service_.robotServiceGetBoardIOStatus(io_type_in,status_vector_in);

@@ -17,6 +17,7 @@
 
  <!-- industrial_robot_simulator: accepts robot commands and reports status -->
   <node pkg="aubo_controller" type="aubo_robot_simulator" name="aubo_robot_simulator"/>
+  <param name="/aubo_controller/velocity_scale_factor" value= "1.0"/>	
   
   <!-- joint_trajectory_action: provides actionlib interface for high-level robot control -->
   <node pkg="aubo_controller" type="aubo_joint_trajectory_action" name="aubo_joint_trajectory_action"/>
@@ -32,7 +33,7 @@
 
  <!-- publish the robot state (tf transforms) -->
    <node name="aubo_driver" pkg="aubo_driver" type="aubo_driver" />
-   <param name="/aubo_driver/server_host" value="127.0.0.1"/>
+   <param name="/aubo_driver/server_host" value="127.0.0.1"/> 
 	
   <!-- publish the robot state (tf transforms) -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />

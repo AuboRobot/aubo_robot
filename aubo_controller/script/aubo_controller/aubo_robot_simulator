@@ -49,6 +49,8 @@ from industrial_msgs.srv import GetRobotInfo, GetRobotInfoResponse
 # Reference
 from industrial_msgs.msg import TriState, RobotMode, ServiceReturnCode, DeviceInfo
 
+from trajectory_speed import scale_trajectory_speed
+
 
 """
 MotionController
@@ -86,13 +88,15 @@ class MotionControllerSimulator():
          # Initialize joint position
         self.joint_positions = initial_joint_state
         rospy.logdebug("Setting initial joint state: %s", str(initial_joint_state))
+        self.joint_velocities = [0]*num_joints
+        self.joint_accelerations = [0]*num_joints
 
         self.ribBufferSize = 0
         self.ControllerConnectedFlag = 1
         self.positionUpdatedFlag = '0'
 
         rospy.logdebug("Creating joint state publisher")
-        self.moveit_joint_state_pub = rospy.Publisher('moveItController_cmd', JointState, queue_size=2000)
+        self.moveit_joint_state_pub = rospy.Publisher('moveItController_cmd', JointTrajectoryPoint, queue_size=2000)
 
         rospy.logdebug("Creating joint state subscriber!")
         self.update_joint_state_subs = rospy.Subscriber('/aubo_driver/real_pose', Float32MultiArray, self.update_joint_state_callback)
@@ -154,17 +158,18 @@ class MotionControllerSimulator():
 
     def joint_state_publisher(self):
         try:
-            joint_state_msg = JointState()
+            joint_point_msg = JointTrajectoryPoint()
             time = rospy.Time.now()
 
             with self.lock:
                 #Joint states
-                joint_state_msg.header.stamp = time
-                joint_state_msg.name = self.joint_names
-                joint_state_msg.position = self.joint_positions
+                joint_point_msg.time_from_start = time
+                joint_point_msg.positions = self.joint_positions
+                joint_point_msg.velocities = self.joint_velocities
+                joint_point_msg.accelerations = self.joint_accelerations
 
                 # rospy.loginfo('Moved to position: %s', str(self.joint_positions))
-                self.moveit_joint_state_pub.publish(joint_state_msg)
+                self.moveit_joint_state_pub.publish(joint_point_msg)
 
         except Exception as e:
             rospy.loginfo('Unexpected exception in joint state publisher: %s', e)
@@ -186,7 +191,9 @@ class MotionControllerSimulator():
 
         with self.lock:
             if not self.sig_stop:
-                self.joint_positions = point
+                self.joint_positions = point.positions
+                self.joint_velocities = point.velocities
+                self.joint_accelerations = point.accelerations
                 # self.joint_state_publisher()                #publish the control command to the robot
                 # rospy.logdebug('Moved to position: %s in %s', str(self.joint_positions), str(dur))
             else:
@@ -212,6 +219,7 @@ class MotionControllerSimulator():
         while not self.sig_shutdown:
             try:
                 current_goal_point = self.motion_buffer.get()
+                intermediate_goal_point = copy.deepcopy(current_goal_point)
 
                 # If the current time from start is less than or equal to the last, then it's a new trajectory
                 if current_goal_point.time_from_start <= last_goal_point.time_from_start:
@@ -244,14 +252,15 @@ class MotionControllerSimulator():
                         tt = last_goal_point.time_from_start.to_sec()
                         ti = tt
                         while tt < current_goal_point.time_from_start.to_sec():
-                            intermediate_goal_point = [0]*N
                             t1 = tt - ti
                             t2 = t1 * t1
                             t3 = t2 * t1
                             t4 = t3 * t1
                             t5 = t4 * t1
                             for i in range(0,N):
-                                intermediate_goal_point[i] = last_goal_point.positions[i] +a1[i]*t1+a2[i]*t2 +a3[i]*t3 +a4[i]*t4 +a5[i]*t5
+                                intermediate_goal_point.positions[i] = last_goal_point.positions[i]+a1[i]*t1+a2[i]*t2+a3[i]*t3 +a4[i]*t4 +a5[i]*t5
+                                intermediate_goal_point.velocities[i] = a1[i]+2*a2[i]*t1+3*a3[i]*t2+4*a4[i]*t3+5*a5[i]*t4
+                                intermediate_goal_point.accelerations[i] = 2*a2[i]+6*a3[i]*t1+12*a4[i]*t2+20*a5[i]*t3
                             tt = tt + update_duration.to_sec()
                             self._move_to(intermediate_goal_point, update_duration.to_sec())
                             self.joint_state_publisher()
@@ -259,7 +268,7 @@ class MotionControllerSimulator():
                         # here need to do some adjustment to make the trajectory smoother
                         move_duration = current_goal_point.time_from_start.to_sec() - tt
 
-                self._move_to(current_goal_point.positions[:], move_duration)
+                self._move_to(current_goal_point, move_duration)
                 self.joint_state_publisher()
                 last_goal_point = copy.deepcopy(current_goal_point)
 
@@ -309,6 +318,9 @@ class AuboRobotSimulatorNode():
         # retrieve update rate
         motion_update_rate = rospy.get_param('motion_update_rate', 200.)  # set param to 0 to ignore interpolated motion
         self.motion_ctrl = MotionControllerSimulator(num_joints, update_rate=motion_update_rate)
+
+        self.velocity_scale_factor = rospy.get_param('/aubo_controller/velocity_scale_factor', 1.0)
+        rospy.loginfo("The velocity scale factor of the trajetory is: %f", self.velocity_scale_factor)
 
         # Published to joint states
         rospy.logdebug("Creating joint state publisher")
@@ -435,7 +447,10 @@ class AuboRobotSimulatorNode():
                     self.motion_ctrl.stop()
 
                 else:
-                    for point in msg_in.points:
+                    self.velocity_scale_factor = rospy.get_param('/aubo_controller/velocity_scale_factor', 1.0)
+                    rospy.loginfo('The velocity scale factor is: %s', str(self.velocity_scale_factor))
+                    new_traj = scale_trajectory_speed(msg_in, self.velocity_scale_factor)
+                    for point in new_traj.points:
                         # first remaps point to controller joint order, the add the point to the controller.
                         point = self._to_controller_order(msg_in.joint_names, point)
                         self.motion_ctrl.add_motion_waypoint(point)

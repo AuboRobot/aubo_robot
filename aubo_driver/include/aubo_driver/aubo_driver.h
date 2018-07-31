@@ -46,17 +46,24 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include "sensor_msgs/JointState.h"
 #include <control_msgs/FollowJointTrajectoryFeedback.h>
 
+#include "otg/otgnewslib.h"
+
 #define BufferQueueSize 2000
 #define ARM_DOF 6
 #define MAXALLOWEDDELAY 50
 #define server_port 8899
+#define BIG_MODULE_RATIO 2 * M_PI / 60.0 / 121
+#define SMALL_MODULE_RATIO 2 * M_PI / 60.0 / 101
+#define VMAX 3000
+#define AMAX 10000
+#define JMAX 40000
 
 namespace aubo_driver
 {
     struct PlanningState
     {
-    //    double joint_vel_[ARM_DOF];
-    //    double joint_acc_[ARM_DOF];
+        double joint_vel_[ARM_DOF];
+        double joint_acc_[ARM_DOF];
         double joint_pos_[ARM_DOF];
     };
     enum ROBOT_CONTROLLER_MODE
@@ -168,11 +175,13 @@ namespace aubo_driver
             ros::Subscriber moveAPI_subs_;
             ros::Subscriber moveit_controller_subs_;
             ros::Subscriber trajectory_execution_subs_;
+            ros::Subscriber robot_control_subs_;
             ros::Publisher io_pub_;
 
         private:
-            void moveItPosCallback(const sensor_msgs::JointState::ConstPtr &msg);
+            void moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::ConstPtr &msg);
             void trajectoryExecutionCallback(const std_msgs::String::ConstPtr &msg);
+            void robotControlCallback(const std_msgs::String::ConstPtr &msg);
             void AuboAPICallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
             void teachCallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
             void chatterCallback1(const std_msgs::Float32MultiArray::ConstPtr &msg);
@@ -185,6 +194,9 @@ namespace aubo_driver
             bool reverse_connected_;
             double last_recieve_point_[ARM_DOF];   /** To avoid joining the same waypoint to the queue **/
             int control_option_;
+            bool emergency_stopped_;
+            bool protective_stopped_;
+            bool normal_stopped_;
             bool data_recieved_;
             int data_count_;
             bool real_robot_exist_;
@@ -192,6 +204,8 @@ namespace aubo_driver
             bool start_move_;
             double current_joints_[ARM_DOF];
             double target_point_[ARM_DOF];
+            JointTrajectoryInput jti;
+            JointTrajectoryOutput jto;
 
             ros::NodeHandle nh_;
             ros::Publisher  rib_pub_;
@@ -206,6 +220,7 @@ namespace aubo_driver
             std::string server_host_;
             int rib_buffer_size_;
             int control_mode_;
+            int collision_class_;
             std_msgs::Int32MultiArray rib_status_;
             industrial_msgs::RobotStatus robot_status_;
     };

@@ -7,7 +7,7 @@
 <robot  name="aubo_i5L" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:include filename="$(find aubo_description)/urdf/aubo.transmission.xacro" />
   <xacro:include filename="$(find aubo_description)/urdf/aubo.gazebo.xacro" />
-  <xacro:include filename="$(find your_robot_description)/urdf/materials.xacro" />
+  <!--<xacro:include filename="$(find aubo_description)/urdf/materials.xacro" /> -->
   <link name="base_link">
     <inertial>
       <origin rpy="0 0 0" xyz="-5.5723E-10 -0.00053181 0.016438"/>
@@ -344,12 +344,13 @@
     <child link="s_Link"/>
     <axis xyz="0 0 0"/>
   </joint>
-  <link name="world" />
 
+
+ <!-- <link name="world" />
   <joint name="world_joint" type="fixed">
     <parent link="world" />
     <child link = "base_link" />
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-  </joint>
+  </joint> -->
 
 </robot>
