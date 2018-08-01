@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>aubo_driver</name>
-  <version>1.3.2</version>
+  <version>1.3.3</version>
   <description>The aubo_driver package for connect with the robot controller and moveit controller </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 

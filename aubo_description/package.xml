@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>aubo_description</name>
-  <version>1.3.2</version>
+  <version>1.3.3</version>
   <description>The aubo_description package</description>
   <author email="liug@our-robotics.com">Allen Liu</author>
   <maintainer email="liug@our-robotics.com">Allen Liu</maintainer>
