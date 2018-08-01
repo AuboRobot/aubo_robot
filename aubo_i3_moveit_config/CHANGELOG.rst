@@ -2,5 +2,8 @@
 Changelog for package aubo_i3_moveit_config
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.3.2 (2018-07-31)
 ------------------
