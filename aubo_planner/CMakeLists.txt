@@ -27,7 +27,6 @@ catkin_package(
     actionlib_msgs
     industrial_utils
     urdf
-    INCLUDE_DIRS include
     LIBRARIES ${PROJECT_NAME}_dummy
 )
 

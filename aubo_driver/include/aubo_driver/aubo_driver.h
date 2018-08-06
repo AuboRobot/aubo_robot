@@ -184,8 +184,6 @@ namespace aubo_driver
             void robotControlCallback(const std_msgs::String::ConstPtr &msg);
             void AuboAPICallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
             void teachCallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
-            void chatterCallback1(const std_msgs::Float32MultiArray::ConstPtr &msg);
-            void chatterCallback3(const aubo_msgs::IOState::ConstPtr &msg);
             void timerCallback(const ros::TimerEvent& e);
             bool setRobotJointsByMoveIt();
             void controllerSwitchCallback(const std_msgs::Int32::ConstPtr &msg);

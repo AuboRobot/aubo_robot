@@ -105,8 +105,8 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
             rib_buffer_size_ = rs.robot_diagnosis_info_.macTargetPosDataSize;
 
 //            robot_receive_service_.robotServiceGetRobotCurrentState(rs.state_);            // this is controlled by Robot Controller
-            robot_receive_service_.getErrDescByCode(rs.code_);
-
+//            robot_receive_service_.getErrDescByCode(rs.code_);
+            if(real_robot_exist_)
             {
                 // publish robot_status information to the controller action server.
                 robot_status_.mode.val            = (int8)rs.robot_diagnosis_info_.orpeStatus;
@@ -115,7 +115,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
                 robot_status_.motion_possible.val = (int)(!start_move_);
                 robot_status_.in_motion.val       = (int)start_move_;
                 robot_status_.in_error.val        = (int)protective_stopped_;   //used for protective stop.
-                robot_status_.error_code          = (int32)rs.code_;
+                robot_status_.error_code          = (int32)rs.robot_diagnosis_info_.singularityOverSpeedAlarm;
             }
         }
         else if(ret == aubo_robot_namespace::ErrCode_SocketDisconnect)
@@ -360,6 +360,7 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
         if(roadPointCompare(jointAngle, last_recieve_point_))
         {
             //            data_recieved_ = true;
+            ROS_DEBUG("Add new waypoint to the buffer.");
             data_count_ = 0;
             PlanningState ps;
             memcpy(ps.joint_pos_, jointAngle, sizeof(double) * ARM_DOF);
@@ -491,7 +492,7 @@ bool AuboDriver::connectToRobotController()
 
     std::string s;
     ros::param::get("/aubo_driver/server_host", s); //The server_host should be corresponding to the robot controller setup.
-    server_host_ = (s=="")? "192.168.1.100" : s;
+    server_host_ = (s=="")? "127.0.0.1" : s;
     std::cout<<"server_host:"<<server_host_<<std::endl;
 
     /** log in ***/
@@ -637,15 +638,19 @@ void AuboDriver::publishIOMsg()
             digitalIn[digi.pin] = digi.state;
             io_msg.safety_in_states.push_back(digi);
         }
-        if(digitalIn[0] == 0 || digitalIn[8] == 0)
-            emergency_stopped_ = true;
-        else
-            emergency_stopped_ = false;
+        if(real_robot_exist_)
+        {
+            //only works if there is a real robot
+            if(digitalIn[0] == 0 || digitalIn[8] == 0)
+                emergency_stopped_ = true;
+            else
+                emergency_stopped_ = false;
 
-        if(digitalIn[1] == 0 || digitalIn[9] == 0)
-            protective_stopped_ = true;
-        else
-            protective_stopped_ = false;
+            if(digitalIn[1] == 0 || digitalIn[9] == 0)
+                protective_stopped_ = true;
+            else
+                protective_stopped_ = false;
+        }
 
 //        for (unsigned int i = 0; i < status_vector_out.size(); i++)
 //        {
