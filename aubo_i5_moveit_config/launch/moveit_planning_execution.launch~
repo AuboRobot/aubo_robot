@@ -8,7 +8,7 @@
   <!-- the "sim" argument controls whether we connect to a Simulated or Real robot -->
   <!--  - if sim=false, a robot_ip argument is required -->
   <arg name="sim" default="true" />
-  <arg name="robot_ip" unless="$(arg sim)" />
+  <arg name="robot_ip"/>
  
   <!-- load the robot_description parameter before launching ROS-I nodes -->
   <include file="$(find aubo_i5_moveit_config)/launch/planning_context.launch" >
@@ -31,9 +31,11 @@
   </group> -->
 
  <!-- publish the robot state (tf transforms) -->
-  <node name="aubo_driver" pkg="aubo_driver" type="aubo_driver" />
-  <param name="/aubo_driver/server_host" value="127.0.0.1"/>
-	
+  <node name="aubo_driver" pkg="aubo_driver" type="aubo_driver" >
+  <param name="/server_host" type="str" value="$(arg robot_ip)"/>
+  <!--<param name="/server_host" value="127.0.0.1"/> -->
+  </node>
+
   <!-- publish the robot state (tf transforms) -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
