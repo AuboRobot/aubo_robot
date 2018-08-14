@@ -1,8 +1,0 @@
-<library path="lib/libaubo_panel">
-  <class name="aubo_panel/Teleop" type="aubo_panel::AuboPanel" base_class_type="rviz::Panel">
-    <description>
-      A panel widget to operate the Aubo robots.
-    </description>
-  </class>
-</library>
-
