@@ -355,6 +355,7 @@ int main(int argc, char** argv)
   {
     sleep(1);
     ROS_INFO("Waiting for the robot description to start up!");
+    ros::param::get("/robot_name", robot_name);
   }
   if(robot_name == "aubo_i5")
       controller_name = "aubo_i5_controller/follow_joint_trajectory";
@@ -366,6 +367,10 @@ int main(int argc, char** argv)
           controller_name = "aubo_i10_controller/follow_joint_trajectory";
   else if(robot_name == "aubo_i5l")
           controller_name = "aubo_i5l_controller/follow_joint_trajectory";
+  else if(robot_name == "aubo_move_arm")
+          controller_name = "aubo_move_arm_controller/follow_joint_trajectory";
+
+   ROS_INFO("controller_name: %s", controller_name.c_str());
 
   JointTrajectoryAction action(controller_name);
   action.run();

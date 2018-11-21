@@ -36,6 +36,12 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include <aubo_msgs/SetPayload.h>
 #include <aubo_msgs/SetIORequest.h>
 #include <aubo_msgs/SetIOResponse.h>
+#include <aubo_msgs/GetFK.h>
+#include <aubo_msgs/GetFKRequest.h>
+#include <aubo_msgs/GetFKResponse.h>
+#include <aubo_msgs/GetIK.h>
+#include <aubo_msgs/GetIKRequest.h>
+#include <aubo_msgs/GetIKResponse.h>
 #include <aubo_msgs/IOState.h>
 #include <aubo_msgs/Digital.h>
 #include <aubo_msgs/Analog.h>
@@ -49,7 +55,7 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include "otg/otgnewslib.h"
 
 #define BufferQueueSize 2000
-#define ARM_DOF 6
+#define ARM_DOF 8               //support at most 8 axes
 #define MAXALLOWEDDELAY 50
 #define server_port 8899
 #define BIG_MODULE_RATIO 2 * M_PI / 60.0 / 121
@@ -137,7 +143,7 @@ namespace aubo_driver
     class AuboDriver
     {
         public:
-            AuboDriver();
+            AuboDriver(int num);
             ~AuboDriver();
             bool roadPointCompare(double *point1, double *point2);
 
@@ -150,14 +156,17 @@ namespace aubo_driver
             void run();
             bool connectToRobotController();
             bool setIO(aubo_msgs::SetIORequest& req, aubo_msgs::SetIOResponse& resp);
+            bool getFK(aubo_msgs::GetFKRequest& req, aubo_msgs::GetFKResponse& resp);
+            bool getIK(aubo_msgs::GetIKRequest& req, aubo_msgs::GetIKResponse& resp);
 
-            const int UPDATE_RATE_ = 500;
+            const int UPDATE_RATE_ = 400;
             const int TIMER_SPAN_ = 50;
             const double THRESHHOLD = 0.000001;
 
         public:
             static std::string joint_name_[ARM_DOF];
-
+            static double joint_ratio_[ARM_DOF];
+            int axis_number_;
             int buffer_size_;
             ServiceInterface robot_send_service_;      //send
             ServiceInterface robot_receive_service_;     //receive
@@ -212,6 +221,8 @@ namespace aubo_driver
             ros::Timer io_publish_timer;
 
             ros::ServiceServer io_srv_;
+            ros::ServiceServer ik_srv_;
+            ros::ServiceServer fk_srv_;
             std::thread* mb_publish_thread_;
 
             double io_flag_delay_;

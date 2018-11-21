@@ -18,6 +18,8 @@ add_service_files(
    FILES
    SetPayload.srv
    SetIO.srv
+   GetFK.srv
+   GetIK.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

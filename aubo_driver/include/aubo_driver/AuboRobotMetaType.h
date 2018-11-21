@@ -31,7 +31,29 @@ namespace  aubo_robot_namespace
 {
 
 enum {ARM_DOF = 6};          /** 机械臂关节数 **/
+enum {EXT_AXLE_NUM=2};
+enum {EXTAXLE_JOINT_FREQ_RATIO=5};
 
+typedef enum {
+    ROBOT_I5=0,
+    ROBOT_I7=1,
+    ROBOT_I10_12=2,
+    ROBOT_I3S=3,
+    ROBOT_I3=4,
+    ROBOT_I5S=5,
+    ROBOT_I5L=6,
+}RobotType;
+
+
+typedef struct
+{
+   double A3;
+   double A4;
+   double D1;
+   double D2;
+   double D5;
+   double D6;
+}RobotDhPara;
 
 
 /** 机械臂关节版本信息　**/
@@ -152,6 +174,24 @@ typedef enum{
 
     RobotEvent_RobotErrorInfoNotify,
 
+    RobotEvent_InterfacBoardDIChanged,
+    RobotEvent_InterfacBoardDOChanged,
+    RobotEvent_InterfacBoardAIChanged,
+    RobotEvent_InterfacBoardAOChanged,
+
+    RobotEvent_UpdateJoint6Rot360Flag,
+
+    RobotEvent_RobotMoveControlDone,
+    RobotEvent_RobotMoveControlStopDone,
+    RobotEvent_RobotMoveControlPauseDone,
+    RobotEvent_RobotMoveControlContinueDone,
+
+    //主从模式切换
+    RobotEvent_RobotSwitchToOnlineMaster,
+    RobotEvent_RobotSwitchToOnlineSlave,
+
+    RobotEvent_ConveyorTrackRobotStartup,
+    RobotEvent_ConveyorTrackRobotCatchup,
 
     RobotEvent_exceptEvent = 100,
 
@@ -191,7 +231,8 @@ typedef enum {
     RELEASE_SAFEGUARD_MODE_BY_TRI_STATE_SWITCH,
     ENTER_REDUCE_MODE,
     RELEASE_REDUCE_MODE,
-    REMOTE_CLEAR_ALARM_SIGNAL
+    REMOTE_CLEAR_ALARM_SIGNAL,
+    PROJECT_STARTUP_IS_SAFETY
 }InterfaceBoardSafeIoEventCode;
 
 
@@ -495,28 +536,10 @@ typedef struct
 
 
 
-
-
-
-
-
-
 typedef enum{
     RobotModeSimulator, //机械臂仿真模式
     RobotModeReal       //机械臂真实模式
 }RobotWorkMode;
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 typedef enum {
@@ -610,15 +633,24 @@ enum move_track
     //for moveJ and moveL
     TRACKING,
 
-    //cartesian motion for movep
+    //cartesian motion for moveP
     ARC_CIR,
     CARTESIAN_MOVEP,
     CARTESIAN_CUBICSPLINE,
     CARTESIAN_UBSPLINEINTP,
+    CARTESIAN_GNUBSPLINEINTP,
 
-    //joint motion  for movep
+    //joint motion for moveP
     JIONT_CUBICSPLINE,
     JOINT_UBSPLINEINTP,
+    JOINT_GNUBSPLINEINTP,
+
+    ARC,
+    CIRCLE,
+    ARC_ORI_ROTATED,
+    CIRCLE_ORI_ROTATED,
+
+    ORI_POSITION_ROTATE_CIRCUMFERENCE=101,
 };
 
 
@@ -646,9 +678,17 @@ enum teach_mode
     MOV_Z,
     ROT_X,
     ROT_Y,
-    ROT_Z
+    ROT_Z,
+    ext_axle_1,
+    ext_axle_2
 };
 
+enum ext_axle_info
+{
+    ext_axle_none,
+    ext_axle_both,
+    ext_axle_only
+};
 
 /** 路点位置信息的表示方法　**/
 struct Pos
@@ -692,7 +732,26 @@ typedef struct
     Ori orientation;            //机械臂姿态信息　　通过四元素表示,可以通过工具函数实现与欧拉角互转
 
     double jointpos[ARM_DOF];   //机械臂关节角信息
+
+    double extJointPos[EXT_AXLE_NUM];
 }wayPoint_S;
+
+typedef struct
+{
+    double extJointPos[EXT_AXLE_NUM];
+}ExtJointParam;
+
+/** 描述机械臂的路点信息　**/
+typedef struct
+{
+    cartesianPos_U cartPos;     //机械臂的位置信息　X,Y,Z
+
+    Ori orientation;            //机械臂姿态信息　　通过四元素表示,可以通过工具函数实现与欧拉角互转
+
+    double jointpos[ARM_DOF];   //机械臂关节角信息
+
+    ExtJointParam  extJointPosVector[EXTAXLE_JOINT_FREQ_RATIO];
+}ExtJointWayPoint;
 
 
 /**
@@ -710,6 +769,13 @@ typedef struct
 }JointParam;
 
 
+
+enum robotExtAlexIndex
+{
+    RobotExtAlex_1 = 0, //机械臂外部轴1
+    RobotExtAlex_2      //机械臂外部轴2
+};
+
 /**
  *  描述运动属性中的偏移属性
  */
@@ -719,8 +785,9 @@ typedef struct
 
     float relativePosition[3];       //偏移量 x,y,z
 
-}MoveRelative;
+    Ori   relativeOri;               //姿态偏移
 
+}MoveRelative;
 
 
 
@@ -736,7 +803,7 @@ typedef struct
 
 
 typedef ToolInEndDesc ToolKinematicsParam;
-
+typedef ToolInEndDesc RobotCameraCalib;
 
 
 enum ToolKinematicsOriCalibrateMathod{
@@ -782,7 +849,7 @@ typedef struct
 
     double payload;      //工具重量
 
-    ToolInertia toolInertia;  //工具惯量
+    ToolInertia toolInertia;  //工具惯量　　预留
 
 }ToolDynamicsParam;
 
@@ -810,34 +877,32 @@ enum CoordCalibrateMathod
     CoordTypeCount
 };
 
-
 /**
  * 该结构体描述一个坐标系。系统根据该结构体能够唯一个确定一个坐标系。
  *
- * 坐标系分３种类型：基座标系(BaseCoordinate)，末端坐标系(EndCoordinate)，用户坐标系(WorldCoordinate);
+ * 坐标系分３种类型:基座坐标系(BaseCoordinate)，末端坐标系或工具坐标系(EndCoordinate),用户坐标系(WorldCoordinate);
  *
- *　基座坐标系是　根据机械臂底座建立的坐标系
- *　末端坐标系是　根据法兰盘中心建立的坐标系
+ *　基座坐标系是　根据机械臂基座建立的坐标系
+ *　末端坐标系是　根据工具末端建立的坐标系
  *　用户坐标系是　用户根据自己的需求建立的实际需要用到的坐标系,系统根据用户提供的３个点和标定方法确定用户坐标系的X轴,Y轴,Z轴。
  * 　　　　　　　 在实际应用中标定坐标系时会用到工具，系统为了准确的得到坐标系标定的３个点，所以用户需要提供工具信息，
  * 　　　　　　　 如果没有使用工具可以将工具描述(toolDesc)设置为０．
  *
  * 使用说明：
- * 　　1:当coordType==BaseCoordinate或者coordType==EndCoordinate时，下面3个参数(methods,wayPointArray,toolDesc)系统不做处理，
- * 　　　因为系统根据这个参数coordType已经可以确定该坐标系了。
- *
- * 　　2:如果坐标系标定的时候没有使用工具，工具描述中的位置和姿态信息应设置为０。
+ * 　　1:当coordType==BaseCoordinate　下面3个参数(methods,wayPointArray,toolDesc)系统不做处理，因为系统根据这个参数coordType已经可以确定该坐标系了。
+ *    2:当coordType==EndCoordinate时，表示工具坐标系，methods，wayPointArray不做处理，　toolDesc表示工具参数。
+ * 　 3:当coordType==WorldCoordinate时, 表示用户坐标系，toolDesc参数表示标定坐标系使用的工具参数，如果坐标系标定的时候没有使用工具，工具描述中的位置设置为０，姿态信息设置为(1,0,0,0)。
  */
 typedef struct
 {
-    coordinate_refer    coordType;       //坐标系类型：当coordType==BaseCoordinate或者coordType==EndCoordinate是，下面3个参数不做处理
+    coordinate_refer    coordType;       //坐标系类型:基座坐标系,末端坐标系或工具坐标系,用户坐标系
 
-    CoordCalibrateMathod methods;        // 坐标系标定方法
+    CoordCalibrateMathod methods;        //坐标系标定方法　该参数只在coordType==WorldCoordinate时有效
 
-    JointParam       wayPointArray[3];   //用于标定坐标系的３个点（关节角），对应于机械臂法兰盘中心点基于基座标系
+    JointParam       wayPointArray[3];   //用于标定用户坐标系的３个点(关节角)　　　该参数只在coordType==WorldCoordinate时有效
 
-    ToolInEndDesc    toolDesc;           //标定的时候使用的工具描述
-
+    ToolInEndDesc    toolDesc;           //工具描述  当coordType==EndCoordinate时，该参数表示工具参数
+                                         //当coordType==WorldCoordinat时，该参数表示标定用户坐标系的３个点时，使用工具描述。
 }CoordCalibrateByJointAngleAndTool;
 
 
@@ -885,6 +950,10 @@ typedef enum
     ErrCode_ResponseReturnError,             /** 服务器响应返回错误　**/
     ErrCode_RealRobotNoExist,                /** 真实机械臂不存在，因为有些接口只有在真是机械臂存在的情况下才可以被调用　**/
 
+    ErrCode_moveControlSlowStopFailed,      /** 调用缓停接口失败　**/
+    ErrCode_moveControlFastStopFailed,      /** 调用急停接口失败　**/
+    ErrCode_moveControlPauseFailed,         /** 调用暂停接口失败　**/
+    ErrCode_moveControlContinueFailed,      /** 调用继续接口失败　**/
 
     ErrCode_Count = ErrCode_RealRobotNoExist-ErrCode_Base+2,
 
@@ -910,9 +979,8 @@ typedef enum
 #endif
 
 
-
 /**
- * @brief 获取实时关节状态的回调函数类型.
+ * @brief 获取实时关节状态的回调函数类型
  * @param jointStatus　当前的关节状态;
  * @param size　　　　　上一个参数（jointStatus）的长度;
  * @param arg　　　　　　这个参数是使用者在注册回调函数中传递的第二个参数;

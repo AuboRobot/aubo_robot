@@ -1,3 +1,0 @@
-<launch>
-	<include file="$(find aubo_i5_moveit_config)/launch/aubo_i5_moveit_controller_manager.launch" />
-</launch>

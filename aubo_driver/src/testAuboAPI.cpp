@@ -74,7 +74,7 @@ void testMoveJ(AuboDriver &robot_driver)
     /** Robot move to zero position **/
     int ret = robot_driver.robot_send_service_.robotServiceJointMove(zero_poeition, true);
     if(ret != aubo_robot_namespace::InterfaceCallSuccCode)
-        ROS_ERROR("Failed to move to zero postions, error code:%s", ret);
+        ROS_ERROR("Failed to move to zero postions, error code:%d", ret);
 
 
     /** loop for 3 times **/
@@ -93,7 +93,7 @@ void testMoveJ(AuboDriver &robot_driver)
         robot_driver.robot_send_service_.robotServiceJointMove(postion1, true);
         if(ret != aubo_robot_namespace::InterfaceCallSuccCode)
         {
-            ROS_ERROR("Failed to move to zero postion, error code:%s", ret);
+            ROS_ERROR("Failed to move to zero postion, error code:%d", ret);
             break;
         }
 
@@ -101,7 +101,7 @@ void testMoveJ(AuboDriver &robot_driver)
         robot_driver.robot_send_service_.robotServiceJointMove(postion2, true);
         if(ret != aubo_robot_namespace::InterfaceCallSuccCode)
         {
-            ROS_ERROR("Failed to move to  postion1, error code:%s", ret);
+            ROS_ERROR("Failed to move to  postion1, error code:%d", ret);
             break;
         }
     }
@@ -126,7 +126,7 @@ void testMoveL(AuboDriver &robot_driver)
    /** move to inital position **/
     int ret = robot_driver.robot_send_service_.robotServiceJointMove(initial_poeition, true);
     if(ret != aubo_robot_namespace::InterfaceCallSuccCode)
-        ROS_ERROR("Failed to move to initial postion, error code:%s", ret);
+        ROS_ERROR("Failed to move to initial postion, error code:%d", ret);
 
 
     /** Initialize move properties ***/
@@ -143,11 +143,11 @@ void testMoveL(AuboDriver &robot_driver)
     {
         ret = robot_driver.robot_send_service_.robotServiceLineMove(postion3, true);
         if(ret != aubo_robot_namespace::InterfaceCallSuccCode)
-            ROS_ERROR("Failed to move to postion3, error code:%s", ret);
+            ROS_ERROR("Failed to move to postion3, error code:%d", ret);
 
 
         robot_driver.robot_send_service_.robotServiceLineMove(postion4, true);
-            ROS_ERROR("Failed to move to postion4, error code:%s", ret);
+            ROS_ERROR("Failed to move to postion4, error code:%d", ret);
     }
 }
 
