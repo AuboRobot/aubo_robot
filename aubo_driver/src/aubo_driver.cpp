@@ -129,7 +129,8 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
         }
 
         //publish the rib_status to the controller simulator
-        rib_status_.data[0] = rib_buffer_size_;
+        //rib_status_.data[0] = rib_buffer_size_;
+        rib_status_.data[0] = buf_queue_.getQueueSize();
         rib_status_.data[1] = control_mode_;
         rib_status_.data[2] = controller_connected_flag_;
     }
@@ -293,7 +294,8 @@ bool AuboDriver::setRobotJointsByMoveIt()
             //            struct timeb tb;
             //            ftime(&tb);
             //            std::cout<<tb.millitm<<std::endl;
-            //            std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<std::endl;
+            //          print joint data (note zhaoyu)
+                        //std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<std::endl;
         }
         setTagrtPosition(ps.joint_pos_);
     }
@@ -301,6 +303,7 @@ bool AuboDriver::setRobotJointsByMoveIt()
     {
         if(start_move_)
             start_move_ = false;
+	 std::cout<<"exit robot move"<<std::endl;
     }
 }
 
@@ -421,7 +424,7 @@ void AuboDriver::updateControlStatus()
         if(buf_queue_.getQueueSize() > 0 && !start_move_)
             start_move_ = true;
     }
-    if(start_move_)
+    if(start_move_ && rib_buffer_size_ < 420)
     {
         setRobotJointsByMoveIt();
     }
