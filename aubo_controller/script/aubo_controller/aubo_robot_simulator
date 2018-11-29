@@ -101,7 +101,7 @@ class MotionControllerSimulator():
         rospy.logdebug("Creating joint state subscriber!")
         self.update_joint_state_subs = rospy.Subscriber('/aubo_driver/real_pose', Float32MultiArray, self.update_joint_state_callback)
 
-        self.MinimumBufferSize = 250
+        self.MinimumBufferSize = 800
         # Shutdown signal
         self.sig_shutdown = False
 
@@ -179,7 +179,7 @@ class MotionControllerSimulator():
     """
     def _move_to(self, point, dur):
         while self.ribBufferSize > self.MinimumBufferSize:
-            rospy.loginfo('too fast!!')
+            rospy.loginfo('The number of driver Buffer Data is big enough, not send this time: %d', self.ribBufferSize)
             rospy.sleep(dur)
 
         if self.ribBufferSize == 0 and self.ControllerConnectedFlag == 0:      # motion start or no robot connected!
