@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs
   control_msgs trajectory_msgs actionlib_msgs actionlib
   urdf industrial_msgs industrial_utils)
 
-find_package(Eigen3 REQUIRED)
+#find_package(Eigen3 REQUIRED)
 
 catkin_package(
   CATKIN_DEPENDS
@@ -47,7 +47,7 @@ endif()
 
 include_directories(include  ${catkin_INCLUDE_DIRS})
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 link_directories(${catkin_LIBRARY_DIRS} )
 
 ADD_EXECUTABLE(aubo_planner_test src/aubo_planner_test.cpp)

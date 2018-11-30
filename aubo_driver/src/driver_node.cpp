@@ -40,7 +40,18 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "aubo_driver");
     ros::NodeHandle n;
 
-    AuboDriver robot_driver;
+    int num = 0;
+    ros::param::get("/aubo_driver/external_axis_number", num);
+    int N = 3;
+    while(num == 0 && N < 0)
+    {
+      sleep(1);
+      ros::param::get("/aubo_driver/external_axis_number", num);
+      N--;
+    }
+
+    ROS_INFO("aubo_driver/external_axis_number: %s", std::to_string(num).c_str());
+    AuboDriver robot_driver(num);
     robot_driver.run();
 
     ros::AsyncSpinner spinner(6);

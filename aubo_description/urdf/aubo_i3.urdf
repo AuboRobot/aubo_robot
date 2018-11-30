@@ -47,7 +47,7 @@
     </collision>
   </link>
 
-  <joint name="shoulder_Joint" type="revolute">
+  <joint name="shoulder_joint" type="revolute">
     <origin xyz="0 0 0.157" rpy="0 0 3.1416" />
     <parent link="base_link" />
     <child link="shoulder_Link" />
@@ -78,7 +78,7 @@
     </collision>
   </link>
 
-  <joint name="upperArm_Joint" type="revolute">
+  <joint name="upperArm_joint" type="revolute">
     <origin xyz="0 0.119 0" rpy="-1.5708 -1.5708 0" />
     <parent link="shoulder_Link" />
     <child link="upperArm_Link" />
@@ -109,7 +109,7 @@
     </collision>
   </link>
 
-  <joint name="foreArm_Joint" type="revolute">
+  <joint name="foreArm_joint" type="revolute">
     <origin xyz="0.266 0 0" rpy="3.1416 0 0" />
     <parent link="upperArm_Link" />
     <child link="foreArm_Link" />
@@ -140,7 +140,7 @@
     </collision>
   </link>
 
-  <joint name="wrist1_Joint" type="revolute">
+  <joint name="wrist1_joint" type="revolute">
     <origin xyz="0.2565 0 0" rpy="3.1416 0 1.5708" />
     <parent link="foreArm_Link" />
     <child link="wrist1_Link" />
@@ -171,7 +171,7 @@
     </collision>
   </link>
 
-  <joint name="wrist2_Joint" type="revolute">
+  <joint name="wrist2_joint" type="revolute">
     <origin xyz="0 0.1025 0" rpy="-1.5708 0 0" />
     <parent link="wrist1_Link" />
     <child  link="wrist2_Link" />
@@ -202,7 +202,7 @@
     </collision>
   </link>
 
-  <joint name="wrist3_Joint" type="revolute">
+  <joint name="wrist3_joint" type="revolute">
     <origin xyz="0 -0.094 0" rpy="1.5708 0 0" />
     <parent link="wrist2_Link" />
     <child link="wrist3_Link" />
