@@ -47,5 +47,18 @@ There is a parameter named `"/aubo_controller/velocity_scale_factor"`, you can u
 ### Test
 ---
 * `tsetIO`: The message of topic `/aubo_driver/io_states` is published at a rate of 100Hz. To set IO states, you need to establish a ServiceClient to call servive on `/aubo_driver/set_io`
+
 * `testAuboAPI`: There are plenty of functionality you can use to control the robot, see this [declaration](https://github.com/lg609/aubo_robot/blob/master/aubo_driver/include/aubo_driver/servicehenterface.h). If you want to control the robot more efficiency, it is recommanded to use the Aubo API to realize the functions.
+
+* `testExtServer`: an example of use ExtAxle Server , The parameters are as follows：
+
+		 *　ext_id: 1(ext_Axle1)   2(ext_Axle2)
+ 		 *  ext_status :0(stop)
+ 		 *              1(move)
+ 		 *              2(reset ExtAxle))
+ 		 *  maxAcc:     double acc[2]
+ 		 *  maxVelc:    couble Velc[2]
+ 		 *  dirtion:    <true:forward> <false:backward>
+		 
+#### note ：When DI_00 is enabled, the external axis will automatically stop and reset through the external axis server
 
