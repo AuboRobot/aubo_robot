@@ -103,7 +103,7 @@ class MotionControllerSimulator():
         rospy.logdebug("Creating joint state subscriber!")
         self.update_joint_state_subs = rospy.Subscriber('/aubo_driver/real_pose', Float32MultiArray, self.update_joint_state_callback)
 
-        self.MinimumBufferSize = 250
+        self.MinimumBufferSize = 800
         # Shutdown signal
         self.sig_shutdown = False
 
@@ -172,7 +172,7 @@ class MotionControllerSimulator():
 
                 # rospy.loginfo('Moved to position: %s', str(self.joint_positions))
                 self.moveit_joint_state_pub.publish(joint_point_msg)
-                rospy.loginfo('published joints : %s', str(self.joint_positions))
+                #rospy.loginfo('published joints : %s', str(self.joint_positions))
 
         except Exception as e:
             rospy.loginfo('Unexpected exception in joint state publisher: %s', e)
@@ -463,7 +463,7 @@ class AuboRobotSimulatorNode():
                         # first remaps point to controller joint order, the add the point to the controller.
                         point = self._to_controller_order(msg_in.joint_names, point)
                         self.motion_ctrl.add_motion_waypoint(point)
-                        # rospy.loginfo('Add new position: %s', str(point.positions))
+                        rospy.loginfo('Add new position: %s', str(point.positions))
 
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)

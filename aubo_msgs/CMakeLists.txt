@@ -16,6 +16,8 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES
+   ToolDynamicParam.srv
+   ExtMove.srv
    SetPayload.srv
    SetIO.srv
    GetFK.srv

@@ -1,0 +1,7 @@
+int64     ext_id
+int64     ext_status
+float32[] maxAcc
+float32[] maxVelc
+bool      dirtion
+---
+bool   result
