@@ -2,6 +2,13 @@
 Changelog for package aubo_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.1 (2019-01-10)
+------------------
+* add ExtAxle Srv
+* add ToolDynamic Srv
+
+
+
 0.3.0 (2016-11-15)
 ------------------
 * new version:add aubo_panel,aubo_new_driver
