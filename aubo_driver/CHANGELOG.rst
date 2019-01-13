@@ -2,6 +2,11 @@
 Changelog for package aubo_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.3.4 (2019-01-10)
+------------------
+* add ExtAxle Server
+* add ToolDynamic Server
+
 1.3.3 (2018-08-01)
 ------------------
 

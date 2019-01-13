@@ -1,0 +1,6 @@
+float32 positionX
+float32 positionY
+float32 positionZ
+float32 payload
+---
+bool result

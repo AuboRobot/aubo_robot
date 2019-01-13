@@ -40,7 +40,7 @@ namespace industrial_robot_client
 namespace joint_trajectory_action
 {
 const double JointTrajectoryAction::WATCHDOG_PERIOD_ = 1.0;
-const double JointTrajectoryAction::DEFAULT_GOAL_THRESHOLD_ = 0.002;
+const double JointTrajectoryAction::DEFAULT_GOAL_THRESHOLD_ = 0.004;
 
 JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
     action_server_(node_, controller_name, boost::bind(&JointTrajectoryAction::goalCB, this, _1),
@@ -324,14 +324,33 @@ bool JointTrajectoryAction::withinGoalConstraints(const control_msgs::FollowJoin
   {
     int last_point = traj.points.size() - 1;
 
+    std::cout<<"last_trajectory_state"<<last_trajectory_state_->joint_names[0]<<","<<last_trajectory_state_->joint_names[1]<<","<<last_trajectory_state_->joint_names[2]
+                                                    <<","<<last_trajectory_state_->joint_names[3]<<","<<last_trajectory_state_->joint_names[4]
+                                                    <<","<<last_trajectory_state_->joint_names[5]<<","<<last_trajectory_state_->joint_names[6]<<std::endl;
+    std::cout<<"traj.joint_names"<<traj.joint_names[0]<<","<<traj.joint_names[1]<<","<<traj.joint_names[2]
+                                                    <<","<<traj.joint_names[3]<<","<<traj.joint_names[4]
+                                                    <<","<<traj.joint_names[5]<<","<<traj.joint_names[6]<<std::endl;
+
+
+ // ROS_INFO("Empty,%s,%s,%s,%s,%s,%s,%s",last_trajectory_state_->joint_names[0],last_trajectory_state_->joint_names[1],last_trajectory_state_->joint_names[2],last_trajectory_state_->joint_names[3],
+   //       last_trajectory_state_->joint_names[4],last_trajectory_state_->joint_names[5],last_trajectory_state_->joint_names[6]);
+
+    //ROS_INFO("laset position,%f,%f,%f,%f,%f,%f,%f",last_trajectory_state_->actual.positions[0],last_trajectory_state_->actual.positions[1],last_trajectory_state_->actual.positions[2],last_trajectory_state_->actual.positions[3],last_trajectory_state_->actual.positions[4],last_trajectory_state_->actual.positions[5],last_trajectory_state_->actual.positions[6]);
+
+   // ROS_INFO("current position,%f,%f,%f,%f,%f,%f,%f",traj.points[last_point].positions[0],traj.points[last_point].positions[1],traj.points[last_point].positions[2],traj.points[last_point].positions[3],
+   //       traj.points[last_point].positions[4],traj.points[last_point].positions[5],traj.points[last_point].positions[6]);
+
+
     if (industrial_robot_client::utils::isWithinRange(last_trajectory_state_->joint_names,
                                                       last_trajectory_state_->actual.positions, traj.joint_names,
                                                       traj.points[last_point].positions, goal_threshold_))
     {
+     ROS_INFO("within range true");
       rtn = true;
     }
     else
     {
+    ROS_INFO("without range false,%f:",goal_threshold_);
       rtn = false;
     }
   }

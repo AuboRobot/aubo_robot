@@ -46,6 +46,8 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include <aubo_msgs/Digital.h>
 #include <aubo_msgs/Analog.h>
 #include <aubo_msgs/JointPos.h>
+#include <aubo_msgs/ExtMove.h>
+#include <aubo_msgs/ToolDynamicParam.h>
 #include <industrial_msgs/RobotStatus.h>
 #include "aubo_driver/AuboRobotMetaType.h"
 #include "aubo_driver/serviceinterface.h"
@@ -158,6 +160,15 @@ namespace aubo_driver
             bool setIO(aubo_msgs::SetIORequest& req, aubo_msgs::SetIOResponse& resp);
             bool getFK(aubo_msgs::GetFKRequest& req, aubo_msgs::GetFKResponse& resp);
             bool getIK(aubo_msgs::GetIKRequest& req, aubo_msgs::GetIKResponse& resp);
+            bool ExtAxle(aubo_msgs::ExtMove::Request &rep,
+                         aubo_msgs::ExtMove::Response &res);
+            bool setDynamicsParam_Server(aubo_msgs::ToolDynamicParam::Request &rep ,
+                                         aubo_msgs::ToolDynamicParam::Response &res);
+
+            void DI00_ExtAxle_Stop();
+            void DI00_ExtAxle_Reset();
+            //static void RealTimeEventInfoCallback(const aubo_robot_namespace::RobotEventInfo *pEventInfo, void *arg);
+
 
             const int UPDATE_RATE_ = 400;
             const int TIMER_SPAN_ = 50;
@@ -165,13 +176,14 @@ namespace aubo_driver
 
         public:
             static std::string joint_name_[ARM_DOF];
-            static double joint_ratio_[ARM_DOF];
+            double joint_ratio_[ARM_DOF];
             int axis_number_;
             int buffer_size_;
             ServiceInterface robot_send_service_;      //send
             ServiceInterface robot_receive_service_;     //receive
 
             RobotState rs;
+            aubo_robot_namespace::RobotState Robot_state;
 //            std::thread* mb_publish_thread_;
 
             BufQueue  buf_queue_;
@@ -198,6 +210,7 @@ namespace aubo_driver
             void controllerSwitchCallback(const std_msgs::Int32::ConstPtr &msg);
             void publishIOMsg();
 
+
             bool reverse_connected_;
             double last_recieve_point_[ARM_DOF];   /** To avoid joining the same waypoint to the queue **/
             int control_option_;
@@ -220,6 +233,9 @@ namespace aubo_driver
             ros::Timer timer_;
             ros::Timer io_publish_timer;
 
+            ros::ServiceServer ExtAxle_srv;
+            ros::ServiceServer setToolDynamicParam_srv;
+            ros::ServiceClient client_Ext;
             ros::ServiceServer io_srv_;
             ros::ServiceServer ik_srv_;
             ros::ServiceServer fk_srv_;
