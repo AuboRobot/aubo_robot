@@ -69,5 +69,6 @@ install(DIRECTORY include/${PROJECT_NAME}/
 add_dependencies(aubo_driver aubo_msgs_gencpp)
 add_dependencies(testIO aubo_msgs_gencpp)
 add_dependencies(testAuboAPI aubo_msgs_gencpp)
+add_dependencies(testExtServer ${catkin_EXPORTED_TARGETS})
 
 
