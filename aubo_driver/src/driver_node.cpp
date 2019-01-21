@@ -51,6 +51,12 @@ int main(int argc, char **argv)
     }
 
     ROS_INFO("aubo_driver/external_axis_number: %s", std::to_string(num).c_str());
+
+    //test ratio param
+    int ratio=0;
+    ros::param::get("/aubo_driver/Transfer_ratio",ratio);
+    ROS_INFO("Transfer_ratio: %s",std::to_string(ratio).c_str());
+
     AuboDriver robot_driver(num);
     robot_driver.run();
 
