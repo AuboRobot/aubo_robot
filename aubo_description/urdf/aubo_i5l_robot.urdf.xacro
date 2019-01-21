@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="aubo_i5l_robot" >
+
+  <!-- common stuff -->
+  <xacro:include filename="$(find aubo_description)/urdf/common.gazebo.xacro" />
+  <!-- aubo_i5l -->
+  <xacro:include filename="$(find aubo_description)/urdf/aubo_i5l.urdf.xacro" />
+
+  <!-- arm -->
+  <xacro:aubo_i5l_robot prefix="" joint_limited="false"/>
+   <link name="robot_platform">
+    <visual>
+      <geometry>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/arm_mount.stl" />
+      </geometry>
+      <material name="metal">
+        <color rgba="0.5 0.5 0.6 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/arm_mount.stl" />
+      </geometry>
+       <material name="metal">
+        <color rgba="0.5 0.5 0.6 1"/>
+      </material>
+    </collision>
+  </link>
+
+  <link name="horizontal_rail_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+       <mesh filename="package://aubo_description/meshes/aubo_i5l/base_frame.stl" />
+      </geometry>
+      <material name="metal">
+        <color rgba="0.5 0.5 0.6 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+      <mesh filename="package://aubo_description/meshes/aubo_i5l/base_frame.stl" />
+      </geometry>
+       <material name="metal">
+        <color rgba="0.5 0.5 0.6 1"/>
+      </material>
+    </collision>
+  </link>
+
+  <joint name="horizontal_rail_joint" type="prismatic">
+    <parent link="horizontal_rail_link"/>
+    <child link="robot_platform"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0" />
+    <limit lower="0" upper="0.9" effort="10" velocity="1.0" />
+  </joint>
+
+    <transmission name="horizontal_rail_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="horizontal_rail_joint">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="horizontal_rail_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+
+  <joint name="platform" type="fixed">
+    <parent link="robot_platform"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 1.57"/>
+  </joint>
+
+  <link name="world" />
+
+  <joint name="world_joint" type="fixed">
+    <parent link="world" />
+    <child link = "horizontal_rail_link" />
+    <origin xyz="0 0 0" rpy="1.57 0 0" />
+  </joint>
+
+
+    <link name="ee_link">
+      <collision>
+        <geometry>
+          <box size="0.01 0.01 0.01"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+       <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+    </visual>
+    </link>
+
+
+    <joint name="ee_fixed_joint" type="fixed">
+      <parent link="wrist3_Link" />
+      <child link = "ee_link" />
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 1.57" />
+    </joint>
+
+
+<!-- NEW gripper -->
+  <link name="vacuum_gripper">
+    <inertial> 
+      <origin xyz="0 0 0" rpy="0 0 0"/> <mass value="0.8"/> <inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/gripper.stl" />
+      </geometry>
+      <material name="metal">
+        <color rgba="0.5 0.5 0.6 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://aubo_description/meshes/aubo_i5l/gripper.stl" />
+      </geometry>
+       <material name="metal">
+        <color rgba="0.5 0.5 0.6 1"/>
+      </material>
+    </collision>
+  </link>
+
+<!-- end of arm-vacuum gripper coupling link definitions --> 
+
+  <!-- start of arm-gripper coupling joint definitions -->
+  <joint name="wrist_to_gripper" type="fixed">
+    <parent link="ee_link"/>
+    <child link="vacuum_gripper"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0 1.57 0"/>
+  </joint>
+
+</robot>
+

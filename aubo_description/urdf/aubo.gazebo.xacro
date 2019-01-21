@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find aubo_description)/urdf/materials.xacro" />
+ 
+  <xacro:macro name="aubo_arm_gazebo" params="prefix">
+
+     <!--base_Link-->
+     <gazebo reference = "${prefix}base_Link">
+	<material>Gazebo/Black</material>
+     </gazebo>
+
+     <!--shoulder_Link-->
+     <gazebo reference = "${prefix}shoulder_Link">
+	<material>Gazebo/Orange</material>
+     </gazebo>
+
+     <!--s_Link-->
+     <gazebo reference = "${prefix}s_Link">
+	<material>Gazebo/Black</material>
+     </gazebo>
+
+     <!--upperArm_Link-->
+     <gazebo reference = "${prefix}upperArm_Link">
+	<material>Gazebo/Orange</material>
+     </gazebo>
+
+     <!--f1_Link-->
+     <gazebo reference = "${prefix}f1_Link">
+	<material>Gazebo/Black</material>
+     </gazebo>
+
+     <!--foreArm_Link-->
+     <gazebo reference = "${prefix}foreArm_Link">
+	<material>Gazebo/Orange</material>
+     </gazebo>
+
+     <!--u_Link-->
+     <gazebo reference = "${prefix}u_Link">
+	<material>Gazebo/Black</material>
+     </gazebo>
+
+     <!--wrist1_Link-->
+     <gazebo reference = "${prefix}wrist1_Link">
+	<material>Gazebo/Orange</material>
+     </gazebo>
+
+     <!--w1_Link-->
+     <gazebo reference = "${prefix}w1_Link">
+	<material>Gazebo/Black</material>
+     </gazebo>
+
+     <!--wrist2_Link-->
+     <gazebo reference = "${prefix}wrist2_Link">
+	<material>Gazebo/Orange</material>
+     </gazebo>
+
+     <!--w2_Link-->
+     <gazebo reference = "${prefix}w2_Link">
+	<material>Gazebo/Black</material>
+     </gazebo>
+
+     <!--wrist3_Link-->
+     <gazebo reference = "${prefix}wrist3_Link">
+	<material>Gazebo/Black</material>
+     </gazebo>
+
+     <!--pedestal_Link-->
+     <gazebo reference = "${prefix}pedestal_Link">
+	<material>Gazebo/Green</material>
+     </gazebo>
+
+  </xacro:macro>
+</robot>

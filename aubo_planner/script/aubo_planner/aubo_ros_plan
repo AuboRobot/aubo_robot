@@ -1,0 +1,180 @@
+#!/usr/bin/env python
+
+# Software License Agreement (BSD License)
+# Copyright (c) 2017-2018, Aubo Robotics
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of SRI International nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+import sys
+import copy
+import rospy
+import threading
+import moveit_commander
+import moveit_msgs.msg
+import geometry_msgs.msg
+from std_msgs.msg import Float32MultiArray
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import PoseArray
+
+class AuboRobotPlannerNode():
+    """
+    Constructor of aubo robot planner
+    """
+    def __init__(self,  update_rate = 10):
+        rospy.init_node('aubo_ros_plan')
+
+        # Class lock
+        self.lock = threading.Lock()
+        self.plan_flag = 0
+
+        # Instantiate a MoveGroupCommander object. This object is an interface to one group of joints.
+        self.group = moveit_commander.MoveGroupCommander("manipulator")
+
+        moveit_commander.roscpp_initialize(sys.argv)
+        # Instantiate a RobotCommander object.  This object is an interface to the robot as a whole.
+        self.robot = moveit_commander.RobotCommander()
+
+        # Instantiate a PlanningSceneInterface object.  This object is an interface to the world surrounding the robot.
+        self.scene = moveit_commander.PlanningSceneInterface()
+
+        # We create this DisplayTrajectory publisher which is used below to publish trajectories for RVIZ to visualize.
+        self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory)
+
+        # Planning to a Pose goal
+        self.target_pose_subs = rospy.Subscriber('/aubo_driver/target_pose', Pose, self.set_target_pose)
+
+        # Planning to joint-space goal
+        self.target_joints_subs = rospy.Subscriber('/aubo_driver/target_joint_value', Float32MultiArray, self.set_target_joint_value)
+
+        # Planning to Cartesian path goal
+        self.cartesian_path_subs = rospy.Subscriber('/aubo_driver/cartesian_path_list', PoseArray, self.set_cartesian_path_list)
+
+        # Wait for RVIZ to initialize. This sleep is ONLY to allow Rviz to come up.
+        rospy.sleep(10)
+
+        rospy.loginfo('The name of the reference frame for this robot: %s', str(self.group.get_planning_frame()))
+        rospy.loginfo('The name of the end-effector link for this group: %s', str(self.group.get_end_effector_link()))
+        rospy.loginfo('A list of all the groups in the robot: %s', str(self.robot.get_group_names()))
+        rospy.loginfo('The entire state of the robot: %s', str(self.robot.get_current_state()))
+
+        self.execute = False
+        self.pose_target = geometry_msgs.msg.Pose()
+        self.group_variable_values = self.group.get_current_joint_values()
+        self.num_joint = len(self.group_variable_values)
+
+        # The resolution of the cartesian path to be interpolated
+        self.eef_step = 0.01
+        self.jump_threshold = 0.0
+
+        self.update_rate = update_rate
+        rospy.logdebug("ros planner update rate (hz): %f", self.update_rate)
+
+        # Motion thread
+        self.motion_thread = threading.Thread(target=self.ros_planner)
+        self.motion_thread.daemon = True
+        self.motion_thread.start()
+
+    """
+
+    """
+    def ros_planner(self):
+        rospy.spin()
+        # self.moveit_commander.roscpp_shutdown()
+
+    """
+    Plan a motion for this group to a desired pose for the end-effector
+    """
+    def set_target_pose(self, msg_in):
+        if self.plan_flag == 0:
+            self.plan_flag = 1
+            self.pose_target.orientation.w = msg_in.orientation.w
+            self.pose_target.orientation.x = msg_in.orientation.x
+            self.pose_target.orientation.y = msg_in.orientation.y
+            self.pose_target.orientation.z = msg_in.orientation.z
+            self.pose_target.position.x = msg_in.position.x
+            self.pose_target.position.y = msg_in.position.y
+            self.pose_target.position.z = msg_in.position.z
+            self.group.set_pose_target(self.pose_target)
+            # self.plan_type = 0
+            if self.execute == True:
+                success = self.group.go(wait=True)
+            else:
+                plan = self.group.plan()
+            self.plan_flag = 0
+        else:
+            rospy.logdebug('There is a planning already!')
+
+    """
+    Plan a motion for this group to a joint-space goal
+    """
+    def set_target_joint_value(self, msg_in):
+        if self.plan_flag == 0:
+            self.plan_flag = 1
+            self.group.clear_pose_targets()
+            for i in range(0, self.num_joint):
+                self.group_variable_values[i] = msg_in.data[i]
+            self.group.set_joint_value_target(self.group_variable_values)
+
+            if self.execute == True:
+                success = self.group.go(wait=True)
+            else:
+                plan = self.group.plan()
+            self.plan_flag = 0
+        else:
+            rospy.logdebug('There is a planning already!')
+
+    """
+    Plan a motion for this group to a Cartesian path goal
+    """
+    def set_cartesian_path_list(self, msg_in):
+        if self.plan_flag == 0:
+            self.plan_flag = 1
+            waypoints = []
+            waypoints.append(self.group.get_current_pose().pose)
+
+            for i in range(0, len(msg_in)):
+                waypoints.append(msg_in[i])
+            (plan, fraction) = self.group.compute_cartesian_path(waypoints, self.eef_step, self.jump_threshold)
+            # self.group.
+            # if self.execute == True:
+            #     success = self.group.go(wait=True)
+            # else:
+            #     plan = self.group.plan()
+
+            self.plan_flag = 0
+        else:
+            rospy.logdebug('There is a planning already!')
+
+if __name__ == '__main__':
+    try:
+        rospy.loginfo('Starting aubo ros plan!')
+        planner = AuboRobotPlannerNode()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
