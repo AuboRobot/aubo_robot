@@ -2,6 +2,11 @@
 Changelog for package aubo_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.3.５ (2019-01-２)
+------------------
+* add i10 model in GreyOrange
+* add Transfer ratio 
+
 1.3.4 (2019-01-10)
 ------------------
 * add ExtAxle Server
