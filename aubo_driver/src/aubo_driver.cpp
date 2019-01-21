@@ -540,7 +540,7 @@ bool AuboDriver::connectToRobotController()
 {
     int ret1 = aubo_robot_namespace::InterfaceCallSuccCode;
     int ret2 = aubo_robot_namespace::InterfaceCallSuccCode;
-    int ret3 = aubo_robot_namespace::InterfaceCallSuccCode;
+//  int ret3 = aubo_robot_namespace::InterfaceCallSuccCode;
 
     std::string s;
     ros::param::get("/aubo_driver/server_host", s); //The server_host should be corresponding to the robot controller setup.

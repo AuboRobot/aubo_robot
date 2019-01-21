@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 
 
 
-  ROS_INFO("Ext_status:%d",srv.request.ext_status);
+  ROS_INFO_STREAM("Ext_status:  " << srv.request.ext_status);
 
   if (client.call(srv))
   {
