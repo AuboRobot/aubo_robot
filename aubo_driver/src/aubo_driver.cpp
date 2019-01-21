@@ -58,7 +58,10 @@ AuboDriver::AuboDriver(int num = 0):buffer_size_(400),io_flag_delay_(0.02),data_
         }
         else
         {
-            joint_ratio_[i] = 2 * M_PI / 10.05309632; //adjust by the real application
+            ros::param::get("/aubo_driver/transfer_ratio", ratio);
+            if(ratio == 0)
+                ratio = 1.0;
+            joint_ratio_[i] = 1.0 / ratio / 80;    //adjust by the real application
         }
         jti.maxVelocity[i] = VMAX * joint_ratio_[i];
         jti.maxAcceleration[i] = AMAX * joint_ratio_[i];
