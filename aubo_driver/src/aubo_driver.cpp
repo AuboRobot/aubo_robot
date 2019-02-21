@@ -675,15 +675,18 @@ void AuboDriver::publishIOMsg()
             io_msg.digital_in_states.push_back(digi);
         }
 
-
         //ExtAxle1 will stop when DI 00 status is 1
-        if(1 == io_msg.digital_in_states[0].state)
+        if(real_robot_exist_)
         {
-          ROS_WARN_NAMED("DI_OO_vailed","DI 00 Status: %d ",io_msg.digital_in_states[0].state);
-          this->DI00_ExtAxle_Stop();
-          usleep(1000*500);
-          this->DI00_ExtAxle_Reset();
+            if(1 == io_msg.digital_in_states[0].state)
+            {
+              ROS_WARN_NAMED("DI_OO_vailed","DI 00 Status: %d ",io_msg.digital_in_states[0].state);
+              this->DI00_ExtAxle_Stop();
+              usleep(1000*500);
+              this->DI00_ExtAxle_Reset();
+            }
         }
+
 
 //        //check Robot Motion status(stop running pause resume)
 //        robot_receive_service_.robotServiceGetRobotCurrentState(Robot_state);
@@ -737,7 +740,10 @@ void AuboDriver::publishIOMsg()
             io_msg.safety_in_states.push_back(digi);
         }
 
-        ROS_INFO_NAMED("Project_Stop","SI01 : %d",io_msg.safety_in_states[1].state);
+        if(real_robot_exist_)
+        {
+            ROS_INFO_NAMED("Project_Stop","SI01 : %d",io_msg.safety_in_states[1].state);
+        }
 
         if(real_robot_exist_)
         {
