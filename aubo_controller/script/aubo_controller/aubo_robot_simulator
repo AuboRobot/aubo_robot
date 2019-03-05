@@ -254,23 +254,32 @@ class MotionControllerSimulator():
                     if self.update_rate > 0:
                         tt = last_goal_point.time_from_start.to_sec()
                         ti = tt
+                        external_axis_count = 0
                         while tt < current_goal_point.time_from_start.to_sec():
                             t1 = tt - ti
                             t2 = t1 * t1
                             t3 = t2 * t1
                             t4 = t3 * t1
                             t5 = t4 * t1
-                            for i in range(0,N):
-                                intermediate_goal_point.positions[i] = last_goal_point.positions[i]+a1[i]*t1+a2[i]*t2+a3[i]*t3 +a4[i]*t4 +a5[i]*t5
-                                intermediate_goal_point.velocities[i] = a1[i]+2*a2[i]*t1+3*a3[i]*t2+4*a4[i]*t3+5*a5[i]*t4
-                                intermediate_goal_point.accelerations[i] = 2*a2[i]+6*a3[i]*t1+12*a4[i]*t2+20*a5[i]*t3
-                            tt = tt + update_duration.to_sec()
+                            if N > 6:
+                                intermediate_goal_point.accelerations[external_axis_count] = last_goal_point.positions[6]+a1[6]*t1+a2[6]*t2+a3[6]*t3 +a4[6]*t4 +a5[6]*t5
+                            external_axis_count = external_axis_count + 1
+                            if(external_axis_count == 5):
+                                external_axis_count = 0
+                                for i in range(0, 6):
+                                    intermediate_goal_point.positions[i] = last_goal_point.positions[i]+a1[i]*t1+a2[i]*t2+a3[i]*t3 +a4[i]*t4 +a5[i]*t5
+                                    intermediate_goal_point.velocities[i] = a1[i]+2*a2[i]*t1+3*a3[i]*t2+4*a4[i]*t3+5*a5[i]*t4
+                                    #intermediate_goal_point.accelerations[i] = 2*a2[i]+6*a3[i]*t1+12*a4[i]*t2+20*a5[i]*t3
+                            tt = tt + update_duration.to_sec()/5
                             self._move_to(intermediate_goal_point, update_duration.to_sec())
                             self.joint_state_publisher()
 
                         # here need to do some adjustment to make the trajectory smoother
                         move_duration = current_goal_point.time_from_start.to_sec() - tt
 
+                if N > 6:
+                    for i in range(0, 5):
+                        current_goal_point.accelerations[i] = current_goal_point.positions[6]+a1[6]*t1+a2[6]*t2+a3[6]*t3 +a4[6]*t4 +a5[6]*t5
                 self._move_to(current_goal_point, move_duration)
                 self.joint_state_publisher()
                 last_goal_point = copy.deepcopy(current_goal_point)

@@ -288,7 +288,8 @@ bool AuboDriver::setRobotJointsByMoveIt()
 
             for(int count = 0; count< NCount; count++)
             {
-                point.extJointPosVector[count].extJointPos[0] = (last_position + (ps.joint_pos_[6] - last_position) * (count + 1) / NCount) * joint_ratio_[6];
+                point.extJointPosVector[count].extJointPos[0] = ps.joint_acc_[count];
+//                point.extJointPosVector[count].extJointPos[0] = (last_position + (ps.joint_pos_[6] - last_position) * (count + 1) / NCount) * joint_ratio_[6];
 //                 point.extJointPosVector[count].extJointPos[0] = (target_point_[6] + (ps.joint_pos_[6] - target_point_[6]) * (count+1) / NCount) / 10.05309632 * 2 * M_PI;
                  if(axis_number_ > 7) // at most -> 8
                      point.extJointPosVector[count].extJointPos[1] = (target_point_[7] + (ps.joint_pos_[7] - target_point_[7]) * (count + 1) / NCount) * joint_ratio_[7];
