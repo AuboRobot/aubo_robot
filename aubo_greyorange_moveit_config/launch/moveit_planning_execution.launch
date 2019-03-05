@@ -34,7 +34,7 @@
   <node name="aubo_driver" pkg="aubo_driver" type="aubo_driver" >
    <param name="/server_host" type="str" value="$(arg robot_ip)"/>
    <param name="/external_axis_number" value= "1.0"/>
-   <param name="/Transfer_ratio" value= "80.0"/>
+   <param name="/transfer_ratio" value= "0.02"/>  <!-- this value means when the output of the motor rotstes 1 radian, how long the rail will move -->
   <!--<param name="/server_host" value="127.0.0.1"/> -->
   </node>
 

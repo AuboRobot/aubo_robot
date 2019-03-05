@@ -58,7 +58,10 @@ AuboDriver::AuboDriver(int num = 0):buffer_size_(400),io_flag_delay_(0.02),data_
         }
         else
         {
-            joint_ratio_[i] = 2 * M_PI / 10.05309632; //adjust by the real application
+            ros::param::get("/aubo_driver/transfer_ratio", ratio);
+            if(ratio == 0)
+                ratio = 1.0;
+            joint_ratio_[i] = 1.0 / ratio / 80;    //adjust by the real application
         }
         jti.maxVelocity[i] = VMAX * joint_ratio_[i];
         jti.maxAcceleration[i] = AMAX * joint_ratio_[i];
@@ -673,15 +676,18 @@ void AuboDriver::publishIOMsg()
             io_msg.digital_in_states.push_back(digi);
         }
 
-
         //ExtAxle1 will stop when DI 00 status is 1
-        if(1 == io_msg.digital_in_states[0].state)
+        if(real_robot_exist_)
         {
-          ROS_WARN_NAMED("DI_OO_vailed","DI 00 Status: %d ",io_msg.digital_in_states[0].state);
-          this->DI00_ExtAxle_Stop();
-          usleep(1000*500);
-          this->DI00_ExtAxle_Reset();
+            if(1 == io_msg.digital_in_states[0].state)
+            {
+              ROS_WARN_NAMED("DI_OO_vailed","DI 00 Status: %d ",io_msg.digital_in_states[0].state);
+              this->DI00_ExtAxle_Stop();
+              usleep(1000*500);
+              this->DI00_ExtAxle_Reset();
+            }
         }
+
 
 //        //check Robot Motion status(stop running pause resume)
 //        robot_receive_service_.robotServiceGetRobotCurrentState(Robot_state);
@@ -735,7 +741,10 @@ void AuboDriver::publishIOMsg()
             io_msg.safety_in_states.push_back(digi);
         }
 
-        ROS_INFO_NAMED("Project_Stop","SI01 : %d",io_msg.safety_in_states[1].state);
+        if(real_robot_exist_)
+        {
+            ROS_INFO_NAMED("Project_Stop","SI01 : %d",io_msg.safety_in_states[1].state);
+        }
 
         if(real_robot_exist_)
         {
