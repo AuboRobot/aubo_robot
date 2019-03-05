@@ -210,7 +210,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
             joint_feedback.joint_names[i] = joint_name_[i];
             joint_feedback.actual.positions[i] = joint_state.position[i];
         }
-std::cout<<joint_state.position[0]<<","<<joint_state.position[1]<<","<<joint_state.position[2]<<","<<joint_state.position[3]<<","<<joint_state.position[4]<<joint_state.position[5]<<","<<joint_state.position[6]<<std::endl;
+        //std::cout<<joint_state.position[0]<<","<<joint_state.position[1]<<","<<joint_state.position[2]<<","<<joint_state.position[3]<<","<<joint_state.position[4]<<joint_state.position[5]<<","<<joint_state.position[6]<<std::endl;
         joint_states_pub_.publish(joint_state);
         joint_feedback_pub_.publish(joint_feedback);
 
@@ -291,13 +291,13 @@ bool AuboDriver::setRobotJointsByMoveIt()
 
             for(int count = 0; count< NCount; count++)
             {
-                point.extJointPosVector[count].extJointPos[0] = ps.joint_acc_[count];
+                point.extJointPosVector[count].extJointPos[0] = ps.joint_acc_[count] * joint_ratio_[6];
 //                point.extJointPosVector[count].extJointPos[0] = (last_position + (ps.joint_pos_[6] - last_position) * (count + 1) / NCount) * joint_ratio_[6];
 //                 point.extJointPosVector[count].extJointPos[0] = (target_point_[6] + (ps.joint_pos_[6] - target_point_[6]) * (count+1) / NCount) / 10.05309632 * 2 * M_PI;
                  if(axis_number_ > 7) // at most -> 8
                      point.extJointPosVector[count].extJointPos[1] = (target_point_[7] + (ps.joint_pos_[7] - target_point_[7]) * (count + 1) / NCount) * joint_ratio_[7];
             }
-            last_position = ps.joint_pos_[6];
+            last_position = point.extJointPosVector[4].extJointPos[0];
             extJointWayPointVector.push_back(point);
 
 	     //std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<last_position<<std::endl;
@@ -744,11 +744,7 @@ void AuboDriver::publishIOMsg()
 
         if(real_robot_exist_)
         {
-            ROS_INFO_NAMED("Project_Stop","SI01 : %d",io_msg.safety_in_states[1].state);
-        }
-
-        if(real_robot_exist_)
-        {
+//            ROS_INFO_NAMED("Project_Stop","SI01 : %d",io_msg.safety_in_states[1].state);
             //only works if there is a real robot
             if(digitalIn[0] == 0 || digitalIn[8] == 0)
                 emergency_stopped_ = true;
