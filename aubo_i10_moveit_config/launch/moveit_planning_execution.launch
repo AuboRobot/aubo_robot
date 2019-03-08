@@ -33,7 +33,7 @@
  <!-- publish the robot state (tf transforms) -->
   <node name="aubo_driver" pkg="aubo_driver" type="aubo_driver" >
   <param name="/server_host" type="str" value="$(arg robot_ip)"/>
-  <param name="/external_axis_number" value= "1.0"/>
+  <param name="/external_axis_number" value= "0.0"/>
   <!--<param name="/server_host" value="127.0.0.1"/> -->
   </node>
 
