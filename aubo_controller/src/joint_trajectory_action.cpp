@@ -324,12 +324,12 @@ bool JointTrajectoryAction::withinGoalConstraints(const control_msgs::FollowJoin
   {
     int last_point = traj.points.size() - 1;
 
-    std::cout<<"last_trajectory_state"<<last_trajectory_state_->joint_names[0]<<","<<last_trajectory_state_->joint_names[1]<<","<<last_trajectory_state_->joint_names[2]
-                                                    <<","<<last_trajectory_state_->joint_names[3]<<","<<last_trajectory_state_->joint_names[4]
-                                                    <<","<<last_trajectory_state_->joint_names[5]<<","<<last_trajectory_state_->joint_names[6]<<std::endl;
-    std::cout<<"traj.joint_names"<<traj.joint_names[0]<<","<<traj.joint_names[1]<<","<<traj.joint_names[2]
-                                                    <<","<<traj.joint_names[3]<<","<<traj.joint_names[4]
-                                                    <<","<<traj.joint_names[5]<<","<<traj.joint_names[6]<<std::endl;
+//    std::cout<<"last_trajectory_state"<<last_trajectory_state_->joint_names[0]<<","<<last_trajectory_state_->joint_names[1]<<","<<last_trajectory_state_->joint_names[2]
+//                                                    <<","<<last_trajectory_state_->joint_names[3]<<","<<last_trajectory_state_->joint_names[4]
+//                                                    <<","<<last_trajectory_state_->joint_names[5]<<","<<last_trajectory_state_->joint_names[6]<<std::endl;
+//    std::cout<<"traj.joint_names"<<traj.joint_names[0]<<","<<traj.joint_names[1]<<","<<traj.joint_names[2]
+//                                                    <<","<<traj.joint_names[3]<<","<<traj.joint_names[4]
+//                                                    <<","<<traj.joint_names[5]<<","<<traj.joint_names[6]<<std::endl;
 
 
  // ROS_INFO("Empty,%s,%s,%s,%s,%s,%s,%s",last_trajectory_state_->joint_names[0],last_trajectory_state_->joint_names[1],last_trajectory_state_->joint_names[2],last_trajectory_state_->joint_names[3],
@@ -345,12 +345,12 @@ bool JointTrajectoryAction::withinGoalConstraints(const control_msgs::FollowJoin
                                                       last_trajectory_state_->actual.positions, traj.joint_names,
                                                       traj.points[last_point].positions, goal_threshold_))
     {
-     ROS_INFO("within range true");
+      ROS_INFO("within range true");
       rtn = true;
     }
     else
     {
-    ROS_INFO("without range false,%f:",goal_threshold_);
+     // ROS_INFO("without range false,%f:",goal_threshold_);
       rtn = false;
     }
   }
