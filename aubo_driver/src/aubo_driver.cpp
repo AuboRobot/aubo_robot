@@ -371,6 +371,9 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
             memcpy(ps.joint_acc_, &msg->accelerations[0], sizeof(double) * ARM_DOF);
             memcpy(last_recieve_point_, jointAngle, sizeof(double) * ARM_DOF);
             buf_queue_.enQueue(ps);
+            ROS_INFO("---------------sub topic position:%f / %f / %f / %f / %f / %f /",  ps.joint_pos_[0],ps.joint_pos_[1],ps.joint_pos_[2],ps.joint_pos_[3],ps.joint_pos_[4],ps.joint_pos_[5]);
+            ROS_INFO("---------------sub topic velc:%f / %f / %f / %f / %f / %f /",  ps.joint_vel_[0],ps.joint_vel_[1],ps.joint_vel_[2],ps.joint_vel_[3],ps.joint_vel_[4],ps.joint_vel_[5]);
+            ROS_INFO("---------------sub topic acc:%f / %f / %f / %f / %f / %f /",  ps.joint_acc_[0],ps.joint_acc_[1],ps.joint_acc_[2],ps.joint_acc_[3],ps.joint_acc_[4],ps.joint_acc_[5]);
             if(buf_queue_.getQueueSize() > buffer_size_ && !start_move_)
                 start_move_ = true;
         }
