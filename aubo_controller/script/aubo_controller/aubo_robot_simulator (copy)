@@ -172,7 +172,7 @@ class MotionControllerSimulator():
 
                 # rospy.loginfo('Moved to position: %s', str(self.joint_positions))
                 self.moveit_joint_state_pub.publish(joint_point_msg)
-                # rospy.loginfo('published joints : %s', str(self.joint_positions))
+                #rospy.loginfo('published joints : %s', str(self.joint_positions))
 
         except Exception as e:
             rospy.loginfo('Unexpected exception in joint state publisher: %s', e)
@@ -215,7 +215,6 @@ class MotionControllerSimulator():
         if self.update_rate <> 0.:
             update_duration = rospy.Duration(1./self.update_rate)
         last_goal_point = JointTrajectoryPoint()
-        residual_duration = 0
 
         with self.lock:
             last_goal_point.positions = self.joint_positions[:]
@@ -224,61 +223,73 @@ class MotionControllerSimulator():
             try:
                 current_goal_point = self.motion_buffer.get()
 
+                if len(current_goal_point.velocities[:]) > 6:
+                    if abs(current_goal_point.velocities[6]) < 1E-6:
+                        current_goal_point.accelerations[6] = 0
+                        rospy.loginfo('set accelerations to zero')
+
+                intermediate_goal_point = copy.deepcopy(current_goal_point)
+
                 # If the current time from start is less than or equal to the last, then it's a new trajectory
                 if current_goal_point.time_from_start <= last_goal_point.time_from_start:
-                    move_duration = current_goal_point.time_from_start.to_sec()
-                    intermediate_goal_point = copy.deepcopy(current_goal_point)
-
-                    # residual_duration = 0
-                    external_axis_count = 0
+                    move_duration = current_goal_point.time_from_start
                 # Else it's an existing trajectory and subtract the two
                 else:
                     # If current move duration is greater than update_duration, interpolate the joint positions to form a smooth trajectory
                     # Provide an exception to this rule: if update rate is <=0, do not add interpolated points
                     T = current_goal_point.time_from_start.to_sec() - last_goal_point.time_from_start.to_sec()
-
+                    # five degree polynomial interpolation
+                    # a0 = last_goal_point.positions[:]
+                    a1 = last_goal_point.velocities[:]
+                    N = len(a1)
+                    T2 = T * T
+                    T3 = T2 * T
+                    T4 = T3 * T
+                    T5 = T4 * T
+                    a2 = [0] *N
+                    h  = [0] *N
+                    a3 = [0] *N
+                    a4 = [0] *N
+                    a5 = [0] *N
+                    for i in range(0,N):
+                        a2[i] = 0.5 * last_goal_point.accelerations[i]
+                        h[i] = current_goal_point.positions[i] - last_goal_point.positions[i]
+                        a3[i] =0.5/T3*(20*h[i] - (8*current_goal_point.velocities[i] + 12*last_goal_point.velocities[i])*T - (3*last_goal_point.accelerations[i] -current_goal_point.accelerations[i])*T2)
+                        a4[i] =0.5/T4*(-30*h[i] + (14*current_goal_point.velocities[i] + 16*last_goal_point.velocities[i])*T + (3*last_goal_point.accelerations[i] - 2*current_goal_point.accelerations[i])*T2)
+                        a5[i] =0.5/T5*(12*h[i] - 6*(current_goal_point.velocities[i] + last_goal_point.velocities[i])*T + (current_goal_point.accelerations[i] - last_goal_point.accelerations[i])*T2)
                     if self.update_rate > 0:
-                        ts = last_goal_point.time_from_start.to_sec()
-                        # tt = ts + residual_duration
-                        tk = current_goal_point.time_from_start.to_sec()
-                        while move_duration < current_goal_point.time_from_start.to_sec():
-                            tk1 = tk - move_duration
-                            tk2 = tk1 * tk1
-                            tk3 = tk2 * tk1
-                            ts1 = move_duration - ts
-                            ts2 = ts1 * ts1
-                            ts3 = ts2 * ts1
-                            t_squa = T * T
+                        tt = last_goal_point.time_from_start.to_sec()
+                        ti = tt
+                        external_axis_count = 0
+                        while tt < current_goal_point.time_from_start.to_sec():
+                            t1 = tt - ti
+                            t2 = t1 * t1
+                            t3 = t2 * t1
+                            t4 = t3 * t1
+                            t5 = t4 * t1
                             if self.joint_len > 6:
-                                intermediate_goal_point.accelerations[external_axis_count] = (tk3*last_goal_point.accelerations[6] \
-                                    + ts3*current_goal_point.accelerations[6] + (6*current_goal_point.positions[6] - \
-                                    t_squa*current_goal_point.accelerations[6])*ts1 +(6*last_goal_point.positions[6] - t_squa*last_goal_point.accelerations[6])*tk1) / (6*T)
+                                intermediate_goal_point.accelerations[external_axis_count] = last_goal_point.positions[6]+a1[6]*t1+a2[6]*t2+a3[6]*t3 +a4[6]*t4 +a5[6]*t5
                             external_axis_count = external_axis_count + 1
                             if(external_axis_count == 5):
                                 external_axis_count = 0
                                 for i in range(0, 6):
-                                    intermediate_goal_point.positions[i] = (tk3*last_goal_point.accelerations[i] \
-                                    + ts3*current_goal_point.accelerations[i] + (6*current_goal_point.positions[i] - \
-                                    t_squa*current_goal_point.accelerations[i])*ts1 +(6*last_goal_point.positions[i] - t_squa*last_goal_point.accelerations[i])*tk1) / (6*T)
-
-                                    intermediate_goal_point.velocities[i] = (3*ts2*current_goal_point.accelerations[i] - 3*tk2*last_goal_point.accelerations[i] \
-                                        + 6*(current_goal_point.positions[i] - last_goal_point.positions[i]) - t_squa*(current_goal_point.accelerations[i] - last_goal_point.accelerations[i])) / (6*T)
+                                    intermediate_goal_point.positions[i] = last_goal_point.positions[i]+a1[i]*t1+a2[i]*t2+a3[i]*t3 +a4[i]*t4 +a5[i]*t5
+                                    intermediate_goal_point.velocities[i] = a1[i]+2*a2[i]*t1+3*a3[i]*t2+4*a4[i]*t3+5*a5[i]*t4
                                     #intermediate_goal_point.accelerations[i] = 2*a2[i]+6*a3[i]*t1+12*a4[i]*t2+20*a5[i]*t3
                                 self._move_to(intermediate_goal_point, update_duration.to_sec())
                                 self.joint_state_publisher()
-                            move_duration = move_duration + update_duration.to_sec()/5
+                            tt = tt + update_duration.to_sec()/5
 
-                        # move_duration = move_duration -  external_axis_count * update_duration.to_sec()/5# < 0
-                        # residual_duration = current_goal_point.time_from_start.to_sec() - move_duration
-                        # rospy.loginfo("move_duration move_duration move_duration is: %f", residual_duration)
+
+                        # here need to do some adjustment to make the trajectory smoother
+                        move_duration = current_goal_point.time_from_start.to_sec() - tt
 
                 last_goal_point = copy.deepcopy(current_goal_point)
-                if(current_goal_point.velocities[0] == 0 and current_goal_point.accelerations[0] == 0 and residual_duration < 0):
-                    if self.joint_len > 6:
-                        for i in range(0, 5):
-                            current_goal_point.accelerations[i] = current_goal_point.positions[6]
-                    self._move_to(current_goal_point, update_duration.to_sec())
-                    self.joint_state_publisher()
+                if self.joint_len > 6:
+                    for i in range(0, 5):
+                        current_goal_point.accelerations[i] = current_goal_point.positions[6]
+                self._move_to(current_goal_point, move_duration)
+                self.joint_state_publisher()
 
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)
@@ -469,6 +480,8 @@ class AuboRobotSimulatorNode():
                         point = self._to_controller_order(msg_in.joint_names, point)
                         self.motion_ctrl.add_motion_waypoint(point)
                         rospy.loginfo('Add new position: %s', str(point.positions))
+                        rospy.loginfo('Add new velocities: %s', str(point.velocities))
+                        rospy.loginfo('Add new accelerations: %s', str(point.accelerations))
 
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)

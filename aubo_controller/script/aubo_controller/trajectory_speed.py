@@ -67,7 +67,6 @@ def scale_trajectory_speed(traj, scale):
         for j in range(n_joints):
             point.velocities[j] = point.velocities[j] * scale
             point.accelerations[j] = point.accelerations[j] * scale * scale
-
         # Store the scaled trajectory point
         points[i] = point
 

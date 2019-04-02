@@ -44,6 +44,7 @@ set(${PROJECT_NAME}_SOURCES2
 set(${PROJECT_NAME}_SOURCES3
     src/testAuboAPI.cpp
 )
+
 add_executable(aubo_driver ${${PROJECT_NAME}_SOURCES1})
 add_executable(testIO ${${PROJECT_NAME}_SOURCES2})
 add_executable(testAuboAPI ${${PROJECT_NAME}_SOURCES3})
