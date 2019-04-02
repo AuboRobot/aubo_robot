@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
 
   <include file="$(find aubo_i10_moveit_config)/launch/planning_context.launch" />
