@@ -80,7 +80,9 @@ bool CubicSplineFilter<T>::update(const T& trajectory_in, T& trajectory_out)
     return success;
 }
 
-
+#include <iostream>
+#include <fstream>
+using namespace std;
 template<typename T>
 bool CubicSplineFilter<T>::cubicSplinesFilter(const T& trajectory_in, T& trajectory_out)
 {
@@ -93,10 +95,8 @@ bool CubicSplineFilter<T>::cubicSplinesFilter(const T& trajectory_in, T& traject
     // Clear out the trajectory points
 
     size_t axisNum = trajectory_in.request.trajectory.points[0].positions.size();
-//    double duration_start = trajectory_in.request.trajectory.points[0].time_from_start.toSec();
-//    double duration_end = trajectory_in.request.trajectory.points.back().time_from_start.toSec();
     trajectory_out.request.trajectory.points.resize(inputNum+2);
-    ROS_INFO_STREAM("Total points."<< inputNum+2);
+//    ROS_INFO_STREAM("Total points."<< inputNum+2);
     for(int i = inputNum; i < inputNum+2; i++)
     {
         trajectory_out.request.trajectory.points[i].positions.resize(axisNum);
@@ -109,15 +109,28 @@ bool CubicSplineFilter<T>::cubicSplinesFilter(const T& trajectory_in, T& traject
     {
         inputTime.resize(0);
         inputPoints.resize(0);
-        double sigleLength, lastLength = 0, totalLength = 0;
         for(int i = 0; i < inputNum; i++)
         {
-            sigleLength = trajectory_in.request.trajectory.points[i].positions[nCount];
-            inputPoints.push_back(sigleLength);
-//            if(i > 0)
-//                totalLength = abs(sigleLength - lastLength);
-//            lastLength = sigleLength;
-            inputTime.push_back(trajectory_in.request.trajectory.points[i].time_from_start.toSec());   // need to reparamterization if time intertval is not reasonable
+            inputPoints.push_back(trajectory_in.request.trajectory.points[i].positions[nCount]);
+            inputTime.push_back(trajectory_in.request.trajectory.points[i].time_from_start.toSec());
+        }
+
+        if(0/*nCount >= 6*/)  //exsit external axis
+        {
+            // need to reparamterization if time intertval is not reasonable
+            double duration_start = trajectory_in.request.trajectory.points[0].time_from_start.toSec();
+            double duration_end = trajectory_in.request.trajectory.points.back().time_from_start.toSec();
+            double duration = duration_end - duration_start;
+            double sigleLength[inputNum-1], totalLength = 0;
+            for(int i = 0; i < inputNum-1; i++)
+            {
+                sigleLength[i] = abs(inputPoints[i+1] - inputPoints[i]);
+                if(i == 0 || i == inputNum-2)
+                    sigleLength[i] *= 2;
+                totalLength += sigleLength[i];
+            }
+            for(int i = 1; i < inputNum-1; i++)
+                inputTime[i] = inputTime[i-1] + sigleLength[i-1]/totalLength*duration;
         }
 
         double insertTime1 = inputTime[0]/2 + inputTime[1]/2;
@@ -236,6 +249,32 @@ bool CubicSplineFilter<T>::cubicSplinesFilter(const T& trajectory_in, T& traject
             ros::Duration time_from_start_dur(timeSequence[i]);
             trajectory_out.request.trajectory.points[i].time_from_start = time_from_start_dur;
         }
+
+//        if(nCount == 6)
+//        {
+//            //output the data to a file
+//              double samplePeriod = 0.005;
+//              double fx,vx,ax,jx;
+//              double tk1,tk2,tk3,ts1,ts2,ts3, timeInterSqua;
+//              int nIdex = 0;
+//              for(double tt = timeSequence[0]; tt < timeSequence[inputNum+1]; tt += samplePeriod)
+//              {
+//                  if(tt > timeSequence[nIdex+1])
+//                      nIdex++;
+//                  tk1 = timeSequence[nIdex+1] - tt;
+//                  tk2 = tk1 * tk1;
+//                  tk3 = tk2 * tk1;
+//                  ts1 = tt - timeSequence[nIdex];
+//                  ts2 = ts1 * ts1;
+//                  ts3 = ts2 * ts1;
+//                  timeInterSqua = timeInterval[nIdex] * timeInterval[nIdex];
+//                  fx = (tk3*acceleration[nIdex] + ts3*acceleration[nIdex+1] + (6*position[nIdex+1] - timeInterSqua*acceleration[nIdex+1])*ts1 +(6*position[nIdex] - timeInterSqua*acceleration[nIdex])*tk1) / (6*timeInterval[nIdex]);
+//                  vx = (3*ts2*acceleration[nIdex+1] - 3*tk2*acceleration[nIdex] + 6*(position[nIdex+1] - position[nIdex]) - timeInterSqua*(acceleration[nIdex+1] - acceleration[nIdex])) / (6*timeInterval[nIdex]);
+//                  ax = (acceleration[nIdex+1] * ts1 + acceleration[nIdex] * tk1) / timeInterval[nIdex];
+//                  jx = (acceleration[nIdex+1] - acceleration[nIdex]) / timeInterval[nIdex];
+//                  ROS_INFO_STREAM("data data data."<<tt<<','<<fx<<','<<vx<<','<<ax<<','<<jx);
+//              }
+//        }
     }
     ROS_INFO_STREAM("CubicSplineFilter finish.");
 

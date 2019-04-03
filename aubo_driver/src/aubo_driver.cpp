@@ -224,7 +224,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
             {
                 joints.data[i] = target_point_[i];
             }
-            joint_target_pub_.publish(joints);
+            //joint_target_pub_.publish(joints);
         }
     }
     if(!start_move_)
@@ -300,7 +300,7 @@ bool AuboDriver::setRobotJointsByMoveIt()
             last_position = point.extJointPosVector[4].extJointPos[0];
             extJointWayPointVector.push_back(point);
 
-	   //  std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<last_position<<std::endl;
+            //  std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<last_position<<std::endl;
 //            std::cout<<"external joint:"<<point.extJointPosVector[0].extJointPos[0]<<std::endl<<point.extJointPosVector[1].extJointPos[0]
 //               <<std::endl<<point.extJointPosVector[2].extJointPos[0]<<std::endl<<point.extJointPosVector[3].extJointPos[0]<<std::endl<<point.extJointPosVector[4].extJointPos[0]<<std::endl;
         }
@@ -425,7 +425,10 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
             buf_queue_.enQueue(ps);
 //            std::cout<<"published point:"<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<ps.joint_pos_[6]<<std::endl;
             if(buf_queue_.getQueueSize() > buffer_size_ && !start_move_)
+            {
                 start_move_ = true;
+                ROS_INFO_STREAM("Start robot move.");
+            }
         }
     }
     else

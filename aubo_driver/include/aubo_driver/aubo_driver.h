@@ -172,7 +172,7 @@ namespace aubo_driver
 
             const int UPDATE_RATE_ = 400;
             const int TIMER_SPAN_ = 50;
-            const double THRESHHOLD = 0.000001;
+            const double THRESHHOLD = 0.000000000001;
 
         public:
             static std::string joint_name_[ARM_DOF];

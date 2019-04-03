@@ -170,7 +170,7 @@ class MotionControllerSimulator():
                 joint_point_msg.velocities = self.joint_velocities
                 joint_point_msg.accelerations = self.joint_accelerations
 
-                # rospy.loginfo('Moved to position: %s', str(self.joint_positions))
+                # rospy.loginfo('Moved to position: %s', str(self.joint_accelerations))
                 self.moveit_joint_state_pub.publish(joint_point_msg)
                 # rospy.loginfo('published joints : %s', str(self.joint_positions))
 
@@ -253,6 +253,9 @@ class MotionControllerSimulator():
                                 intermediate_goal_point.accelerations[external_axis_count] = (tk3*last_goal_point.accelerations[6] \
                                     + ts3*current_goal_point.accelerations[6] + (6*current_goal_point.positions[6] - \
                                     t_squa*current_goal_point.accelerations[6])*ts1 +(6*last_goal_point.positions[6] - t_squa*last_goal_point.accelerations[6])*tk1) / (6*T)
+                                intermediate_goal_point.velocities[external_axis_count] = (3*ts2*current_goal_point.accelerations[6] - 3*tk2*last_goal_point.accelerations[6] \
+                                        + 6*(current_goal_point.positions[6] - last_goal_point.positions[6]) - t_squa*(current_goal_point.accelerations[6] - last_goal_point.accelerations[6])) / (6*T)
+
                             external_axis_count = external_axis_count + 1
                             if(external_axis_count == 5):
                                 external_axis_count = 0
@@ -261,8 +264,8 @@ class MotionControllerSimulator():
                                     + ts3*current_goal_point.accelerations[i] + (6*current_goal_point.positions[i] - \
                                     t_squa*current_goal_point.accelerations[i])*ts1 +(6*last_goal_point.positions[i] - t_squa*last_goal_point.accelerations[i])*tk1) / (6*T)
 
-                                    intermediate_goal_point.velocities[i] = (3*ts2*current_goal_point.accelerations[i] - 3*tk2*last_goal_point.accelerations[i] \
-                                        + 6*(current_goal_point.positions[i] - last_goal_point.positions[i]) - t_squa*(current_goal_point.accelerations[i] - last_goal_point.accelerations[i])) / (6*T)
+                                    # intermediate_goal_point.velocities[i] = (3*ts2*current_goal_point.accelerations[i] - 3*tk2*last_goal_point.accelerations[i] \
+                                    #     + 6*(current_goal_point.positions[i] - last_goal_point.positions[i]) - t_squa*(current_goal_point.accelerations[i] - last_goal_point.accelerations[i])) / (6*T)
                                     #intermediate_goal_point.accelerations[i] = 2*a2[i]+6*a3[i]*t1+12*a4[i]*t2+20*a5[i]*t3
                                 self._move_to(intermediate_goal_point, update_duration.to_sec())
                                 self.joint_state_publisher()
