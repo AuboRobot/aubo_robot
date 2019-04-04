@@ -96,6 +96,8 @@ class MotionControllerSimulator():
         self.ribBufferSize = 0
         self.ControllerConnectedFlag = 1
         self.positionUpdatedFlag = '0'
+        self.pointCount = 0
+        self.pointAddFinish = 0
 
         rospy.logdebug("Creating joint state publisher")
         self.moveit_joint_state_pub = rospy.Publisher('moveItController_cmd', JointTrajectoryPoint, queue_size=2500)
@@ -170,7 +172,6 @@ class MotionControllerSimulator():
                 joint_point_msg.velocities = self.joint_velocities
                 joint_point_msg.accelerations = self.joint_accelerations
 
-                # rospy.loginfo('Moved to position: %s', str(self.joint_accelerations))
                 self.moveit_joint_state_pub.publish(joint_point_msg)
                 # rospy.loginfo('published joints : %s', str(self.joint_positions))
 
@@ -215,7 +216,7 @@ class MotionControllerSimulator():
         if self.update_rate <> 0.:
             update_duration = rospy.Duration(1./self.update_rate)
         last_goal_point = JointTrajectoryPoint()
-        residual_duration = 0
+        end_goal_point = JointTrajectoryPoint()
 
         with self.lock:
             last_goal_point.positions = self.joint_positions[:]
@@ -228,15 +229,14 @@ class MotionControllerSimulator():
                 if current_goal_point.time_from_start <= last_goal_point.time_from_start:
                     move_duration = current_goal_point.time_from_start.to_sec()
                     intermediate_goal_point = copy.deepcopy(current_goal_point)
-
-                    # residual_duration = 0
+                    point_count = 1
                     external_axis_count = 0
                 # Else it's an existing trajectory and subtract the two
                 else:
                     # If current move duration is greater than update_duration, interpolate the joint positions to form a smooth trajectory
                     # Provide an exception to this rule: if update rate is <=0, do not add interpolated points
                     T = current_goal_point.time_from_start.to_sec() - last_goal_point.time_from_start.to_sec()
-
+                    point_count += 1
                     if self.update_rate > 0:
                         ts = last_goal_point.time_from_start.to_sec()
                         # tt = ts + residual_duration
@@ -271,17 +271,30 @@ class MotionControllerSimulator():
                                 self.joint_state_publisher()
                             move_duration = move_duration + update_duration.to_sec()/5
 
-                        # move_duration = move_duration -  external_axis_count * update_duration.to_sec()/5# < 0
-                        # residual_duration = current_goal_point.time_from_start.to_sec() - move_duration
-                        # rospy.loginfo("move_duration move_duration move_duration is: %f", residual_duration)
-
                 last_goal_point = copy.deepcopy(current_goal_point)
-                if(current_goal_point.velocities[0] == 0 and current_goal_point.accelerations[0] == 0 and residual_duration < 0):
+                if(self.pointAddFinish == 1 and point_count == self.pointCount):  # last point
+                    end_goal_point = copy.deepcopy(current_goal_point)
                     if self.joint_len > 6:
-                        for i in range(0, 5):
-                            current_goal_point.accelerations[i] = current_goal_point.positions[6]
+                        if(external_axis_count <= 0):
+                            for i in range(0, 5):
+                                current_goal_point.accelerations[i] = current_goal_point.positions[6]
+                        else:
+                            for i in range(0, external_axis_count):
+                                current_goal_point.accelerations[i] = intermediate_goal_point.accelerations[i]
+                            for i in range(external_axis_count, 5):
+                                current_goal_point.accelerations[i] = current_goal_point.positions[6]
+
                     self._move_to(current_goal_point, update_duration.to_sec())
                     self.joint_state_publisher()
+
+                    for j in range(0, 3):
+                         if self.joint_len > 6:
+                            for i in range(0, 5):
+                                end_goal_point.accelerations[i] = end_goal_point.positions[6]
+                         self._move_to(end_goal_point, update_duration.to_sec())
+                         self.joint_state_publisher()
+                    rospy.loginfo('last error handle.')
+
 
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)
@@ -467,12 +480,15 @@ class AuboRobotSimulatorNode():
                     self.velocity_scale_factor = rospy.get_param('/aubo_controller/velocity_scale_factor', 1.0)
                     rospy.loginfo('The velocity scale factor is: %s', str(self.velocity_scale_factor))
                     new_traj = scale_trajectory_speed(msg_in, self.velocity_scale_factor)
+                    self.motion_ctrl.pointCount = 0
+                    self.motion_ctrl.pointAddFinish = 0
                     for point in new_traj.points:
                         # first remaps point to controller joint order, the add the point to the controller.
                         point = self._to_controller_order(msg_in.joint_names, point)
                         self.motion_ctrl.add_motion_waypoint(point)
+                        self.motion_ctrl.pointCount += 1
                         rospy.loginfo('Add new position: %s', str(point.positions))
-
+                    self.motion_ctrl.pointAddFinish = 1
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)
 

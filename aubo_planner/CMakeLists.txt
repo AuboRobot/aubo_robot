@@ -19,6 +19,7 @@ catkin_package(
     control_msgs
     actionlib
     moveit_core
+    planning_interface
     moveit_ros_planning_interface
     interactive_markers
     trajectory_msgs
@@ -50,6 +51,9 @@ include_directories(include  ${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS} )
 
+#add_executable(test_7dof src/test_7dof.cpp)
+#TARGET_LINK_LIBRARIES(test_7dof ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 ADD_EXECUTABLE(aubo_planner_test src/aubo_planner_test.cpp)
 TARGET_LINK_LIBRARIES(aubo_planner_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
@@ -58,4 +62,7 @@ TARGET_LINK_LIBRARIES(aubo_planner_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 #install(TARGETS aubo_ros_plan DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 catkin_install_python(PROGRAMS script/aubo_planner/aubo_ros_plan
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+catkin_install_python(PROGRAMS script/aubo_planner/test_7dof
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

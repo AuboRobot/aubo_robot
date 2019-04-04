@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+# Author: Allen Liu
+
+## To use the python interface to move_group, import the moveit_commander
+## module.  We also import rospy and some messages that we will use.
+import sys
+import copy
+import rospy
+import moveit_commander
+import moveit_msgs.msg
+import geometry_msgs.msg
+
+from std_msgs.msg import String
+
+def move_group_python_interface():
+
+  moveit_commander.roscpp_initialize(sys.argv)
+  rospy.init_node('move_group_python_interface', anonymous=True)
+
+  robot = moveit_commander.RobotCommander()
+
+
+  scene = moveit_commander.PlanningSceneInterface()
+
+  group = moveit_commander.MoveGroupCommander("move_arm")
+
+
+  ## We create this DisplayTrajectory publisher which is used below to publish
+  ## trajectories for RVIZ to visualize.
+  display_trajectory_publisher = rospy.Publisher(
+                                      '/move_group/display_planned_path',
+                                      moveit_msgs.msg.DisplayTrajectory)
+
+  print "============ Waiting for RVIZ..."
+  rospy.sleep(1)
+
+
+  ## We can get the name of the reference frame for this robot
+  print "============ Reference frame: %s" % group.get_planning_frame()
+
+  ## We can also print the name of the end-effector link for this group
+  print "============ Reference frame: %s" % group.get_end_effector_link()
+
+  ## We can get a list of all the groups in the robot
+  print "============ Robot Groups:"
+  print robot.get_group_names()
+
+  ## Sometimes for debugging it is useful to print the entire state of the
+  ## robot.
+  print "============ Printing robot state"
+  print robot.get_current_state()
+  print "============"
+
+
+  ## Moving to a pose goal
+  while not rospy.is_shutdown():
+    a = 1
+    if(a == 1):
+      a = 2
+      group.clear_pose_targets()
+      ## Then, we will get the current set of joint values for the group
+      group_variable_values = group.get_current_joint_values()
+      print "============ Joint values: ", group_variable_values
+      ## Now, let's modify one of the joints, plan to the new joint
+      ## space goal and visualize the plan
+      group_variable_values[0] = -0.5
+      group_variable_values[1] = 2.045322
+      group_variable_values[2] = 0.544908
+      group_variable_values[3] = -1.884432
+      group_variable_values[4] = 0.749672
+      group_variable_values[5] = 1.410019
+      group_variable_values[6] = 0.0
+      group.set_joint_value_target(group_variable_values)
+
+      plan1 = group.plan()
+      group.go(wait=True)
+      rospy.sleep(1)
+
+      group.clear_pose_targets()
+      ## Then, we will get the current set of joint values for the group
+      group_variable_values = group.get_current_joint_values()
+      print "============ Joint values: ", group_variable_values
+      ## Now, let's modify one of the joints, plan to the new joint
+      ## space goal and visualize the plan
+      group_variable_values[0] = 0.5
+      group_variable_values[1] = 2.045322
+      group_variable_values[2] = 0.544908
+      group_variable_values[3] = -1.884432
+      group_variable_values[4] = 0.749672
+      group_variable_values[5] = 1.410019
+      group_variable_values[6] = 0.0
+      group.set_joint_value_target(group_variable_values)
+
+      plan2 = group.plan()
+      group.go(wait=True)
+      rospy.sleep(1)
+
+
+  ## When finished shut down moveit_commander.
+  moveit_commander.roscpp_shutdown()
+
+
+if __name__=='__main__':
+  try:
+    move_group_python_interface()
+  except rospy.ROSInterruptException:
+    pass
+

@@ -282,6 +282,7 @@ bool AuboDriver::setRobotJointsByMoveIt()
     {
         PlanningState ps = buf_queue_.deQueue();;
         std::vector<aubo_robot_namespace::ExtJointWayPoint> extJointWayPointVector;
+        extJointWayPointVector.clear();
         if(axis_number_ > 6)
         {
             aubo_robot_namespace::ExtJointWayPoint point;

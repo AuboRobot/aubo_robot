@@ -29,6 +29,9 @@
   <build_depend>interactive_markers</build_depend>
   <build_depend>cmake_modules</build_depend>
   <build_depend>geometric_shapes</build_depend>
+  <build_depend>planning_interface</build_depend>
+  <build_depend>move_group_interface</build_depend>
+
 
   <run_depend>roscpp</run_depend>
   <run_depend>std_msgs</run_depend>
@@ -46,6 +49,9 @@
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_fake_controller_manager</run_depend>
   <run_depend>moveit_ros_planning_interface</run_depend>
+  <run_depend>planning_interface</run_depend>
+  <run_depend>move_group_interface</run_depend>
+
   <run_depend>moveit_ros_perception</run_depend>
   <run_depend>interactive_markers</run_depend>
 
