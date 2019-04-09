@@ -222,7 +222,6 @@ class MotionControllerSimulator():
             try:
                 current_goal_point = self.motion_buffer.get()
                 intermediate_goal_point = copy.deepcopy(current_goal_point)
-
                 # If the current time from start is less than or equal to the last, then it's a new trajectory
                 if current_goal_point.time_from_start <= last_goal_point.time_from_start:
                     move_duration = current_goal_point.time_from_start
@@ -475,7 +474,6 @@ class AuboRobotSimulatorNode():
         pt_rtn.positions = self._remap_order(self.joint_names, keys, point.positions)
         pt_rtn.velocities = self._remap_order(self.joint_names, keys, point.velocities)
         pt_rtn.accelerations = self._remap_order(self.joint_names, keys, point.accelerations)
-
         return pt_rtn
 
     def _remap_order(self, ordered_keys, value_keys, values):

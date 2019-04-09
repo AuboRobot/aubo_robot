@@ -374,6 +374,7 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
             ROS_DEBUG("Add new waypoint to the buffer.");
             data_count_ = 0;
             PlanningState ps;
+
             memcpy(ps.joint_pos_, jointAngle, sizeof(double) * axis_number_);
             memcpy(ps.joint_vel_, &msg->velocities[0], sizeof(double) * axis_number_);
             memcpy(ps.joint_acc_, &msg->accelerations[0], sizeof(double) * axis_number_);
