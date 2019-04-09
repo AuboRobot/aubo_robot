@@ -67,7 +67,7 @@ class MotionControllerSimulator():
 
         # Motion loop update rate (higher update rates result in smoother simulated motion)
         self.update_rate = update_rate
-        rospy.logdebug("Setting motion update rate (hz): %f", self.update_rate)
+        rospy.loginfo("Setting motion update rate (hz): %f", self.update_rate)
 
         # Initialize motion buffer (contains joint position lists)
         self.motion_buffer = Queue.Queue(buffer_size)
@@ -77,12 +77,14 @@ class MotionControllerSimulator():
         self.joint_names = rospy.get_param('controller_joint_names', def_joint_names)
 
         initial_joint_state = rospy.get_param('initial_joint_state', [0]*num_joints)
-        same_len = len(initial_joint_state) == len(self.joint_names)
-        all_num  = all(type(x) is int or type(x) is float for x in initial_joint_state)
-        if not same_len or not all_num:
-            initial_joint_state = [0]*num_joints
-            rospy.logwarn("Invalid initial_joint_state parameter, defaulting to all-zeros "
-                          "(len: %s, types: %s).", same_len, all_num)
+        # same_len = len(initial_joint_state) == len(self.joint_names)
+        # same_len = 6
+        initial_joint_state = [0]*num_joints
+        # all_num  = all(type(x) is int or type(x) is float for x in initial_joint_state)
+        # if not same_len or not all_num:
+        #     initial_joint_state = [0]*num_joints
+        #     rospy.logwarn("Invalid initial_joint_state parameter, defaulting to all-zeros "
+        #                   "(len: %s, types: %s).", same_len, all_num)
         rospy.loginfo("Using initial joint state: %s", str(initial_joint_state))
 
          # Initialize joint position

@@ -34,6 +34,7 @@
 #include "utils_.h"
 #include "param_utils.h"
 #include "utils.h"
+#include <map>
 
 namespace industrial_robot_client
 {
@@ -311,6 +312,116 @@ void JointTrajectoryAction::abortGoal()
   has_active_goal_ = false;
 }
 
+bool mapInsert(const std::string & key, double value, std::map<std::string, double> & mappings)
+{
+  bool rtn = false;
+
+  std::pair<std::map<std::string, double>::iterator, bool> insert_rtn;
+
+  insert_rtn = mappings.insert(std::make_pair(key, value));
+
+  // The second value returned form insert is a boolean (true for success)
+  if (!insert_rtn.second)
+  {
+    ROS_ERROR_STREAM(__FUNCTION__ << "::Failed to insert item into map with key: " << key);
+    rtn = false;
+  }
+  else
+  {
+    rtn = true;
+  }
+  return rtn;
+
+}
+
+
+bool toMap(const std::vector<std::string> & keys, const std::vector<double> & values,
+           std::map<std::string, double> & mappings)
+{
+  bool rtn;
+
+  mappings.clear();
+
+  if (keys.size() == values.size())
+  {
+    rtn = true;
+
+    for (size_t i = 0; i < keys.size(); ++i)
+    {
+      rtn = mapInsert(keys[i], values[i], mappings);
+      if (!rtn)
+      {
+        break;
+      }
+    }
+
+  }
+  else
+  {
+    ROS_ERROR_STREAM(__FUNCTION__ << "::keys size: " << keys.size()
+                     << " does not match values size: " << values.size());
+
+    rtn = false;
+  }
+
+  return rtn;
+}
+
+bool isWithinRange(const std::vector<std::string> & keys, const std::map<std::string, double> & lhs,
+                   const std::map<std::string, double> & rhs, double full_range)
+{
+  bool rtn = false;
+
+  if ((keys.size() != rhs.size()) || (keys.size() != lhs.size()))
+  {
+    ROS_ERROR_STREAM(__FUNCTION__ << "::Size mistmatch ::lhs size: " << lhs.size() <<
+                     " rhs size: " << rhs.size() << " key size: " << keys.size());
+
+    rtn = false;
+  }
+  else
+  {
+    // Calculating the half range causes some precision loss, but it's good enough
+    double half_range = full_range / 2.0;
+    rtn = true; // Assume within range, catch exception in loop below
+
+    // This loop will not run for empty vectors, results in return of true
+    for (size_t i = 0; i < keys.size(); ++i)
+    {
+      if (fabs(lhs.at(keys[i]) - rhs.at(keys[i])) > fabs(half_range))
+      {
+        rtn = false;
+        break;
+      }
+    }
+
+  }
+
+  return rtn;
+}
+
+
+bool isWithinRange(const std::vector<std::string> & lhs_keys, const std::vector<double> & lhs_values,
+                   const std::vector<std::string> & rhs_keys, const std::vector<double> & rhs_values, double full_range)
+{
+  bool rtn = false;
+  std::map<std::string, double> lhs_map;
+  std::map<std::string, double> rhs_map;
+  if (industrial_utils::isSimilar(lhs_keys, rhs_keys))
+  {
+    if (toMap(lhs_keys, lhs_values, lhs_map) && toMap(rhs_keys, rhs_values, rhs_map))
+    {
+      rtn = isWithinRange(lhs_keys, lhs_map, rhs_map, full_range);
+    }
+  }
+  else
+  {
+    ROS_ERROR_STREAM(__FUNCTION__ << "::Key vectors are not similar");
+    rtn = false;
+  }
+  return rtn;
+}
+
 bool JointTrajectoryAction::withinGoalConstraints(const control_msgs::FollowJointTrajectoryFeedbackConstPtr &msg,
                                                   const trajectory_msgs::JointTrajectory & traj)
 {
@@ -323,6 +434,20 @@ bool JointTrajectoryAction::withinGoalConstraints(const control_msgs::FollowJoin
   else
   {
     int last_point = traj.points.size() - 1;
+
+    std::cout<<"last_trajectory_state"<<last_trajectory_state_->joint_names[0]<<","<<last_trajectory_state_->joint_names[1]<<","<<last_trajectory_state_->joint_names[2]
+                                                    <<","<<last_trajectory_state_->joint_names[3]<<","<<last_trajectory_state_->joint_names[4]
+                                                    <<","<<last_trajectory_state_->joint_names[5]<<","<<last_trajectory_state_->joint_names[6]<<std::endl;
+    std::cout<<"traj.joint_names"<<traj.joint_names[0]<<","<<traj.joint_names[1]<<","<<traj.joint_names[2]
+                                                    <<","<<traj.joint_names[3]<<","<<traj.joint_names[4]
+                                                    <<","<<traj.joint_names[5]<<","<<traj.joint_names[6]<<std::endl;
+
+
+//    ROS_INFO("laset position,%f,%f,%f,%f,%f,%f,%f",last_trajectory_state_->actual.positions[0],last_trajectory_state_->actual.positions[1],last_trajectory_state_->actual.positions[2],last_trajectory_state_->actual.positions[3],
+//            last_trajectory_state_->actual.positions[4],last_trajectory_state_->actual.positions[5],last_trajectory_state_->actual.positions[6]);
+
+//    ROS_INFO("current position,%f,%f,%f,%f,%f,%f,%f",traj.points[last_point].positions[0],traj.points[last_point].positions[1],traj.points[last_point].positions[2],traj.points[last_point].positions[3],
+//            traj.points[last_point].positions[4],traj.points[last_point].positions[5],traj.points[last_point].positions[6]);
 
     if (industrial_robot_client::utils::isWithinRange(last_trajectory_state_->joint_names,
                                                       last_trajectory_state_->actual.positions, traj.joint_names,

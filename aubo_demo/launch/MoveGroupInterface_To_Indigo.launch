@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="MoveGroupInterface_To_Indigo" pkg="aubo_demo" type="MoveGroupInterface_To_Indigo" respawn="false" output="screen">
+  </node>
+
+</launch>

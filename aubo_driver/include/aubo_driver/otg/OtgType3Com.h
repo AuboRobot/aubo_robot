@@ -11,7 +11,7 @@
 #ifdef STEP2_TEST
 #define ARM_DOF 1
 #else
-#define ARM_DOF 6
+#define ARM_DOF 8
 #endif
 
 #define CTRL_PERIOD 0.005
