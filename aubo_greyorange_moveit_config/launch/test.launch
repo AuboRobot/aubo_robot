@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+ <!-- industrial_robot_simulator: accepts robot commands and reports status -->
+ <node pkg="aubo_interpolation" type="aubo_Trajectory_Planning_Node" name="aubo_Trajectory_Planning_Node"/>
+
+</launch>

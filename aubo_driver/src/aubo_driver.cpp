@@ -210,7 +210,9 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
             joint_feedback.joint_names[i] = joint_name_[i];
             joint_feedback.actual.positions[i] = joint_state.position[i];
         }
-std::cout<<joint_state.position[0]<<","<<joint_state.position[1]<<","<<joint_state.position[2]<<","<<joint_state.position[3]<<","<<joint_state.position[4]<<joint_state.position[5]<<","<<joint_state.position[6]<<std::endl;
+
+        //std::cout<<joint_state.position[0]<<","<<joint_state.position[1]<<","<<joint_state.position[2]<<","<<joint_state.position[3]<<","<<joint_state.position[4]<<joint_state.position[5]<<","<<joint_state.position[6]<<std::endl;
+
         joint_states_pub_.publish(joint_state);
         joint_feedback_pub_.publish(joint_feedback);
 
@@ -326,7 +328,7 @@ bool AuboDriver::setRobotJointsByMoveIt()
                    resultValue = otgVelocityModeResult(1, jto);
                    double jointAngle[] = {jto.newPosition[0],jto.newPosition[1],jto.newPosition[2],jto.newPosition[3],jto.newPosition[4],jto.newPosition[5]};
                    ret = robot_send_service_.robotServiceSetRobotPosData2Canbus(jointAngle);
-                   std::cout<<"normal stop:"<<jointAngle[0]<<","<<jointAngle[1]<<","<<jointAngle[2]<<","<<jointAngle[3]<<","<<jointAngle[4]<<","<<jointAngle[5]<<","<<std::endl;
+                   //std::cout<<"normal stop:"<<jointAngle[0]<<","<<jointAngle[1]<<","<<jointAngle[2]<<","<<jointAngle[3]<<","<<jointAngle[4]<<","<<jointAngle[5]<<","<<std::endl;
                 }
                 //clear the buffer
                 start_move_ = false;
@@ -421,6 +423,10 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
             memcpy(ps.joint_acc_, &msg->accelerations[0], sizeof(double) * axis_number_);
             memcpy(last_recieve_point_, jointAngle, sizeof(double) * axis_number_);
             buf_queue_.enQueue(ps);
+            ROS_INFO("-------sub topic position:%f/%f/%f/%f/%f/%f/%f/",ps.joint_pos_[0],ps.joint_pos_[1],ps.joint_pos_[2],ps.joint_pos_[3],ps.joint_pos_[4],ps.joint_pos_[5],ps.joint_pos_[6]);
+            ROS_INFO("-------sub topic velc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_vel_[0],ps.joint_vel_[1],ps.joint_vel_[2],ps.joint_vel_[3],ps.joint_vel_[4],ps.joint_vel_[5],ps.joint_vel_[6]);
+            ROS_INFO("-------sub topic acc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_acc_[0],ps.joint_acc_[1],ps.joint_acc_[2],ps.joint_acc_[3],ps.joint_acc_[4],ps.joint_acc_[5],ps.joint_acc_[6]);
+
 //            std::cout<<"published point:"<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<ps.joint_pos_[6]<<std::endl;
             if(buf_queue_.getQueueSize() > buffer_size_ && !start_move_)
                 start_move_ = true;
@@ -636,6 +642,21 @@ void AuboDriver::run()
         }
     }
 
+    int ret = aubo_robot_namespace::InterfaceCallSuccCode;
+    aubo_robot_namespace::ToolDynamicsParam toolDynamicsParam;
+    memset(&toolDynamicsParam, 0, sizeof(toolDynamicsParam));
+    aubo_robot_namespace::ROBOT_SERVICE_STATE result;
+    ret = robot_send_service_.rootServiceRobotStartup(toolDynamicsParam/**工具动力学参数**/,
+                                               collision_class_        /*碰撞等级*/,
+                                               true     /*是否允许读取位姿　默认为true*/,
+                                               true,    /*保留默认为true */
+                                               1000,    /*保留默认为1000 */
+                                               result); /*机械臂初始化*/
+    if(ret == aubo_robot_namespace::InterfaceCallSuccCode)
+        ROS_ERROR("Initial sucess.");
+    else
+        ROS_ERROR("Initial failed.");
+
     //communication Timer between ros node and real robot controller.
     timer_ = nh_.createTimer(ros::Duration(1.0 / TIMER_SPAN_), &AuboDriver::timerCallback, this);
     timer_.start();
@@ -740,10 +761,10 @@ void AuboDriver::publishIOMsg()
             io_msg.safety_in_states.push_back(digi);
         }
 
-        if(real_robot_exist_)
-        {
-            ROS_INFO_NAMED("Project_Stop","SI01 : %d",io_msg.safety_in_states[1].state);
-        }
+//        if(real_robot_exist_)
+//        {
+//            ROS_INFO_NAMED("Project_Stop","SI01 : %d",io_msg.safety_in_states[1].state);
+//        }
 
         if(real_robot_exist_)
         {

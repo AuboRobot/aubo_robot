@@ -46,6 +46,7 @@ def scale_trajectory_speed(traj, scale):
 
     # Store the trajectory points
     points = list(traj.points)
+    # rospy.loginfo('The velocity velocity: %s', str(points))
 
     # Cycle through all points and joints and scale the time from start, as well as joint speed and acceleration
     for i in range(n_points):
@@ -67,7 +68,6 @@ def scale_trajectory_speed(traj, scale):
         for j in range(n_joints):
             point.velocities[j] = point.velocities[j] * scale
             point.accelerations[j] = point.accelerations[j] * scale * scale
-
         # Store the scaled trajectory point
         points[i] = point
 

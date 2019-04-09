@@ -1,83 +1,80 @@
 /*
- * ur_driver.cpp
+ * Software License Agreement (BSD License)
  *
- * Copyright 2015 Thomas Timm Andersen
+ * Copyright (c) 2017-2018, AUBO Robotics
+ * All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *       * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *       * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *       * Neither the name of the Southwest Research Institute, nor the names
+ *       of its contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ros/ros.h>
-#include <ros/console.h>
-#include <time.h>
-#include <string.h>
-#include <vector>
-#include <mutex>
-#include <queue>
-#include <condition_variable>
-#include <thread>
-#include <algorithm>
-#include <cmath>
-#include <chrono>
-
-
-#include <trajectory_msgs/JointTrajectory.h>
-#include <std_msgs/Float32MultiArray.h>
-#include <std_msgs/Int32MultiArray.h>
-
-#include "sensor_msgs/JointState.h"
-#include "geometry_msgs/WrenchStamped.h"
-#include "geometry_msgs/PoseStamped.h"
-#include "control_msgs/FollowJointTrajectoryAction.h"
-#include "actionlib/server/action_server.h"
-#include "actionlib/server/server_goal_handle.h"
-#include "trajectory_msgs/JointTrajectoryPoint.h"
-#include "std_msgs/String.h"
-#include <controller_manager/controller_manager.h>
-#include <realtime_tools/realtime_publisher.h>
-
-
-#define ARM_DOF 6
-namespace aubo_controller {
-
-class MotionControllerSimulator
+#include "aubo_robot_simulator.h"
+namespace aubo_robot_simulator
 {
-public:
-    int rib_buffer_size_;
-    bool controller_connected_flag_;
-    boost::mutex mutex_;
-
-protected:
-    ros::NodeHandle nh_;
-    double update_rate_;
-    std::queue<trajectory_msgs::JointTrajectoryPoint> motion_buffer_;
-//    int num_joints_;
-    std::string joint_names_[ARM_DOF];
-    double joint_positions_[ARM_DOF];
-    std::string initial_joint_state_;
-
-    bool position_updated_flag_;
-    bool sig_shutdown_;
-    bool sig_stop_;
-
-    const int MINIMUM_BUFFER_SIZE_ = 250;
-
-    ros::Publisher moveit_joint_state_pub_;
-    ros::Subscriber update_joint_state_subs_;
-    std::thread* motion_thread_;
-
-public:
-    MotionControllerSimulator(int num_joints, double update_rate, std::string *jointnames)
+    MotionControllerSimulator::MotionControllerSimulator(double update_rate, std::string *jointnames)
     {
+        ros::param::get("pub_rate", pub_rate_);
+        ROS_INFO("Setting publish rate (hz) based on parameter: %d", pub_rate_);
+
+//        const std::string def_joint_names[] = {"joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"};
+        std::vector<std::string> def_joint_names;
+        ros::param::get("controller_joint_names", def_joint_names);
+
+//        if len(self.joint_names) == 0:
+//                    rospy.logwarn("Joint list is empty, did you set controller_joint_name?")
+//                rospy.loginfo("Simulating manipulator with %d joints: %s", len(self.joint_names), ", ".join(self.joint_names))
+
+        num_joints_ = def_joint_names.size();
+
+        ros::param::get("aubo_driver/external_axis_number", external_axis_number_);
+        ROS_INFO("aubo_driver external_axis_number is: %d", external_axis_number_);
+
+
+        ros::param::get("aubo_driver/external_axis_number", velocity_scale_factor_);
+        ROS_INFO("The velocity scale factor of the trajetory is: %d", velocity_scale_factor_);
+
+//        joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 100);
+//        joint_feedback_pub_ = nh_.advertise<control_msgs::FollowJointTrajectoryFeedback>("feedback_states", 100);
+        joint_path_sub_ = nh_.subscribe("joint_path_command", 100, &MotionControllerSimulator::trajectoryCallback, this);
+
+
+
+        controller_connected_flag_ = true;
+        std::string joint_names_[ARM_DOF];
+        std::vector<std::string> jointNames;
+        ros::param::get("controller_joint_names",jointNames);
+        motion_ctrl_ = new MotionControllerSimulator(6, 200, &jointNames[0]);
+
+
+        plan_type_sub_ = nh_.subscribe("rib_status", 100, &AuboRobotSimulatorNode::ribStatusCallback, this);
+
+//        joint_positions = new double[ARM_DOF];
+
+        timer_ = nh_.createTimer(ros::Duration(1.0 / JOINT_STATE_PUB_RATE),&AuboRobotSimulatorNode::publishWorker,this);
+        timer_.start();
+
+
         //Motion loop update rate (higher update rates result in smoother simulated motion)
         update_rate_ = update_rate;
         ROS_INFO("Setting motion update rate (hz): %f", update_rate_);
@@ -87,7 +84,6 @@ public:
 
 //        Initialize motion buffer (contains joint position lists)
 //        motion_buffer_.
-        std::string def_joint_names[] = {"joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"};
 //        joint_names_ = ros::param::get("controller_joint_names",def_joint_names);
         double joint_state[num_joints];
 //        initial_joint_state_ = ros::param::get("initial_joint_state", joint_state);
@@ -103,11 +99,24 @@ public:
         moveit_joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("moveit_controller_cmd", 2000);
         update_joint_state_subs_ = nh_.subscribe("real_pose", 50, &MotionControllerSimulator::updateJointStateCallback, this);
 
-        motion_thread_ = new std::thread(boost::bind(&MotionControllerSimulator::motionWorker, this));
+        pthread_t tids;
+//        motion_thread_ = new std::thread(boost::bind(&MotionControllerSimulator::motionWorker, this));
+        pthread_create(&tids, NULL, &MotionControllerSimulator::motionWorker, NULL);
 
     }
 
-    void updateJointStateCallback(const std_msgs::Float32MultiArray::ConstPtr &msg)
+    MotionControllerSimulator::~MotionControllerSimulator()
+    {
+        if(timer_.isValid())
+            timer_.stop();
+        if(motion_ctrl_ != NULL)
+        {
+            delete motion_ctrl_;
+            motion_ctrl_ = NULL;
+        }
+    }
+
+    void  MotionControllerSimulator::updateJointStateCallback(const std_msgs::Float32MultiArray::ConstPtr &msg)
     {
         if(isInMotion())
         {
@@ -119,13 +128,14 @@ public:
         }
     }
 
-    void addMotionWaypoint(trajectory_msgs::JointTrajectoryPoint point)
+    void  MotionControllerSimulator::addMotionWaypoint(trajectory_msgs::JointTrajectoryPoint point)
     {
         //When add new trajectory into the buffer, here need to handle the accelerations!!
-        motion_buffer_.push(point);
+        motion_buffer_.push(point);pthread_create(&tids, NULL, &MotionControllerSimulator::motionWorker, NULL);
+
     }
 
-    void getJointPositions(double *joint_position)
+    void  MotionControllerSimulator::getJointPositions(double *joint_position)
     {
         mutex_.lock();
         memcpy(joint_position, joint_positions_, ARM_DOF*sizeof(double));
@@ -133,7 +143,7 @@ public:
     }
 
 
-    void motionWorker()
+    void  MotionControllerSimulator::motionWorker()
     {
         double move_duration, update_duration, T, T2, T3, T4, T5, tt, ti, t1, t2, t3, t4, t5;
         double a1[ARM_DOF], a2[ARM_DOF], a3[ARM_DOF], a4[ARM_DOF], a5[ARM_DOF], h[ARM_DOF], intermediate_goal_point[ARM_DOF];
@@ -208,18 +218,18 @@ public:
         ROS_DEBUG("Shutting down motion controller!");
     }
 
-    bool isInMotion()
+    bool  MotionControllerSimulator::isInMotion()
     {
         return !motion_buffer_.empty();
     }
 
-    void shutdown()
+    void  MotionControllerSimulator::shutdown()
     {
         sig_shutdown_ = true;
         ROS_DEBUG("Motion_Controller shutdown signaled!");
     }
 
-    void stop()
+    void  MotionControllerSimulator::stop()
     {
         ROS_DEBUG("Motion_Controller stop signaled!");
         mutex_.lock();
@@ -229,7 +239,7 @@ public:
         mutex_.unlock();
     }
 
-    void jointStatePublisher()
+    void  MotionControllerSimulator::jointStatePublisher()
     {
         try
         {
@@ -252,16 +262,16 @@ public:
         }
     }
 
-    void moveToTarget(int dur, double *point)
+    void  MotionControllerSimulator::moveToTarget(int dur, double *point)
     {
         while(rib_buffer_size_ > MINIMUM_BUFFER_SIZE_)
         {
             ROS_INFO("generate control data too fast!");
-            std::this_thread::sleep_for(std::chrono::milliseconds(dur));
+//            std::this_thread::sleep_for(std::chrono::milliseconds(dur));
         }
 
         if(rib_buffer_size_ == 0 && controller_connected_flag_ == false)    //motion start or no robot connected!
-            std::this_thread::sleep_for(std::chrono::milliseconds(dur));
+//            std::this_thread::sleep_for(std::chrono::milliseconds(dur));
 
         mutex_.lock();
         if(!sig_stop_)
@@ -278,87 +288,8 @@ public:
 
     }
 
-private:
 
-};
-
-
-/*
- * This class simulates an Aubo robot controller.  The simulator
- * adheres to the ROS-Industrial robot driver specification:
- *
- * http://www.ros.org/wiki/Industrial/Industrial_Robot_Driver_Spec
- *
- * TODO: Currently the simulator only supports the bare minimum motion interface.
- *
- * TODO: Interfaces to add:
- * Joint streaming
- * All services
-*/
-class AuboRobotSimulatorNode
-{
-public:
-
-protected:
-    const int JOINT_STATE_PUB_RATE = 50;
-    ros::NodeHandle nh_;
-    double pub_rate_;
-    bool controller_enable_flag_;
-    MotionControllerSimulator *motion_ctrl_;
-
-    std::string joint_names_[ARM_DOF];
-
-    ros::Publisher joint_state_pub_;
-    ros::Publisher joint_feedback_pub_;
-    ros::Subscriber joint_path_sub_;
-    ros::Subscriber plan_type_sub_;
-
-    ros::Timer timer_;
-
-
-    std::queue<trajectory_msgs::JointTrajectoryPoint> motion_buffer_;
-    double joint_positions_[];
-    std::string initial_joint_state_;
-    int rib_buffer_size_;
-    bool controller_connected_flag_;
-    bool position_updated_flag_;
-    bool sig_shutdown_;
-    bool sig_stop_;
-
-public:
-    AuboRobotSimulatorNode()
-    {
-        controller_connected_flag_ = true;
-        std::string joint_names_[ARM_DOF];
-        std::string def_joint_names[] = {"joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"};
-        std::vector<std::string> jointNames;
-        ros::param::get("controller_joint_names",jointNames);
-        motion_ctrl_ = new MotionControllerSimulator(6, 200, &jointNames[0]);
-
-        joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 100);
-        joint_feedback_pub_ = nh_.advertise<control_msgs::FollowJointTrajectoryFeedback>("feedback_states", 100);
-        joint_path_sub_ = nh_.subscribe("joint_path_command", 100, &AuboRobotSimulatorNode::trajectoryCallback, this);
-
-        plan_type_sub_ = nh_.subscribe("rib_status", 100, &AuboRobotSimulatorNode::ribStatusCallback, this);
-
-//        joint_positions = new double[ARM_DOF];
-
-        timer_ = nh_.createTimer(ros::Duration(1.0 / JOINT_STATE_PUB_RATE),&AuboRobotSimulatorNode::publishWorker,this);
-        timer_.start();
-    }
-
-    ~AuboRobotSimulatorNode()
-    {
-        if(timer_.isValid())
-            timer_.stop();
-        if(motion_ctrl_ != NULL)
-        {
-            delete motion_ctrl_;
-            motion_ctrl_ = NULL;
-        }
-    }
-
-    void publishWorker(const ros::TimerEvent& e)
+    void MotionControllerSimulator::publishWorker(const ros::TimerEvent& e)
     {
         if(controller_enable_flag_ == true /*&& motion_ctrl_.positionUpdatedFlag == true*/)
         {
@@ -460,9 +391,6 @@ public:
         }
     }
 
-private:
-
-};
 }
 
 int main(int argc, char **argv)
