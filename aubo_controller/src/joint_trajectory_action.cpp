@@ -435,12 +435,12 @@ bool JointTrajectoryAction::withinGoalConstraints(const control_msgs::FollowJoin
   {
     int last_point = traj.points.size() - 1;
 
-    std::cout<<"last_trajectory_state"<<last_trajectory_state_->joint_names[0]<<","<<last_trajectory_state_->joint_names[1]<<","<<last_trajectory_state_->joint_names[2]
-                                                    <<","<<last_trajectory_state_->joint_names[3]<<","<<last_trajectory_state_->joint_names[4]
-                                                    <<","<<last_trajectory_state_->joint_names[5]<<","<<last_trajectory_state_->joint_names[6]<<std::endl;
-    std::cout<<"traj.joint_names"<<traj.joint_names[0]<<","<<traj.joint_names[1]<<","<<traj.joint_names[2]
-                                                    <<","<<traj.joint_names[3]<<","<<traj.joint_names[4]
-                                                    <<","<<traj.joint_names[5]<<","<<traj.joint_names[6]<<std::endl;
+//    std::cout<<"last_trajectory_state"<<last_trajectory_state_->joint_names[0]<<","<<last_trajectory_state_->joint_names[1]<<","<<last_trajectory_state_->joint_names[2]
+//                                                    <<","<<last_trajectory_state_->joint_names[3]<<","<<last_trajectory_state_->joint_names[4]
+//                                                    <<","<<last_trajectory_state_->joint_names[5]<<","<<last_trajectory_state_->joint_names[6]<<std::endl;
+//    std::cout<<"traj.joint_names"<<traj.joint_names[0]<<","<<traj.joint_names[1]<<","<<traj.joint_names[2]
+//                                                    <<","<<traj.joint_names[3]<<","<<traj.joint_names[4]
+//                                                    <<","<<traj.joint_names[5]<<","<<traj.joint_names[6]<<std::endl;
 
 
 //    ROS_INFO("laset position,%f,%f,%f,%f,%f,%f,%f",last_trajectory_state_->actual.positions[0],last_trajectory_state_->actual.positions[1],last_trajectory_state_->actual.positions[2],last_trajectory_state_->actual.positions[3],
