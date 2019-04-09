@@ -54,7 +54,7 @@ class AuboRobotPlannerNode():
         self.plan_flag = 0
 
         # Instantiate a MoveGroupCommander object. This object is an interface to one group of joints.
-        self.group = moveit_commander.MoveGroupCommander("manipulator")
+        self.group = moveit_commander.MoveGroupCommander("move_arm")
 
         moveit_commander.roscpp_initialize(sys.argv)
         # Instantiate a RobotCommander object.  This object is an interface to the robot as a whole.
@@ -64,13 +64,13 @@ class AuboRobotPlannerNode():
         self.scene = moveit_commander.PlanningSceneInterface()
 
         # We create this DisplayTrajectory publisher which is used below to publish trajectories for RVIZ to visualize.
-        self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory)
+        # self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory)
 
         # Planning to a Pose goal
         self.target_pose_subs = rospy.Subscriber('/aubo_driver/target_pose', Pose, self.set_target_pose)
 
         # Planning to joint-space goal
-        self.target_joints_subs = rospy.Subscriber('/aubo_driver/target_joint_value', Float32MultiArray, self.set_target_joint_value)
+        self.target_joints_subs = rospy.Subscriber('/set_target_joint_value', Float32MultiArray, self.set_target_joint_value)
 
         # Planning to Cartesian path goal
         self.cartesian_path_subs = rospy.Subscriber('/aubo_driver/cartesian_path_list', PoseArray, self.set_cartesian_path_list)
@@ -83,7 +83,7 @@ class AuboRobotPlannerNode():
         rospy.loginfo('A list of all the groups in the robot: %s', str(self.robot.get_group_names()))
         rospy.loginfo('The entire state of the robot: %s', str(self.robot.get_current_state()))
 
-        self.execute = False
+        self.execute = True
         self.pose_target = geometry_msgs.msg.Pose()
         self.group_variable_values = self.group.get_current_joint_values()
         self.num_joint = len(self.group_variable_values)
@@ -93,7 +93,7 @@ class AuboRobotPlannerNode():
         self.jump_threshold = 0.0
 
         self.update_rate = update_rate
-        rospy.logdebug("ros planner update rate (hz): %f", self.update_rate)
+        rospy.loginfo("ros planner update rate (hz): %f", self.update_rate)
 
         # Motion thread
         self.motion_thread = threading.Thread(target=self.ros_planner)
@@ -104,7 +104,10 @@ class AuboRobotPlannerNode():
 
     """
     def ros_planner(self):
-        rospy.spin()
+        while not rospy.is_shutdown():
+            rate = rospy.Rate(10)
+            rate.sleep()
+            # rospy.spin()
         # self.moveit_commander.roscpp_shutdown()
 
     """
@@ -134,6 +137,7 @@ class AuboRobotPlannerNode():
     Plan a motion for this group to a joint-space goal
     """
     def set_target_joint_value(self, msg_in):
+        rospy.loginfo('receive message: %s', str(msg_in))
         if self.plan_flag == 0:
             self.plan_flag = 1
             self.group.clear_pose_targets()

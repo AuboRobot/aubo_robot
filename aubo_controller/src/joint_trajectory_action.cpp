@@ -1,7 +1,7 @@
 /*
  * Software License Agreement (BSD License)
  *
- * Copyright (c) 2017-2018, AUBO Robotics
+ * Copyright (c) 2017-2019, AUBO Robotics
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ namespace joint_trajectory_action
 {
 const double JointTrajectoryAction::WATCHDOG_PERIOD_ = 1.0;
 const double JointTrajectoryAction::DEFAULT_GOAL_THRESHOLD_ = 0.004;
+
 
 JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
     action_server_(node_, controller_name, boost::bind(&JointTrajectoryAction::goalCB, this,_1),
@@ -370,10 +371,8 @@ bool JointTrajectoryAction::withinGoalConstraints(const control_msgs::FollowJoin
 
 
     if (industrial_robot_client::utils::isWithinRange(last_trajectory_state_->joint_names,
-                                                      last_trajectory_state_->actual.positions,
-                                                      traj.joint_names,
-                                                      traj.points[last_point].positions,
-                                                      goal_threshold_))
+                                                      last_trajectory_state_->actual.positions, traj.joint_names,
+                                                      traj.points[last_point].positions, goal_threshold_))
     {
       ROS_INFO("within range true");
       rtn = true;

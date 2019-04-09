@@ -264,7 +264,7 @@
     <parent link="base_frame" />
     <child  link="arm_mount" />
     <axis   xyz="0 0 -1" />
-    <limit lower="-0.4" upper="0.4" effort="0" velocity="0" />
+    <limit lower="-0.8" upper="0.8" effort="0" velocity="0" />
   </joint>
 
   <joint  name="fixed_joint"type="fixed">
