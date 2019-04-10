@@ -6,7 +6,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   aubo_msgs
+  moveit_ros_planning_interface
 )
+
+
 
 catkin_package(
   INCLUDE_DIRS include
@@ -49,6 +52,7 @@ add_executable(aubo_driver ${${PROJECT_NAME}_SOURCES1})
 add_executable(testIO ${${PROJECT_NAME}_SOURCES2})
 add_executable(testAuboAPI ${${PROJECT_NAME}_SOURCES3})
 add_executable(testExtServer src/testExtServer.cpp)
+add_executable(arm_movement_with_constraint src/test_india.cpp)
 
 #LINK_LIBRARIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
@@ -56,6 +60,9 @@ target_link_libraries(aubo_driver pthread ${catkin_LIBRARIES} libauborobotcontro
 target_link_libraries(testAuboAPI ${catkin_LIBRARIES} libauborobotcontroller.so libotgLib.a)
 target_link_libraries(testIO ${catkin_LIBRARIES} libotgLib.a)
 target_link_libraries(testExtServer
+   ${catkin_LIBRARIES}
+ )
+target_link_libraries(arm_movement_with_constraint
    ${catkin_LIBRARIES}
  )
 
@@ -71,5 +78,6 @@ add_dependencies(aubo_driver aubo_msgs_gencpp)
 add_dependencies(testIO aubo_msgs_gencpp)
 add_dependencies(testAuboAPI aubo_msgs_gencpp)
 add_dependencies(testExtServer ${catkin_EXPORTED_TARGETS})
+add_dependencies(arm_movement_with_constraint ${catkin_EXPORTED_TARGETS})
 
 

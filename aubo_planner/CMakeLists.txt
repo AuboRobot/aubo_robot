@@ -9,7 +9,15 @@ find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs
   control_msgs trajectory_msgs actionlib_msgs actionlib
   urdf industrial_msgs industrial_utils)
 
-find_package(Eigen REQUIRED)
+if("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
+    find_package(Eigen3 REQUIRED)
+    Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find Eigen3 Package in aubo_planner for kinetic")
+endif()
+
+if("$ENV{ROS_DISTRO}" STREQUAL "indigo")
+    find_package(Eigen REQUIRED)
+    Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find Eigen Package in aubo_planner for  for indigo")
+endif()
 
 catkin_package(
   CATKIN_DEPENDS
@@ -43,19 +51,24 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler. Suggested solution: update the pkg build-essential ")
 endif()
 
-#set(CMAKE_CXX_COMPILER "clang++")
-#set(CMAKE_C_COMPILER "clang")
 
 include_directories(include  ${catkin_INCLUDE_DIRS})
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS} )
+if("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
+    include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
+    Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find EIGEN3_INCLUDE_DIRS Package in aubo_planner for kinetic")
+endif()
 
-#add_executable(test_7dof src/test_7dof.cpp)
-#TARGET_LINK_LIBRARIES(test_7dof ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+if("$ENV{ROS_DISTRO}" STREQUAL "indigo")
+    include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
+    Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find EIGEN_INCLUDE_DIRS Package in aubo_planner for  for indigo")
+endif()
+
+link_directories(${catkin_LIBRARY_DIRS} )
 
 ADD_EXECUTABLE(aubo_planner_test src/aubo_planner_test.cpp)
 TARGET_LINK_LIBRARIES(aubo_planner_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 
 #ADD_EXECUTABLE(aubo_ros_plan src/aubo_ros_plan.cpp)
 #TARGET_LINK_LIBRARIES(aubo_ros_plan ${catkin_LIBRARIES} ${Boost_LIBRARIES})

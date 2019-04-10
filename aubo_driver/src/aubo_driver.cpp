@@ -210,7 +210,6 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
             joint_feedback.joint_names[i] = joint_name_[i];
             joint_feedback.actual.positions[i] = joint_state.position[i];
         }
-        //std::cout<<joint_state.position[0]<<","<<joint_state.position[1]<<","<<joint_state.position[2]<<","<<joint_state.position[3]<<","<<joint_state.position[4]<<joint_state.position[5]<<","<<joint_state.position[6]<<std::endl;
         joint_states_pub_.publish(joint_state);
         joint_feedback_pub_.publish(joint_feedback);
 
@@ -424,11 +423,16 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
             memcpy(ps.joint_acc_, &msg->accelerations[0], sizeof(double) * axis_number_);
             memcpy(last_recieve_point_, jointAngle, sizeof(double) * axis_number_);
             buf_queue_.enQueue(ps);
+            ROS_INFO("-------sub topic position:%f/%f/%f/%f/%f/%f/%f/",ps.joint_pos_[0],ps.joint_pos_[1],ps.joint_pos_[2],ps.joint_pos_[3],ps.joint_pos_[4],ps.joint_pos_[5],ps.joint_pos_[6]);
+            ROS_INFO("-------sub topic velc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_vel_[0],ps.joint_vel_[1],ps.joint_vel_[2],ps.joint_vel_[3],ps.joint_vel_[4],ps.joint_vel_[5],ps.joint_vel_[6]);
+            ROS_INFO("-------sub topic acc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_acc_[0],ps.joint_acc_[1],ps.joint_acc_[2],ps.joint_acc_[3],ps.joint_acc_[4],ps.joint_acc_[5],ps.joint_acc_[6]);
+
 //            std::cout<<"published point:"<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<ps.joint_pos_[6]<<std::endl;
             if(buf_queue_.getQueueSize() > buffer_size_ && !start_move_)
             {
                 start_move_ = true;
                 ROS_INFO_STREAM("Start robot move.");
+
             }
         }
     }

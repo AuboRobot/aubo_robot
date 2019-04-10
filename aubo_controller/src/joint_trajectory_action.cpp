@@ -35,6 +35,8 @@
 #include "param_utils.h"
 #include "utils.h"
 
+
+
 namespace industrial_robot_client
 {
 namespace joint_trajectory_action
@@ -42,9 +44,10 @@ namespace joint_trajectory_action
 const double JointTrajectoryAction::WATCHDOG_PERIOD_ = 1.0;
 const double JointTrajectoryAction::DEFAULT_GOAL_THRESHOLD_ = 0.004;
 
+
 JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
-    action_server_(node_, controller_name, boost::bind(&JointTrajectoryAction::goalCB, this, _1),
-                   boost::bind(&JointTrajectoryAction::cancelCB, this, _1), false), has_active_goal_(false),
+    action_server_(node_, controller_name, boost::bind(&JointTrajectoryAction::goalCB, this,_1),
+                   boost::bind(&JointTrajectoryAction::cancelCB, this,_1), false), has_active_goal_(false),
                        controller_alive_(false), has_moved_once_(false)
 {
   ros::NodeHandle pn("~");
@@ -175,6 +178,29 @@ void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
       current_traj_ = active_goal_.getGoal()->trajectory;
       pub_trajectory_command_.publish(current_traj_);
 
+//      ROS_INFO("----Position: %f/%f/%f/%f/%f/%f/%f/",current_traj_.points[0].positions,
+//                                                 current_traj_.points[1].positions,
+//                                                 current_traj_.points[2].positions,
+//                                                 current_traj_.points[3].positions,
+//                                                 current_traj_.points[4].positions,
+//                                                 current_traj_.points[5].positions,
+//                                                 current_traj_.points[6].positions);
+//      ROS_INFO("----Velc: %f/%f/%f/%f/%f/%f/%f/",current_traj_.points[0].velocities,
+//                                                 current_traj_.points[1].velocities,
+//                                                 current_traj_.points[2].velocities,
+//                                                 current_traj_.points[3].velocities,
+//                                                 current_traj_.points[4].velocities,
+//                                                 current_traj_.points[5].velocities,
+//                                                 current_traj_.points[6].velocities);
+//      ROS_INFO("----Acc: %f/%f/%f/%f/%f/%f/%f/",current_traj_.points[0].accelerations,
+//                                                 current_traj_.points[1].accelerations,
+//                                                 current_traj_.points[2].accelerations,
+//                                                 current_traj_.points[3].accelerations,
+//                                                 current_traj_.points[4].accelerations,
+//                                                 current_traj_.points[5].accelerations,
+//                                                 current_traj_.points[6].accelerations);
+
+
     }
     else
     {
@@ -264,6 +290,9 @@ void JointTrajectoryAction::controllerStateCB(const control_msgs::FollowJointTra
   // Checks that we have ended inside the goal constraints and has motion stopped
 
   ROS_DEBUG("Checking goal constraints");
+
+  //last_trajectory_state_ : Feedback of the current joint state
+  //current_traj_ : The robot receives the joint angle to be executed this time.
   if (withinGoalConstraints(last_trajectory_state_, current_traj_))
   {
     if (last_robot_status_)

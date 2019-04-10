@@ -60,6 +60,7 @@ int main(int argc, char **argv)
     AuboDriver robot_driver(num);
     robot_driver.run();
 
+
     ros::AsyncSpinner spinner(6);
     spinner.start();
 
