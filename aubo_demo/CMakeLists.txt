@@ -4,7 +4,6 @@ project(aubo_demo)
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
-
 if("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
     find_package(catkin REQUIRED COMPONENTS
       roscpp

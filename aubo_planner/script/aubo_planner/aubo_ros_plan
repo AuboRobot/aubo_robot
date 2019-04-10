@@ -146,6 +146,7 @@ class AuboRobotPlannerNode():
             else:
                 plan = self.group.plan()
             self.plan_flag = 0
+            rospy.set_param('/aubo_driver/plan_finished', 'finish')
         else:
             rospy.logdebug('There is a planning already!')
 
