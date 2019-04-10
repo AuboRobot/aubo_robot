@@ -481,7 +481,7 @@ void AuboDriver::updateControlStatus()
         if(buf_queue_.getQueueSize() > 0 && !start_move_)
             start_move_ = true;
     }
-    if(start_move_ && rib_buffer_size_ < 300)
+    if(start_move_ && rib_buffer_size_ < 120)
     {
         setRobotJointsByMoveIt();
     }
