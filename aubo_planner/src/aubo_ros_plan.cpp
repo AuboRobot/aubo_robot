@@ -167,7 +167,6 @@ void AuboRobotPlannerNode::setTargetJointValue(const std_msgs::Float32MultiArray
     }
 }
 
-
 void AuboRobotPlannerNode::planner()
 {
     if(0 == plan_type_)     // Planning to a Pose goal
