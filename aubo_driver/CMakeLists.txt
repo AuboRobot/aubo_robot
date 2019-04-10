@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 
-
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS sensor_msgs roscpp std_msgs aubo_msgs
@@ -32,7 +31,7 @@ endif()
 include_directories(include include/otg ${catkin_INCLUDE_DIRS})
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        link_directories(${catkin_LIB_DIRS}  lib/lib64)
+        link_directories(${catkin_LIB_DIRS}  lib/lib64 lib/lib64/libconfig)
 else()
         link_directories(${catkin_LIB_DIRS}  lib/lib32)
 endif()

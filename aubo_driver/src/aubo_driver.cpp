@@ -301,8 +301,10 @@ bool AuboDriver::setRobotJointsByMoveIt()
             extJointWayPointVector.push_back(point);
 
             //  std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<last_position<<std::endl;
+
 //            std::cout<<"external joint:"<<point.extJointPosVector[0].extJointPos[0]<<std::endl<<point.extJointPosVector[1].extJointPos[0]
 //               <<std::endl<<point.extJointPosVector[2].extJointPos[0]<<std::endl<<point.extJointPosVector[3].extJointPos[0]<<std::endl<<point.extJointPosVector[4].extJointPos[0]<<std::endl;
+
         }
 
         if(controller_connected_flag_)      // actually no need this judgment

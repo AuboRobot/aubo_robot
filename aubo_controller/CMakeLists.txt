@@ -77,5 +77,5 @@ install(TARGETS aubo_joint_trajectory_action DESTINATION ${CATKIN_PACKAGE_BIN_DE
 #TARGET_LINK_LIBRARIES(aubo_robot_simulator industrial_robot_client ${catkin_LIBRARIES})
 #install(TARGETS aubo_robot_simulator DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-catkin_install_python(PROGRAMS script/aubo_controller/aubo_robot_simulator
+catkin_install_python(PROGRAMS script/aubo_controller/aubo_robot_simulator_old
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
