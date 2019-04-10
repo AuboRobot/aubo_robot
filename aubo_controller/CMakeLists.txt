@@ -49,12 +49,12 @@ TARGET_LINK_LIBRARIES(aubo_joint_trajectory_action industrial_robot_client ${cat
 install(TARGETS aubo_joint_trajectory_action DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 
-set(${PROJECT_NAME}_SOURCES1
-    src/aubo_robot_simulator.cpp
-)
-ADD_EXECUTABLE(aubo_simulator_controller ${${PROJECT_NAME}_SOURCES1})
-TARGET_LINK_LIBRARIES(aubo_simulator_controller industrial_robot_client ${catkin_LIBRARIES})
-install(TARGETS aubo_simulator_controller DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#set(${PROJECT_NAME}_SOURCES1
+#    src/aubo_robot_simulator.cpp
+#)
+#ADD_EXECUTABLE(aubo_simulator_controller ${${PROJECT_NAME}_SOURCES1})
+#TARGET_LINK_LIBRARIES(aubo_simulator_controller industrial_robot_client ${catkin_LIBRARIES})
+#install(TARGETS aubo_simulator_controller DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 
 catkin_install_python(PROGRAMS script/aubo_controller/aubo_robot_simulator
