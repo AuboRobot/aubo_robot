@@ -66,16 +66,16 @@ endif()
 
 link_directories(${catkin_LIBRARY_DIRS} )
 
+ADD_EXECUTABLE(aubo_planner_test src/aubo_planner_test.cpp)
+TARGET_LINK_LIBRARIES(aubo_planner_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-
-
-
-#ADD_EXECUTABLE(aubo_planner_test src/aubo_planner_test.cpp)
-#TARGET_LINK_LIBRARIES(aubo_planner_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 #ADD_EXECUTABLE(aubo_ros_plan src/aubo_ros_plan.cpp)
 #TARGET_LINK_LIBRARIES(aubo_ros_plan ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 #install(TARGETS aubo_ros_plan DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 catkin_install_python(PROGRAMS script/aubo_planner/aubo_ros_plan
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+catkin_install_python(PROGRAMS script/aubo_planner/test_7dof
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

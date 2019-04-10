@@ -1,0 +1,17 @@
+<library path="libaubo_trajectory_filters">
+
+ <class name="aubo_trajectory_filters/CubicSplineFilter"
+	type="aubo_trajectory_filters::CubicSplineFilterAdapter" 	
+	base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+	This is a simple filter which performs a sampling of
+	a trajectory using Cubic Spline interpolation. 
+	ROS parameters:
+	- v0 (default = 0.0)
+	- vn (default = 0.0)
+	- w0 (default = 0.0)
+	- wn (default = 0.0)
+    </description>
+  </class>
+  
+</library>

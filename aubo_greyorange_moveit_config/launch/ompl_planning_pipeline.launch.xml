@@ -3,7 +3,7 @@
   <!-- OMPL Plugin for MoveIt! -->
   <arg name="planning_plugin" value="ompl_interface/OMPLPlanner" />
 
-  <!-- The request adapters (plugins) used when planning with OMPL. 
+  <!-- The request adapters (plugins) used when planning with OMPL.  AddSplineParameterization AddTimeParameterization
        ORDER MATTERS -->
   <arg name="planning_adapters" value="aubo_trajectory_filters/CubicSplineFilter
 				       default_planner_request_adapters/AddTimeParameterization

@@ -121,7 +121,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
                 joints[6] = rs.wayPoint_.extJointPos[0] / joint_ratio_[6];
                 joints[7] = rs.wayPoint_.extJointPos[1] / joint_ratio_[7];
             }
-            //std::cout<<"current current joint:"<<joints[0]<<","<<joints[1]<<","<<joints[2]<<","<<joints[3]<<","<<joints[4]<<","<<joints[5]<<"," <<joints[6]<<","<<joints[7]<<std::endl;
+//            std::cout<<"current current joint:"<<joints[0]<<","<<joints[1]<<","<<joints[2]<<","<<joints[3]<<","<<joints[4]<<","<<joints[5]<<"," <<joints[6]<<","<<joints[7]<<std::endl;
             setCurrentPosition(joints);  // update the current robot joint states to ROS Controller
 
             /** Get the buff size of thr rib **/
@@ -210,9 +210,6 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
             joint_feedback.joint_names[i] = joint_name_[i];
             joint_feedback.actual.positions[i] = joint_state.position[i];
         }
-
-        //std::cout<<joint_state.position[0]<<","<<joint_state.position[1]<<","<<joint_state.position[2]<<","<<joint_state.position[3]<<","<<joint_state.position[4]<<joint_state.position[5]<<","<<joint_state.position[6]<<std::endl;
-
         joint_states_pub_.publish(joint_state);
         joint_feedback_pub_.publish(joint_feedback);
 
@@ -304,8 +301,10 @@ bool AuboDriver::setRobotJointsByMoveIt()
             extJointWayPointVector.push_back(point);
 
             //  std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<last_position<<std::endl;
-            std::cout<<"external joint:"<<point.extJointPosVector[0].extJointPos[0]<<std::endl<<point.extJointPosVector[1].extJointPos[0]
-            <<std::endl<<point.extJointPosVector[2].extJointPos[0]<<std::endl<<point.extJointPosVector[3].extJointPos[0]<<std::endl<<point.extJointPosVector[4].extJointPos[0]<<std::endl;
+
+
+//            std::cout<<"external joint:"<<point.extJointPosVector[0].extJointPos[0]<<std::endl<<point.extJointPosVector[1].extJointPos[0]
+//               <<std::endl<<point.extJointPosVector[2].extJointPos[0]<<std::endl<<point.extJointPosVector[3].extJointPos[0]<<std::endl<<point.extJointPosVector[4].extJointPos[0]<<std::endl;
         }
 
         if(controller_connected_flag_)      // actually no need this judgment
@@ -434,7 +433,8 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
             if(buf_queue_.getQueueSize() > buffer_size_ && !start_move_)
             {
                 start_move_ = true;
-                std::cout<<"Start robot move."<<std::endl;
+                ROS_INFO_STREAM("Start robot move.");
+
             }
         }
     }
@@ -699,26 +699,6 @@ void AuboDriver::publishIOMsg()
             }
         }
 
-
-//        //check Robot Motion status(stop running pause resume)
-//        robot_receive_service_.robotServiceGetRobotCurrentState(Robot_state);
-//        switch (Robot_state) {
-//        case 0:
-//          ROS_WARN_NAMED("Robot_state_By_Sdk","Robot_state_By_Sdk : stop ");
-//          break;
-//        case 1:
-//          ROS_WARN_NAMED("Robot_state_By_Sdk","Robot_state_By_Sdk : Running ");
-//          break;
-//        case 2:
-//          ROS_WARN_NAMED("Robot_state_By_Sdk","Robot_state_By_Sdk : pause ");
-//          break;
-//        case 3:
-//          ROS_WARN_NAMED("Robot_state_By_Sdk","Robot_state_By_Sdk : resume ");
-//          break;
-//        default:
-//          break;
-//        }
-
         for (unsigned int i = 0; i < status_vector_out.size(); i++)
         {
             aubo_msgs::Digital digo;
@@ -751,11 +731,6 @@ void AuboDriver::publishIOMsg()
             digitalIn[digi.pin] = digi.state;
             io_msg.safety_in_states.push_back(digi);
         }
-
-//        if(real_robot_exist_)
-//        {
-//            ROS_INFO_NAMED("Project_Stop","SI01 : %d",io_msg.safety_in_states[1].state);
-//        }
 
         if(real_robot_exist_)
         {
@@ -1034,10 +1009,6 @@ bool AuboDriver::ExtAxle(aubo_msgs::ExtMove::Request &rep,
 }
 
 
-
-
-
-
 /**
  * @brief Server: setDynamicsParam_Server
  * @param rep : positionX  positionY  positionZ  payload
@@ -1067,12 +1038,6 @@ bool AuboDriver::setDynamicsParam_Server(aubo_msgs::ToolDynamicParam::Request &r
   }
   return res.result;
 }
-
-
-
-
-
-
 
 void AuboDriver::DI00_ExtAxle_Stop()
 {
@@ -1147,82 +1112,8 @@ void AuboDriver::DI00_ExtAxle_Reset()
 
 }
 
-//check2
-//void AuboDriver::RealTimeEventInfoCallback(const aubo_robot_namespace::RobotEventInfo *pEventInfo, void *arg)
-//{
-//    (void)arg;
-
-//    ROS_INFO_NAMED("Event","     Check Event   ");
-
-//    std::cout << "event.type:" << pEventInfo->eventType
-//              << "event.code:" << pEventInfo->eventCode
-//              << "event.text:" << pEventInfo->eventContent
-//              << std::endl;
-
-//    //example safeguard io process
-//    switch (pEventInfo->eventType)
-//    {
-//    //poweroff
-//    case aubo_robot_namespace::RobotEvent_ArmPowerOff:
-////        std::cout << "robot poweroff!" << std::endl;
-//        ROS_INFO_NAMED("Event","      Evevt  is  poweroff   ");
-//        break;
-
-//    //collision operation
-//    case aubo_robot_namespace::RobotEvent_collision:
-////        robotService.rootServiceRobotMoveControl(aubo_robot_namespace::RobotMovePause);
-////        robotService.robotServiceSetRobotOrpePause(PROJECT_PAUSE);
-////        std::cout << "robot collision!!!" << std::endl;
-//        ROS_INFO_NAMED("Event","      Evevt  is  collision   ");
-//        break;
-
-//    //InterfaceSafeIO
-//    case aubo_robot_namespace::RobotEvent_InterfacBoardSafeIoEvent:
-//        switch (pEventInfo->eventCode)
-//        {
-//        //enter safeguard mode by IO
-//        case aubo_robot_namespace::ENTER_SAFEGUARD_MODE_BY_DI_EXTERNAL_SAFEGUARD_STOP:
-////            std::cout << "received SI01/SI11 signal, call move_pause !" << std::endl;
-////            robotService.rootServiceRobotMoveControl(aubo_robot_namespace::RobotMovePause);
-////            robotService.robotServiceSetRobotOrpePause(PROJECT_PAUSE);
-//            ROS_INFO_NAMED("Event","      enter safeguard mode by IO   ");
-//            break;
-
-//        //release safeguard mode auto
-//        case aubo_robot_namespace::RELEASE_SAFEGUARD_MODE_IN_AUTOMATIC_MODE:
-////            robotService.rootServiceRobotMoveControl( aubo_robot_namespace::RobotMoveContinue);
-////            robotService.robotServiceSetRobotOrpePause(PROJECT_RUN);
-//              ROS_INFO_NAMED("Event","      release safeguard mode auto   ");
-//            break;
-
-//        //release safeguard mode by IO
-//        case aubo_robot_namespace::CONTINUE_PROJECT:
-////            std::cout << "received SI03/SI13 signal, call rs_move_continue()!" << std::endl;
-////            robotService.rootServiceRobotMoveControl( aubo_robot_namespace::RobotMoveContinue);
-////            robotService.robotServiceSetRobotOrpePause(PROJECT_RUN);
-//            ROS_INFO_NAMED("Event","     release safeguard mode by IO   ");
-//            break;
-
-
-//        case aubo_robot_namespace::MANUALLY_RELEASE_SAFEGUARD_MODE_PROMPT:
-////            std::cout << "received SI03/SI13 signal, current mode is manually, do-nothing!" << std::endl;
-////            std::cout << "continue to wait for the event \"CONTINUE_PROJECT\" " << std::endl;
-//            ROS_INFO_NAMED("Event","     received SI03/SI13 signal, current mode is manually, do-nothing!   ");
-//            break;
-//        }
-//        break;
-
-//    default:
-//          ROS_INFO_NAMED("Event","     Check Event   ");
-////        std::cout << "" << std::endl;
-//    }
-
-//}
-
-
 
 }
-
 
 
 
