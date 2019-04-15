@@ -153,6 +153,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
         }
 
         //publish the rib_status to the controller simulator
+
         rib_status_.data[0] = buf_queue_.getQueueSize();
         rib_status_.data[1] = control_mode_;
         rib_status_.data[2] = controller_connected_flag_;
@@ -343,9 +344,15 @@ bool AuboDriver::setRobotJointsByMoveIt()
             else
             {
                 if(axis_number_ > 6)
+                {
                     ret = robot_send_service_.robotServiceSetRobotPosData2Canbus(extJointWayPointVector);
+                    ROS_INFO("extern axis interface %d", ret);
+                }
                 else
-                    ret = robot_send_service_.robotServiceSetRobotPosData2Canbus(ps.joint_pos_);
+                {
+                  ret = robot_send_service_.robotServiceSetRobotPosData2Canbus(ps.joint_pos_);
+                  ROS_INFO("standard robot interface %d", ret);
+                }
             }
             //            struct timeb tb;
             //            ftime(&tb);
@@ -425,9 +432,9 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
             memcpy(ps.joint_acc_, &msg->accelerations[0], sizeof(double) * axis_number_);
             memcpy(last_recieve_point_, jointAngle, sizeof(double) * axis_number_);
             buf_queue_.enQueue(ps);
-            ROS_INFO("-------sub topic position:%f/%f/%f/%f/%f/%f/%f/",ps.joint_pos_[0],ps.joint_pos_[1],ps.joint_pos_[2],ps.joint_pos_[3],ps.joint_pos_[4],ps.joint_pos_[5],ps.joint_pos_[6]);
-            ROS_INFO("-------sub topic velc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_vel_[0],ps.joint_vel_[1],ps.joint_vel_[2],ps.joint_vel_[3],ps.joint_vel_[4],ps.joint_vel_[5],ps.joint_vel_[6]);
-            ROS_INFO("-------sub topic acc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_acc_[0],ps.joint_acc_[1],ps.joint_acc_[2],ps.joint_acc_[3],ps.joint_acc_[4],ps.joint_acc_[5],ps.joint_acc_[6]);
+//            ROS_INFO("-------sub topic position:%f/%f/%f/%f/%f/%f/%f/",ps.joint_pos_[0],ps.joint_pos_[1],ps.joint_pos_[2],ps.joint_pos_[3],ps.joint_pos_[4],ps.joint_pos_[5],ps.joint_pos_[6]);
+//            ROS_INFO("-------sub topic velc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_vel_[0],ps.joint_vel_[1],ps.joint_vel_[2],ps.joint_vel_[3],ps.joint_vel_[4],ps.joint_vel_[5],ps.joint_vel_[6]);
+//            ROS_INFO("-------sub topic acc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_acc_[0],ps.joint_acc_[1],ps.joint_acc_[2],ps.joint_acc_[3],ps.joint_acc_[4],ps.joint_acc_[5],ps.joint_acc_[6]);
 
 //            std::cout<<"published point:"<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<ps.joint_pos_[6]<<std::endl;
             if(buf_queue_.getQueueSize() > buffer_size_ && !start_move_)
