@@ -442,10 +442,10 @@ class AuboRobotSimulatorNode():
     def rib_status_callback(self, data):
         try:
             if  data.data[1] == 1:
-                self.EnableFlag = 1
+                #self.EnableFlag = 1
                 rospy.logdebug('True True %d',  self.EnableFlag)
             else:
-                self.EnableFlag = 0
+                #self.EnableFlag = 0
                 rospy.logdebug('False False %d',  self.EnableFlag)
             self.motion_ctrl.ribBufferSize = data.data[0]
             self.motion_ctrl.ControllerConnectedFlag = data.data[2]

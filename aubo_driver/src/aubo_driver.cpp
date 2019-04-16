@@ -60,7 +60,7 @@ AuboDriver::AuboDriver(int num = 0):buffer_size_(400),io_flag_delay_(0.02),data_
         {
             ros::param::get("/aubo_driver/transfer_ratio", ratio);
             if(ratio == 0)
-                ratio = 1.0;
+               ratio = 1.0;
             joint_ratio_[i] = 1.0 / ratio / 80;    //adjust by the real application
         }
         jti.maxVelocity[i] = VMAX * joint_ratio_[i];
@@ -121,7 +121,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
                 joints[6] = rs.wayPoint_.extJointPos[0] / joint_ratio_[6];
                 joints[7] = rs.wayPoint_.extJointPos[1] / joint_ratio_[7];
             }
-//            std::cout<<"current current joint:"<<joints[0]<<","<<joints[1]<<","<<joints[2]<<","<<joints[3]<<","<<joints[4]<<","<<joints[5]<<"," <<joints[6]<<","<<joints[7]<<std::endl;
+//          std::cout<<"current current joint:"<<joints[0]<<","<<joints[1]<<","<<joints[2]<<","<<joints[3]<<","<<joints[4]<<","<<joints[5]<<"," <<joints[6]<<","<<joints[7]<<std::endl;
             setCurrentPosition(joints);  // update the current robot joint states to ROS Controller
 
             /** Get the buff size of thr rib **/
@@ -293,19 +293,23 @@ bool AuboDriver::setRobotJointsByMoveIt()
             for(int count = 0; count< NCount; count++)
             {
                 point.extJointPosVector[count].extJointPos[0] = ps.joint_acc_[count] * joint_ratio_[6];
-//                point.extJointPosVector[count].extJointPos[0] = (last_position + (ps.joint_pos_[6] - last_position) * (count + 1) / NCount) * joint_ratio_[6];
-//                 point.extJointPosVector[count].extJointPos[0] = (target_point_[6] + (ps.joint_pos_[6] - target_point_[6]) * (count+1) / NCount) / 10.05309632 * 2 * M_PI;
-                 if(axis_number_ > 7) // at most -> 8
-                     point.extJointPosVector[count].extJointPos[1] = (target_point_[7] + (ps.joint_pos_[7] - target_point_[7]) * (count + 1) / NCount) * joint_ratio_[7];
+//              point.extJointPosVector[count].extJointPos[0] = (last_position + (ps.joint_pos_[6] - last_position) * (count + 1) / NCount) * joint_ratio_[6];
+//              point.extJointPosVector[count].extJointPos[0] = (target_point_[6] + (ps.joint_pos_[6] - target_point_[6]) * (count+1) / NCount) / 10.05309632 * 2 * M_PI;
+                if(axis_number_ > 7) // at most -> 8
+                    point.extJointPosVector[count].extJointPos[1] = (target_point_[7] + (ps.joint_pos_[7] - target_point_[7]) * (count + 1) / NCount) * joint_ratio_[7];
             }
             last_position = point.extJointPosVector[4].extJointPos[0];
             extJointWayPointVector.push_back(point);
 
-            //  std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<last_position<<std::endl;
+//          std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","
+//          <<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<last_position<<std::endl;
 
 
-//            std::cout<<"external joint:"<<point.extJointPosVector[0].extJointPos[0]<<std::endl<<point.extJointPosVector[1].extJointPos[0]
-//               <<std::endl<<point.extJointPosVector[2].extJointPos[0]<<std::endl<<point.extJointPosVector[3].extJointPos[0]<<std::endl<<point.extJointPosVector[4].extJointPos[0]<<std::endl;
+//          std::cout<<"external joint:"<<point.extJointPosVector[0].extJointPos[0]<<std::endl
+//          <<point.extJointPosVector[1].extJointPos[0]<<std::endl
+//          <<point.extJointPosVector[2].extJointPos[0]<<std::endl
+//          <<point.extJointPosVector[3].extJointPos[0]<<std::endl
+//          <<point.extJointPosVector[4].extJointPos[0]<<std::endl;
         }
 
         if(controller_connected_flag_)      // actually no need this judgment
@@ -432,23 +436,31 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
             memcpy(ps.joint_acc_, &msg->accelerations[0], sizeof(double) * axis_number_);
             memcpy(last_recieve_point_, jointAngle, sizeof(double) * axis_number_);
             buf_queue_.enQueue(ps);
-//            ROS_INFO("-------sub topic position:%f/%f/%f/%f/%f/%f/%f/",ps.joint_pos_[0],ps.joint_pos_[1],ps.joint_pos_[2],ps.joint_pos_[3],ps.joint_pos_[4],ps.joint_pos_[5],ps.joint_pos_[6]);
-//            ROS_INFO("-------sub topic velc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_vel_[0],ps.joint_vel_[1],ps.joint_vel_[2],ps.joint_vel_[3],ps.joint_vel_[4],ps.joint_vel_[5],ps.joint_vel_[6]);
-//            ROS_INFO("-------sub topic acc:%f/%f/%f/%f/%f/%f/%f/",ps.joint_acc_[0],ps.joint_acc_[1],ps.joint_acc_[2],ps.joint_acc_[3],ps.joint_acc_[4],ps.joint_acc_[5],ps.joint_acc_[6]);
-
-//            std::cout<<"published point:"<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<ps.joint_pos_[6]<<std::endl;
+//          ROS_INFO("-------sub topic position:%f/%f/%f/%f/%f/%f/",ps.joint_pos_[0],ps.joint_pos_[1],ps.joint_pos_[2],ps.joint_pos_[3],ps.joint_pos_[4],ps.joint_pos_[5]);
+//          ROS_INFO("-------sub topic extern axis:%f/%f/%f/%f/%f/",ps.joint_acc_[0],ps.joint_acc_[1],ps.joint_acc_[2],ps.joint_acc_[3],ps.joint_acc_[4]);
+//          std::cout<<"published point:"<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<ps.joint_pos_[6]<<std::endl;
             if(buf_queue_.getQueueSize() > buffer_size_ && !start_move_)
             {
                 start_move_ = true;
                 ROS_INFO_STREAM("Start robot move.");
-
             }
         }
     }
     else
     {
+      //robot joint data
+      for(int i = 0; i < 6; i++)
+          jointAngle[i] = msg->positions[i];
+
+      //extern joint data
+      for(int extern_interpolation_num=0;extern_interpolation_num<5;extern_interpolation_num++)
+      {
+        jointAngle[6] = msg->accelerations[extern_interpolation_num];
         setTagrtPosition(jointAngle);
         rib_buffer_size_ = 0;
+        //ROS_INFO("joint data:{%f} {%f} {%f} {%f} {%f} {%f} {%f}",jointAngle[0],jointAngle[1],jointAngle[2],jointAngle[3],jointAngle[4],jointAngle[5],jointAngle[6]);
+        sleep(0.04);
+      }
     }
 }
 
@@ -595,12 +607,12 @@ bool AuboDriver::connectToRobotController()
             (real_robot_exist_)? std::cout<<"real robot exist."<<std::endl:std::cout<<"real robot doesn't exist."<<std::endl;
             //power on the robot.
         }
-        ros::param::set("/aubo_driver/robot_connected","1");
+//        ros::param::set("/aubo_driver/robot_connected","1");
         return true;
     }
     else
     {
-        ros::param::set("/aubo_driver/robot_connected","0");
+//        ros::param::set("/aubo_driver/robot_connected","0");
         controller_connected_flag_  = false;
         std::cout<<"login failed."<<std::endl;
         return false;
@@ -655,6 +667,7 @@ void AuboDriver::run()
         }
     }
 
+    ros::param::set("/aubo_driver/robot_connected","1");
     //communication Timer between ros node and real robot controller.
     timer_ = nh_.createTimer(ros::Duration(1.0 / TIMER_SPAN_), &AuboDriver::timerCallback, this);
     timer_.start();
