@@ -73,6 +73,6 @@ add_dependencies(aubo_driver aubo_msgs_gencpp)
 add_dependencies(testIO aubo_msgs_gencpp)
 add_dependencies(testAuboAPI aubo_msgs_gencpp)
 add_dependencies(testExtServer ${catkin_EXPORTED_TARGETS})
-add_dependencies(arm_movement_with_constraint ${catkin_EXPORTED_TARGETS})
+#add_dependencies(arm_movement_with_constraint ${catkin_EXPORTED_TARGETS})
 
 
