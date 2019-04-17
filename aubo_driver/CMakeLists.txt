@@ -51,19 +51,15 @@ add_executable(aubo_driver ${${PROJECT_NAME}_SOURCES1})
 add_executable(testIO ${${PROJECT_NAME}_SOURCES2})
 add_executable(testAuboAPI ${${PROJECT_NAME}_SOURCES3})
 add_executable(testExtServer src/testExtServer.cpp)
-add_executable(arm_movement_with_constraint src/test_india.cpp)
+#add_executable(arm_movement_with_constraint src/test_india.cpp)
 
 #LINK_LIBRARIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 target_link_libraries(aubo_driver pthread ${catkin_LIBRARIES} libauborobotcontroller.so libotgLib.a)
 target_link_libraries(testAuboAPI ${catkin_LIBRARIES} libauborobotcontroller.so libotgLib.a)
 target_link_libraries(testIO ${catkin_LIBRARIES} libotgLib.a)
-target_link_libraries(testExtServer
-   ${catkin_LIBRARIES}
- )
-target_link_libraries(arm_movement_with_constraint
-   ${catkin_LIBRARIES}
- )
+target_link_libraries(testExtServer   ${catkin_LIBRARIES} )
+#target_link_libraries(arm_movement_with_constraint   ${catkin_LIBRARIES} )
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
