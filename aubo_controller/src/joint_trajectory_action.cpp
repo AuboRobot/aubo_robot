@@ -34,6 +34,7 @@
 #include "utils_.h"
 #include "param_utils.h"
 #include "utils.h"
+#include "math.h"
 
 
 
@@ -43,16 +44,23 @@ namespace joint_trajectory_action
 {
 const double JointTrajectoryAction::WATCHDOG_PERIOD_ = 1.0;
 const double JointTrajectoryAction::DEFAULT_GOAL_THRESHOLD_ = 0.004;
-
+const double JointTrajectoryAction::D_Value = 0.0001;
 
 JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
     action_server_(node_, controller_name, boost::bind(&JointTrajectoryAction::goalCB, this,_1),
                    boost::bind(&JointTrajectoryAction::cancelCB, this,_1), false), has_active_goal_(false),
-                       controller_alive_(false), has_moved_once_(false)
+                       controller_alive_(false), has_moved_once_(false), Is_arrivePosition_(true),Count_notArrive_(0)
 {
+
+
   ros::NodeHandle pn("~");
 
   pn.param("constraints/goal_threshold", goal_threshold_, DEFAULT_GOAL_THRESHOLD_);
+
+  m_notArriveData.m_id=0;
+  m_notArriveData.m_dValue = 0;
+
+  record_angle.resize(7);
 
   if (!industrial_utils::param::getJointNames("controller_joint_names", "robot_description", joint_names_))
     ROS_ERROR("Failed to initialize joint_names.");
@@ -63,10 +71,13 @@ JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
   ROS_INFO_STREAM("Filtered joint names to " << joint_names_.size() << " joints");
 
   pub_trajectory_command_ = node_.advertise<trajectory_msgs::JointTrajectory>("joint_path_command", 100);
+  pub_trajectory_NotInPlace = node_.advertise<std_msgs::Int8>("Trajectory_Status",100);
   sub_trajectory_state_ = node_.subscribe("feedback_states", 1, &JointTrajectoryAction::controllerStateCB, this);
   sub_robot_status_ = node_.subscribe("robot_status", 1, &JointTrajectoryAction::robotStatusCB, this);
   trajectory_execution_subs_ = node_.subscribe("trajectory_execution_event", 1, &JointTrajectoryAction::trajectoryExecutionCallback,this);
 
+  m_timeOut_ = nh_.createTimer(ros::Duration(0.2),&JointTrajectoryAction::CheckTimeOut,this);
+  m_timeOut_.start();
 
   watchdog_timer_ = node_.createTimer(ros::Duration(WATCHDOG_PERIOD_), &JointTrajectoryAction::watchdog, this, true);
   action_server_.start();
@@ -74,6 +85,7 @@ JointTrajectoryAction::JointTrajectoryAction(std::string controller_name) :
 
 JointTrajectoryAction::~JointTrajectoryAction()
 {
+
 }
 
 void JointTrajectoryAction::trajectoryExecutionCallback(const std_msgs::String::ConstPtr &msg)
@@ -136,7 +148,42 @@ void JointTrajectoryAction::watchdog(const ros::TimerEvent &e)
     }
     abortGoal();
   }
+
 }
+
+
+/**
+ * @brief JointTrajectoryAction::CheckTimeOut
+ * @note  when the robot not in place , The pub_trajectory_NotInPlace will publish not in place info (:1) on the topic :Trajectory_Status
+ */
+void JointTrajectoryAction::CheckTimeOut(const ros::TimerEvent &e)
+{
+  if(false == Is_arrivePosition_)
+  {
+    Count_notArrive_++;
+
+    if(20 == Count_notArrive_)
+    {
+      std_msgs::Int8 Trajectory_status;
+      Trajectory_status.data = 1;
+
+      abortGoal();
+      Count_notArrive_ = 0;
+      Is_arrivePosition_ = true;
+      has_active_goal_ = false;
+      pub_trajectory_NotInPlace.publish(Trajectory_status);
+      ROS_ERROR("Aborting goal because the robot not arrive the target position in the 15s!");
+      ROS_ERROR("Not Arrive target JOINT: %d ,  The D_value : %f",m_notArriveData.m_id,m_notArriveData.m_dValue);
+    }
+  }
+  else
+  {
+    Count_notArrive_ = 0;
+  }
+}
+
+
+
 
 void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
 {
@@ -178,29 +225,32 @@ void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
       current_traj_ = active_goal_.getGoal()->trajectory;
       pub_trajectory_command_.publish(current_traj_);
 
-//      ROS_INFO("----Position: %f/%f/%f/%f/%f/%f/%f/",current_traj_.points[0].positions,
-//                                                 current_traj_.points[1].positions,
-//                                                 current_traj_.points[2].positions,
-//                                                 current_traj_.points[3].positions,
-//                                                 current_traj_.points[4].positions,
-//                                                 current_traj_.points[5].positions,
-//                                                 current_traj_.points[6].positions);
-//      ROS_INFO("----Velc: %f/%f/%f/%f/%f/%f/%f/",current_traj_.points[0].velocities,
-//                                                 current_traj_.points[1].velocities,
-//                                                 current_traj_.points[2].velocities,
-//                                                 current_traj_.points[3].velocities,
-//                                                 current_traj_.points[4].velocities,
-//                                                 current_traj_.points[5].velocities,
-//                                                 current_traj_.points[6].velocities);
-//      ROS_INFO("----Acc: %f/%f/%f/%f/%f/%f/%f/",current_traj_.points[0].accelerations,
-//                                                 current_traj_.points[1].accelerations,
-//                                                 current_traj_.points[2].accelerations,
-//                                                 current_traj_.points[3].accelerations,
-//                                                 current_traj_.points[4].accelerations,
-//                                                 current_traj_.points[5].accelerations,
-//                                                 current_traj_.points[6].accelerations);
+//      for(int i=0;i<current_traj_.points.size();i++)
+//      {
+//        ROS_INFO("----Pos: %f ! %f / %f @ %f & %f * %f $ %f #", current_traj_.points[i].positions[0],
+//                                                                current_traj_.points[i].positions[1],
+//                                                                current_traj_.points[i].positions[2],
+//                                                                current_traj_.points[i].positions[3],
+//                                                                current_traj_.points[i].positions[4],
+//                                                                current_traj_.points[i].positions[5],
+//                                                                current_traj_.points[i].positions[6]);
 
+//        ROS_INFO("----Acc: %f ! %f / %f @ %f & %f * %f $ %f #", current_traj_.points[i].accelerations[0],
+//                                                                current_traj_.points[i].accelerations[1],
+//                                                                current_traj_.points[i].accelerations[2],
+//                                                                current_traj_.points[i].accelerations[3],
+//                                                                current_traj_.points[i].accelerations[4],
+//                                                                current_traj_.points[i].accelerations[5],
+//                                                                current_traj_.points[i].accelerations[6]);
 
+//        ROS_INFO("----Vel: %f ! %f / %f @ %f & %f * %f $ %f #", current_traj_.points[i].velocities[0],
+//                                                                current_traj_.points[i].velocities[1],
+//                                                                current_traj_.points[i].velocities[2],
+//                                                                current_traj_.points[i].velocities[3],
+//                                                                current_traj_.points[i].velocities[4],
+//                                                                current_traj_.points[i].velocities[5],
+//                                                                current_traj_.points[i].velocities[6]);
+//      }
     }
     else
     {
@@ -353,37 +403,80 @@ bool JointTrajectoryAction::withinGoalConstraints(const control_msgs::FollowJoin
   {
     int last_point = traj.points.size() - 1;
 
-//    std::cout<<"last_trajectory_state"<<last_trajectory_state_->joint_names[0]<<","<<last_trajectory_state_->joint_names[1]<<","<<last_trajectory_state_->joint_names[2]
-//                                                    <<","<<last_trajectory_state_->joint_names[3]<<","<<last_trajectory_state_->joint_names[4]
-//                                                    <<","<<last_trajectory_state_->joint_names[5]<<","<<last_trajectory_state_->joint_names[6]<<std::endl;
-//    std::cout<<"traj.joint_names"<<traj.joint_names[0]<<","<<traj.joint_names[1]<<","<<traj.joint_names[2]
-//                                                    <<","<<traj.joint_names[3]<<","<<traj.joint_names[4]
-//                                                    <<","<<traj.joint_names[5]<<","<<traj.joint_names[6]<<std::endl;
+    std::vector<double> target;
+    target.push_back(traj.points[last_point].positions[2]);
+    target.push_back(traj.points[last_point].positions[3]);
+    target.push_back(traj.points[last_point].positions[1]);
+    target.push_back(traj.points[last_point].positions[4]);
+    target.push_back(traj.points[last_point].positions[5]);
+    target.push_back(traj.points[last_point].positions[6]);
+    target.push_back(traj.points[last_point].positions[0]);
 
 
- // ROS_INFO("Empty,%s,%s,%s,%s,%s,%s,%s",last_trajectory_state_->joint_names[0],last_trajectory_state_->joint_names[1],last_trajectory_state_->joint_names[2],last_trajectory_state_->joint_names[3],
-   //       last_trajectory_state_->joint_names[4],last_trajectory_state_->joint_names[5],last_trajectory_state_->joint_names[6]);
+//  ROS_INFO("current position,%f,%f,%f,%f,%f,%f,%f",last_trajectory_state_->actual.positions[0],last_trajectory_state_->actual.positions[1],last_trajectory_state_->actual.positions[2],last_trajectory_state_->actual.positions[3],
+//                                                   last_trajectory_state_->actual.positions[4],last_trajectory_state_->actual.positions[5],last_trajectory_state_->actual.positions[6]);
 
-    //ROS_INFO("laset position,%f,%f,%f,%f,%f,%f,%f",last_trajectory_state_->actual.positions[0],last_trajectory_state_->actual.positions[1],last_trajectory_state_->actual.positions[2],last_trajectory_state_->actual.positions[3],last_trajectory_state_->actual.positions[4],last_trajectory_state_->actual.positions[5],last_trajectory_state_->actual.positions[6]);
+//  ROS_INFO("current position,%f,%f,%f,%f,%f,%f,%f",traj.points[last_point].positions[0],traj.points[last_point].positions[1],traj.points[last_point].positions[2],traj.points[last_point].positions[3],
+//                                                   traj.points[last_point].positions[4],traj.points[last_point].positions[5],traj.points[last_point].positions[6]);
 
-   // ROS_INFO("current position,%f,%f,%f,%f,%f,%f,%f",traj.points[last_point].positions[0],traj.points[last_point].positions[1],traj.points[last_point].positions[2],traj.points[last_point].positions[3],
-   //       traj.points[last_point].positions[4],traj.points[last_point].positions[5],traj.points[last_point].positions[6]);
-
-
-    if (industrial_robot_client::utils::isWithinRange(last_trajectory_state_->joint_names,
-                                                      last_trajectory_state_->actual.positions, traj.joint_names,
-                                                      traj.points[last_point].positions, goal_threshold_))
+    if(this->withinRangeAubo(last_trajectory_state_->actual.positions,target,goal_threshold_))
     {
-      ROS_INFO("within range true");
       rtn = true;
     }
     else
     {
-     // ROS_INFO("without range false,%f:",goal_threshold_);
       rtn = false;
     }
   }
   return rtn;
+}
+
+bool JointTrajectoryAction::withinRangeAubo(const std::vector<double> & lhs, const std::vector<double> & rhs,
+                                            double full_range)
+{
+  Is_arrivePosition_ = true;
+
+  for(int i=0;i<lhs.size();i++)
+  {
+    if(std::abs(lhs.at(i)-rhs.at(i))>goal_threshold_)
+    {
+      if(record_angle.size() > 0)
+      {
+        //Not arrive the target position
+        if(std::abs(lhs.at(i)-record_angle.at(i)) < D_Value)
+        {
+          Is_arrivePosition_ = false;
+          m_notArriveData.m_id = i+1;
+          m_notArriveData.m_dValue = std::abs(lhs.at(i)-rhs.at(i));
+
+          ROS_ERROR_STREAM_NAMED("test","Not arrive the target Pos,Joint:"<<i+1<<"  current:"<<lhs.at(i)<<"  last:"<<record_angle.at(i));
+        }
+      }
+
+      record_angle.clear();
+      record_angle.push_back(lhs.at(0));
+      record_angle.push_back(lhs.at(1));
+      record_angle.push_back(lhs.at(2));
+      record_angle.push_back(lhs.at(3));
+      record_angle.push_back(lhs.at(4));
+      record_angle.push_back(lhs.at(5));
+      record_angle.push_back(lhs.at(6));
+
+      return false;
+    }
+
+    if(lhs.size()-1 == i)
+    {
+      record_angle.clear();
+
+      std_msgs::Int8 Trajectory_status;
+      Trajectory_status.data = 0;
+      pub_trajectory_NotInPlace.publish(Trajectory_status);
+
+      ROS_ERROR("The joint IS in place. ");
+      return true;
+    }
+  }
 }
 
 } //joint_trajectory_action
@@ -422,6 +515,13 @@ int main(int argc, char** argv)
 
   JointTrajectoryAction action(controller_name);
   action.run();
+
+  ros::Rate loop_rate(10);
+  while(ros::ok())
+  {
+      loop_rate.sleep();
+      ros::spinOnce();
+  }
 
   return 0;
 }

@@ -67,7 +67,9 @@ AuboDriver::AuboDriver(int num = 0):buffer_size_(400),io_flag_delay_(0.02),data_
         jti.maxAcceleration[i] = AMAX * joint_ratio_[i];
         jti.maxJerk[i] = JMAX * joint_ratio_[i];
     }
-    rs.robot_controller_ = ROBOT_CONTROLLER;
+    rs.robot_controller_  = ROBOT_CONTROLLER;
+    rs.Trajectory_Status_ = 0;
+
     rib_status_.data.resize(3);
 
     /** publish messages **/
@@ -81,12 +83,13 @@ AuboDriver::AuboDriver(int num = 0):buffer_size_(400),io_flag_delay_(0.02),data_
     ik_srv_ = nh_.advertiseService("/aubo_driver/get_ik",&AuboDriver::getIK, this);
     fk_srv_ = nh_.advertiseService("/aubo_driver/get_fk",&AuboDriver::getFK, this);
     ExtAxle_srv= nh_.advertiseService("/aubo_driver/ExtAxle_Driver", &AuboDriver::ExtAxle,this);
+    ClearExtErr_srv = nh_.advertiseService("/aubo_driver/server/ClearExternError",&AuboDriver::ClearExternAxisError,this);
     setToolDynamicParam_srv = nh_.advertiseService("/aubo_driver/set_toolDynamicParam",&AuboDriver::setDynamicsParam_Server,this);
 
     client_Ext = nh_.serviceClient<aubo_msgs::ExtMove>("/aubo_driver/ExtAxle_Driver");
 
-
     /** subscribe topics **/
+    Trajectory_Status_sub_ = nh_.subscribe("Trajectory_Status",100,&AuboDriver::trajectoryStatus,this);
     trajectory_execution_subs_ = nh_.subscribe("trajectory_execution_event", 10, &AuboDriver::trajectoryExecutionCallback,this);
     robot_control_subs_ = nh_.subscribe("robot_control", 10, &AuboDriver::robotControlCallback,this);
     moveit_controller_subs_ = nh_.subscribe("moveItController_cmd", 3000, &AuboDriver::moveItPosCallback,this);
@@ -121,7 +124,7 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
                 joints[6] = rs.wayPoint_.extJointPos[0] / joint_ratio_[6];
                 joints[7] = rs.wayPoint_.extJointPos[1] / joint_ratio_[7];
             }
-//          std::cout<<"current current joint:"<<joints[0]<<","<<joints[1]<<","<<joints[2]<<","<<joints[3]<<","<<joints[4]<<","<<joints[5]<<"," <<joints[6]<<","<<joints[7]<<std::endl;
+
             setCurrentPosition(joints);  // update the current robot joint states to ROS Controller
 
             /** Get the buff size of thr rib **/
@@ -139,7 +142,8 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
                 robot_status_.motion_possible.val = (int)(!start_move_);
                 robot_status_.in_motion.val       = (int)start_move_;
                 robot_status_.in_error.val        = (int)protective_stopped_;   //used for protective stop.
-                robot_status_.error_code          = (int32)rs.robot_diagnosis_info_.singularityOverSpeedAlarm;
+                //robot_status_.error_code          = (int32)rs.robot_diagnosis_info_.singularityOverSpeedAlarm;
+                robot_status_.error_code          = (int32)rs.robot_diagnosis_info_.singularityOverSpeedAlarm | rs.Trajectory_Status_;
             }
         }
         else if(ret == aubo_robot_namespace::ErrCode_SocketDisconnect)
@@ -153,7 +157,6 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
         }
 
         //publish the rib_status to the controller simulator
-
         rib_status_.data[0] = buf_queue_.getQueueSize();
         rib_status_.data[1] = control_mode_;
         rib_status_.data[2] = controller_connected_flag_;
@@ -293,23 +296,20 @@ bool AuboDriver::setRobotJointsByMoveIt()
             for(int count = 0; count< NCount; count++)
             {
                 point.extJointPosVector[count].extJointPos[0] = ps.joint_acc_[count] * joint_ratio_[6];
-//              point.extJointPosVector[count].extJointPos[0] = (last_position + (ps.joint_pos_[6] - last_position) * (count + 1) / NCount) * joint_ratio_[6];
-//              point.extJointPosVector[count].extJointPos[0] = (target_point_[6] + (ps.joint_pos_[6] - target_point_[6]) * (count+1) / NCount) / 10.05309632 * 2 * M_PI;
                 if(axis_number_ > 7) // at most -> 8
                     point.extJointPosVector[count].extJointPos[1] = (target_point_[7] + (ps.joint_pos_[7] - target_point_[7]) * (count + 1) / NCount) * joint_ratio_[7];
             }
             last_position = point.extJointPosVector[4].extJointPos[0];
             extJointWayPointVector.push_back(point);
 
-//          std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","
-//          <<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<last_position<<std::endl;
+//          std::cout<<"joint:"<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","
+//          <<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<","<<std::endl;
 
-
-//          std::cout<<"external joint:"<<point.extJointPosVector[0].extJointPos[0]<<std::endl
-//          <<point.extJointPosVector[1].extJointPos[0]<<std::endl
-//          <<point.extJointPosVector[2].extJointPos[0]<<std::endl
-//          <<point.extJointPosVector[3].extJointPos[0]<<std::endl
-//          <<point.extJointPosVector[4].extJointPos[0]<<std::endl;
+//          std::cout<<"external joint:"<<point.extJointPosVector[0].extJointPos[0] / joint_ratio_[6]<<std::endl
+//          <<point.extJointPosVector[1].extJointPos[0]/ joint_ratio_[6]<<std::endl
+//          <<point.extJointPosVector[2].extJointPos[0]/ joint_ratio_[6]<<std::endl
+//          <<point.extJointPosVector[3].extJointPos[0]/ joint_ratio_[6]<<std::endl
+//          <<point.extJointPosVector[4].extJointPos[0]/ joint_ratio_[6]<<std::endl;
         }
 
         if(controller_connected_flag_)      // actually no need this judgment
@@ -350,7 +350,6 @@ bool AuboDriver::setRobotJointsByMoveIt()
                 if(axis_number_ > 6)
                 {
                     ret = robot_send_service_.robotServiceSetRobotPosData2Canbus(extJointWayPointVector);
-                    ROS_INFO("extern axis interface %d", ret);
                 }
                 else
                 {
@@ -358,10 +357,7 @@ bool AuboDriver::setRobotJointsByMoveIt()
                   ROS_INFO("standard robot interface %d", ret);
                 }
             }
-            //            struct timeb tb;
-            //            ftime(&tb);
-            //            std::cout<<tb.millitm<<std::endl;
-            //            std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<std::endl;
+
             setTagrtPosition(ps.joint_pos_);
         }
     }
@@ -472,6 +468,19 @@ void AuboDriver::trajectoryExecutionCallback(const std_msgs::String::ConstPtr &m
         normal_stopped_ = true;
     }
 }
+
+
+
+/**
+ * @brief AuboDriver::trajectoryStatus
+ * @note  this callback function due to listen Trajectory execution Station(for example: if not in place,then set rs.Trajectory_Status_ :1 )
+ */
+void AuboDriver::trajectoryStatus(const std_msgs::Int8::ConstPtr &msg)
+{
+  rs.Trajectory_Status_ = msg->data;
+}
+
+
 
 void AuboDriver::robotControlCallback(const std_msgs::String::ConstPtr &msg)
 {
@@ -1029,6 +1038,31 @@ bool AuboDriver::ExtAxle(aubo_msgs::ExtMove::Request &rep,
 }
 
 
+
+
+/**
+ * @brief Server: ClearExternError
+ * @param req (default :extaxis_1)
+ * @param res
+ */
+bool AuboDriver::ClearExternAxisError(aubo_msgs::ClearExternError::Request &req, aubo_msgs::ClearExternError::Response &res)
+{
+  aubo_robot_namespace::robotExtAlexIndex extAlex;
+  if( 2 == req.ExternAxis_id)
+  {
+    extAlex = aubo_robot_namespace::RobotExtAlex_2;
+  }
+  else
+  {
+    extAlex = aubo_robot_namespace::RobotExtAlex_1;
+  }
+
+  res.result = robot_send_service_.robotServiceSetRobotExtAlexClearError(extAlex);
+
+  ROS_WARN("Clear ExternAxis ERROR");
+}
+
+
 /**
  * @brief Server: setDynamicsParam_Server
  * @param rep : positionX  positionY  positionZ  payload
@@ -1061,6 +1095,7 @@ bool AuboDriver::setDynamicsParam_Server(aubo_msgs::ToolDynamicParam::Request &r
 
 void AuboDriver::DI00_ExtAxle_Stop()
 {
+
   //Demo: The ExtAxle will stop when DI is 1
   ROS_INFO_NAMED("ExtAxle_Client_log","go into Test_IO_ExtAxle_Stop ");
 

@@ -8,43 +8,15 @@
  *  Author: zhaoyu
  *  email : zhaoyu@aubo-robotics.cn
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *       * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *       * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *       * Neither the name of the Southwest Research Institute, nor the names
- *       of its contributors may be used to endorse or promote products derived
- *       from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
  */
-
-
-
-
-#include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
-
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <moveit_msgs/CollisionObject.h>
 
+#include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_visual_tools/moveit_visual_tools.h>
 #include <tf/LinearMath/Quaternion.h>
 #include <unistd.h>
@@ -68,85 +40,76 @@ int main(int argc, char** argv)
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
 
 
-  // Create a planning scene interface object
-  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-
-
-  // Create a robot model information object
-  const robot_state::JointModelGroup* joint_model_group = move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
-
-
-  // Create an object of the visualization class
-  namespace rvt = rviz_visual_tools;
-  moveit_visual_tools::MoveItVisualTools visual_tools("base_link");
-  visual_tools.deleteAllMarkers();
-
-
-  // Load remote control tool
-  visual_tools.loadRemoteControl();
-
-
-  // Create text
-  Eigen::Affine3d text_pose = Eigen::Affine3d::Identity();
-  text_pose.translation().z() = 1.2;
-  visual_tools.publishText(text_pose, "AUBO Demo", rvt::RED, rvt::XLARGE);
-  // Text visualization takes effect
-  visual_tools.trigger();
-
-
-  // Get the coordinate system of the basic information
-  ROS_INFO_NAMED("tutorial", "Planning frame: %s", move_group.getPlanningFrame().c_str());
-
-
-  // Get the end of the basic information
-  ROS_INFO_NAMED("tutorial", "End effector link: %s", move_group.getEndEffectorLink().c_str());
-
-
-  // Visual terminal prompt (blocking)
-  visual_tools.prompt("Press 'next'1 in the RvizVisualToolsGui window to start the demo");
-
   //***************************************************************************************************  Home Position
 
-  std::vector<double> home_position;
-  home_position.push_back(-0.001255);
-  home_position.push_back(-0.148822);
-  home_position.push_back(-1.406503);
-  home_position.push_back(0.311441);
-  home_position.push_back(-1.571295);
-  home_position.push_back(-0.002450);
-  move_group.setJointValueTarget(home_position);
-  move_group.move();
+  robot_state::RobotState get_position(*move_group.getCurrentState());
+  move_group.setStartState(get_position);
 
+//  std::vector<double> home_position;
+//  home_position.push_back(-0.001255);
+//  home_position.push_back(-0.148822);
+//  home_position.push_back(-1.406503);
+//  home_position.push_back(0.311441);
+//  home_position.push_back(-1.571295);
+//  home_position.push_back(-0.002450);
+//  move_group.setJointValueTarget(home_position);
+//  move_group.move();
 
+   //**************************************************************************************************     example: random motion (screened, users need to be able to open it themselves. Tip: random motion is uncertain, users need to hold the emergency stop to pay attention to safety)
 
-   //**************************************************************************************************    Tenth example: random motion (screened, users need to be able to open it themselves. Tip: random motion is uncertain, users need to hold the emergency stop to pay attention to safety)
+   int  time = 0;
+   bool isSuccess=false;
+   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+   geometry_msgs::Pose pose = move_group.getCurrentPose().pose;
+   ROS_INFO("The Robot Position:%f  %f  %f",pose.position.x,pose.position.y,pose.position.z);
 
-
-
-   visual_tools.deleteAllMarkers();
-   visual_tools.publishText(text_pose, "AUBO Random Move Exalmple 10", rvt::RED, rvt::XLARGE);
-   visual_tools.trigger();
-
-   geometry_msgs::PoseStamped pose;
+   move_group.setMaxVelocityScalingFactor(1);
+   move_group.setMaxAccelerationScalingFactor(1);
 
    while(ros::ok())
    {
+     robot_state::RobotState get_position1(*move_group.getCurrentState());
 
-     move_group.setRandomTarget();
+     move_group.setStartState(get_position1);
+     move_group.setGoalTolerance(0.001);
 
-     move_group.move();
+     geometry_msgs::PoseStamped pose = move_group.getRandomPose("wrist3_Link");
 
-//     pose = move_group.getPoseTarget("wrist3_Link");
+     if(pose.pose.position.z < 2.0)
+     {
+       ROS_ERROR_STREAM_NAMED("test","Z: "<< pose.pose.position.z << "  Need restart compute !";);
+     }
+     else
+     {
+       ROS_ERROR_STREAM_NAMED("test","Z: "<< pose.pose.position.z << "  doing restart compute !!!!!!!!!!!!!!";);
+       move_group.setPoseTarget(pose);
 
-//     ROS_INFO("position :%f  %f  %f",pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
+       isSuccess = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+       if(true == isSuccess)
+       {
+         ROS_WARN("move before");
 
-     sleep(0.1);
+         isSuccess = (move_group.execute(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+         if(true == isSuccess)
+         {
+           ROS_WARN("move after");
+           time++;
+           ROS_ERROR("set pose time :%d",time);
+           sleep(0.5);
+           ROS_INFO("waiting ***************");
+         }
+         else
+         {
+           ROS_ERROR("move failed");
+         }
+
+       }
+       else
+       {
+         ROS_ERROR("plan failed");
+       }
+     }
    }
-
-
-
-
-
 
    // END_TUTORIAL
    ros::shutdown();

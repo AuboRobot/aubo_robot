@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include <aubo_msgs/ExtMove.h>
+#include <aubo_msgs/ClearExternError.h>
 #include <aubo_msgs/ToolDynamicParam.h>
 #include <cstdlib>
 
@@ -17,6 +18,11 @@ int main(int argc, char **argv)
 
   ros::NodeHandle nh;
   ros::ServiceClient client = nh.serviceClient<aubo_msgs::ExtMove>("/aubo_driver/ExtAxle_Driver");
+  ros::ServiceClient clear_test = nh.serviceClient<aubo_msgs::ClearExternError>("/aubo_driver/server/ClearExternError");
+
+  aubo_msgs::ClearExternError srv_clear;
+  srv_clear.request.ExternAxis_id = 1;
+  clear_test.call(srv_clear);
 
   aubo_msgs::ExtMove srv;
   srv.request.maxAcc.resize(2);

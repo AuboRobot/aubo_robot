@@ -98,6 +98,7 @@ class RobotControlServices;
 class RobotMoveService;
 class RobotIoService;
 class RobotConveyorTrack;
+class robotOtherService;
 class ServiceInterface    /** 对外接口类 : 为用户提供开发接口 **/
 {
 public:
@@ -353,6 +354,14 @@ public:
 
 
     /**
+      *　设置加加速度
+      */
+    int   robotServiceSetJerkAccRatio(double acc);
+
+    void   robotServiceGetJerkAccRatio(double  &acc);
+
+
+    /**
       * 外部轴的最大速度与加速度设置
       */
     int   robotServiceSetGlobalExtAxleAcc (double  maxAcc[aubo_robot_namespace::EXT_AXLE_NUM]);
@@ -429,6 +438,8 @@ public:
 
     int  robotServiceSetArrivalAheadBlendDistanceMode(double distance /*米*/);
 
+    /** 关节运动范围设置　**/
+    int robotServiceSetJointRangeOfMotion(const aubo_robot_namespace::JointRangeOfMotion &rangeOfMotion);
 
     /**
      * @brief robotServiceSetTeachCoordinateSystem   设置示教运动的坐标系
@@ -631,7 +642,7 @@ public:
      */
     int robotServiceRobotIk(const double *startPointJointAngle,const aubo_robot_namespace::Pos &position, const aubo_robot_namespace::Ori &ori, aubo_robot_namespace::wayPoint_S &wayPoint);
 
-
+    int robotServiceRobotIk(const aubo_robot_namespace::Pos &position, const aubo_robot_namespace::Ori &ori, std::vector<aubo_robot_namespace::wayPoint_S> &wayPointVector);
 
 
     //工具标定
@@ -1304,11 +1315,48 @@ public:  //传送带跟踪
     //设置机械臂工具
     int robotServiceSetRobotTool(const aubo_robot_namespace::ToolInEndDesc &robotTool);
 
+public:
+    int robotServiceSetWeaveMoveParameters(const aubo_robot_namespace::WeaveMove &weaveMove);
+
+    int robotServiceSetRobotRecognitionParam(const aubo_robot_namespace::RobotRecongnitionParam &param);
+
+    int robotServiceGetRobotRecognitionParam(int type, aubo_robot_namespace::RobotRecongnitionParam &param);
+
 
 public: //外部轴
     int robotServiceSetExtAlexEncoderResolution(aubo_robot_namespace::robotExtAlexIndex extAlex, uint16 resolution);
 
     int robotServiceSetRobotExtAlexEncoderReset(aubo_robot_namespace::robotExtAlexIndex extAlex);
+
+    int robotServiceSetRobotExtAlexClearError(aubo_robot_namespace::robotExtAlexIndex extAlex);
+
+public:
+    int  robotServiceGetJointCommonData(aubo_robot_namespace::JointCommonData jointCommonDataArray[], int size);
+
+    int  robotServiceSetJointParam_CurrentIP(int jointID, uint16 P);
+
+    int  robotServiceSetJointParam_CurrentII(int jointID, uint16 I);
+
+    int  robotServiceSetJointParam_CurrentID(int jointID, uint16 D);
+
+    int  robotServiceSetJointParam_SpeedP(int jointID, uint16 P);
+
+    int  robotServiceSetJointParam_SpeedI(int jointID, uint16 I);
+
+    int  robotServiceSetJointParam_SpeedD(int jointID, uint16 D);
+
+    int  robotServiceSetJointParam_SpeedDS(int jointID, uint16 DS);
+
+    int  robotServiceSetJointParam_PosP(int jointID, uint16 P);
+
+    int  robotServiceSetJointParam_PosI(int jointID, uint16 I);
+
+    int  robotServiceSetJointParam_PosD(int jointID, uint16 D);
+
+    int  robotServiceSetJointParam_PosDS(int jointID, uint16 DS);
+
+    int  robotServiceJointSaveDataFlash(int jointID);
+
 
 
 private:   /**SDK内部使用 开发者不需要关心**/
@@ -1320,6 +1368,8 @@ private:   /**SDK内部使用 开发者不需要关心**/
     RobotMoveService                 *m_robotMoveService;
 
     RobotConveyorTrack               *m_robotConveyorTrack;
+
+    robotOtherService                *m_robotOtherService;
 
 private:
 

@@ -17,6 +17,7 @@ add_message_files(
 add_service_files(
    FILES
    ToolDynamicParam.srv
+   ClearExternError.srv
    ExtMove.srv
    SetPayload.srv
    SetIO.srv

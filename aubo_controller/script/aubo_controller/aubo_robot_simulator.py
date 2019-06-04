@@ -269,6 +269,17 @@ class MotionControllerSimulator():
                                     #intermediate_goal_point.accelerations[i] = 2*a2[i]+6*a3[i]*t1+12*a4[i]*t2+20*a5[i]*t3
                                 self._move_to(intermediate_goal_point, update_duration.to_sec())
                                 self.joint_state_publisher()
+#                                rospy.loginfo('interpolation Ext: %s %s %s %s %s ', str(intermediate_goal_point.accelerations[0]),
+#                                                                             str(intermediate_goal_point.accelerations[1]),
+#                                                                             str(intermediate_goal_point.accelerations[2]),
+#                                                                             str(intermediate_goal_point.accelerations[3]),
+#                                                                             str(intermediate_goal_point.accelerations[4]))
+#                                rospy.loginfo('interpolation : %s ! %s @ %s # %s $ %s * %s ', str(intermediate_goal_point.positions[0]),
+#                                                                             str(intermediate_goal_point.positions[1]),
+#                                                                             str(intermediate_goal_point.positions[2]),
+#                                                                             str(intermediate_goal_point.positions[3]),
+#                                                                             str(intermediate_goal_point.positions[4]),
+#                                                                             str(intermediate_goal_point.positions[5]))
                             move_duration = move_duration + update_duration.to_sec()/5
 
                 last_goal_point = copy.deepcopy(current_goal_point)
@@ -286,6 +297,17 @@ class MotionControllerSimulator():
 
                     self._move_to(current_goal_point, update_duration.to_sec())
                     self.joint_state_publisher()
+#                    rospy.loginfo('interpolation Ext: %s %s %s %s %s ', str(current_goal_point.accelerations[0]),
+#                                                                    str(current_goal_point.accelerations[1]),
+#                                                                    str(current_goal_point.accelerations[2]),
+#                                                                    str(current_goal_point.accelerations[3]),
+#                                                                    str(current_goal_point.accelerations[4]))
+#                    rospy.loginfo('interpolation : %s ! %s @ %s # %s $ %s  * %s ', str(current_goal_point.positions[0]),
+#                                                                             str(current_goal_point.positions[1]),
+#                                                                             str(current_goal_point.positions[2]),
+#                                                                             str(current_goal_point.positions[3]),
+#                                                                             str(current_goal_point.positions[4]),
+#                                                                             str(current_goal_point.positions[5]))
 
                     for j in range(0, 3):
                          if self.joint_len > 6:
@@ -293,6 +315,17 @@ class MotionControllerSimulator():
                                 end_goal_point.accelerations[i] = end_goal_point.positions[6]
                          self._move_to(end_goal_point, update_duration.to_sec())
                          self.joint_state_publisher()
+#                         rospy.loginfo('interpolation Ext: %s %s %s %s %s ', str(end_goal_point.accelerations[0]),
+#                                                                         str(end_goal_point.accelerations[1]),
+#                                                                         str(end_goal_point.accelerations[2]),
+#                                                                         str(end_goal_point.accelerations[3]),
+#                                                                         str(end_goal_point.accelerations[4]))
+#                    rospy.loginfo('interpolation : %s ! %s @ %s # %s $ %s  * %s ', str(end_goal_point.positions[0]),
+#                                                                             str(end_goal_point.positions[1]),
+#                                                                             str(end_goal_point.positions[2]),
+#                                                                             str(end_goal_point.positions[3]),
+#                                                                             str(end_goal_point.positions[4]),
+#                                                                             str(end_goal_point.positions[5]))
                     rospy.loginfo('last error handle.')
 
 
@@ -477,6 +510,7 @@ class AuboRobotSimulatorNode():
                     self.motion_ctrl.stop()
 
                 else:
+                    rospy.loginfo("start a new trajectory")
                     self.velocity_scale_factor = rospy.get_param('/aubo_controller/velocity_scale_factor', 1.0)
                     rospy.loginfo('The velocity scale factor is: %s', str(self.velocity_scale_factor))
                     new_traj = scale_trajectory_speed(msg_in, self.velocity_scale_factor)
@@ -487,7 +521,9 @@ class AuboRobotSimulatorNode():
                         point = self._to_controller_order(msg_in.joint_names, point)
                         self.motion_ctrl.add_motion_waypoint(point)
                         self.motion_ctrl.pointCount += 1
-                        rospy.loginfo('Add new position: %s', str(point.positions))
+                        #rospy.loginfo('T_p: %s', str(point.positions))
+                        #rospy.loginfo('T_v: %s', str(point.velocities))
+                        #rospy.loginfo('T_a: %s', str(point.accelerations))
                     self.motion_ctrl.pointAddFinish = 1
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)
