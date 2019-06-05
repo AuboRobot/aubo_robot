@@ -165,7 +165,7 @@ void JointTrajectoryAction::CheckTimeOut(const ros::TimerEvent &e)
     if(20 == Count_notArrive_)
     {
       std_msgs::Int8 Trajectory_status;
-      Trajectory_status.data = 1;
+      Trajectory_status.data = 2;
 
       abortGoal();
       Count_notArrive_ = 0;

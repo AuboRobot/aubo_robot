@@ -881,6 +881,12 @@ typedef struct PACKED
 }JointCommonData;
 
 
+typedef struct PACKED
+{
+    //外部轴错误信息
+    uint32 extJointErrInfo[EXT_AXLE_NUM];
+}RobotExtAlexErrInfo;
+
 
 
 /**

@@ -29,6 +29,7 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include <thread>
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Int8.h>
 #include <std_msgs/String.h>
@@ -186,6 +187,7 @@ namespace aubo_driver
             ServiceInterface robot_receive_service_;     //receive
 
             RobotState rs;
+            aubo_robot_namespace::RobotExtAlexErrInfo m_ExtAxleErrinfo;
             aubo_robot_namespace::RobotState Robot_state;
 //            std::thread* mb_publish_thread_;
 
@@ -195,6 +197,7 @@ namespace aubo_driver
             ros::Publisher joint_feedback_pub_;
             ros::Publisher joint_target_pub_;
             ros::Publisher robot_status_pub_;
+
             ros::Subscriber Trajectory_Status_sub_;
             ros::Subscriber teach_subs_;
             ros::Subscriber moveAPI_subs_;
@@ -221,6 +224,7 @@ namespace aubo_driver
             int control_option_;
             bool emergency_stopped_;
             bool protective_stopped_;
+            bool ExtAxis_Error;
             bool normal_stopped_;
             bool data_recieved_;
             int data_count_;

@@ -1330,6 +1330,8 @@ public: //外部轴
 
     int robotServiceSetRobotExtAlexClearError(aubo_robot_namespace::robotExtAlexIndex extAlex);
 
+    int robotServiceGetRobotExtAlexError(aubo_robot_namespace::RobotExtAlexErrInfo &error);
+
 public:
     int  robotServiceGetJointCommonData(aubo_robot_namespace::JointCommonData jointCommonDataArray[], int size);
 
