@@ -29,7 +29,9 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include <thread>
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/Int8.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <aubo_msgs/SetIO.h>
@@ -47,6 +49,7 @@ double get_robot_one_io_status( our_contorl_io_type  io_type, our_contorl_io_mod
 #include <aubo_msgs/Analog.h>
 #include <aubo_msgs/JointPos.h>
 #include <aubo_msgs/ExtMove.h>
+#include <aubo_msgs/ClearExternError.h>
 #include <aubo_msgs/ToolDynamicParam.h>
 #include <industrial_msgs/RobotStatus.h>
 #include "aubo_driver/AuboRobotMetaType.h"
@@ -128,6 +131,7 @@ namespace aubo_driver
         aubo_robot_namespace::JointStatus joint_status_[ARM_DOF];
         aubo_robot_namespace::wayPoint_S wayPoint_;
         aubo_robot_namespace::RobotDiagnosis robot_diagnosis_info_;
+        int Trajectory_Status_;
         bool IsRealRobotExist;
         bool isRobotControllerConnected;
         ROBOT_CONTROLLER_MODE robot_controller_;
@@ -160,8 +164,8 @@ namespace aubo_driver
             bool setIO(aubo_msgs::SetIORequest& req, aubo_msgs::SetIOResponse& resp);
             bool getFK(aubo_msgs::GetFKRequest& req, aubo_msgs::GetFKResponse& resp);
             bool getIK(aubo_msgs::GetIKRequest& req, aubo_msgs::GetIKResponse& resp);
-            bool ExtAxle(aubo_msgs::ExtMove::Request &rep,
-                         aubo_msgs::ExtMove::Response &res);
+            bool ExtAxle(aubo_msgs::ExtMove::Request &rep,aubo_msgs::ExtMove::Response &res);
+            bool ClearExternAxisError(aubo_msgs::ClearExternError::Request &req,aubo_msgs::ClearExternError::Response &res);
             bool setDynamicsParam_Server(aubo_msgs::ToolDynamicParam::Request &rep ,
                                          aubo_msgs::ToolDynamicParam::Response &res);
 
@@ -183,6 +187,7 @@ namespace aubo_driver
             ServiceInterface robot_receive_service_;     //receive
 
             RobotState rs;
+            aubo_robot_namespace::RobotExtAlexErrInfo m_ExtAxleErrinfo;
             aubo_robot_namespace::RobotState Robot_state;
 //            std::thread* mb_publish_thread_;
 
@@ -192,6 +197,8 @@ namespace aubo_driver
             ros::Publisher joint_feedback_pub_;
             ros::Publisher joint_target_pub_;
             ros::Publisher robot_status_pub_;
+
+            ros::Subscriber Trajectory_Status_sub_;
             ros::Subscriber teach_subs_;
             ros::Subscriber moveAPI_subs_;
             ros::Subscriber moveit_controller_subs_;
@@ -202,6 +209,7 @@ namespace aubo_driver
         private:
             void moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::ConstPtr &msg);
             void trajectoryExecutionCallback(const std_msgs::String::ConstPtr &msg);
+            void trajectoryStatus(const std_msgs::Int8::ConstPtr &msg);
             void robotControlCallback(const std_msgs::String::ConstPtr &msg);
             void AuboAPICallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
             void teachCallback(const std_msgs::Float32MultiArray::ConstPtr &msg);
@@ -216,6 +224,7 @@ namespace aubo_driver
             int control_option_;
             bool emergency_stopped_;
             bool protective_stopped_;
+            bool ExtAxis_Error;
             bool normal_stopped_;
             bool data_recieved_;
             int data_count_;
@@ -234,6 +243,7 @@ namespace aubo_driver
             ros::Timer io_publish_timer;
 
             ros::ServiceServer ExtAxle_srv;
+            ros::ServiceServer ClearExtErr_srv;
             ros::ServiceServer setToolDynamicParam_srv;
             ros::ServiceClient client_Ext;
             ros::ServiceServer io_srv_;

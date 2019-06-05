@@ -35,10 +35,17 @@
 #include <ros/ros.h>
 #include <actionlib/server/action_server.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Int8.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <control_msgs/FollowJointTrajectoryFeedback.h>
 #include <industrial_msgs/RobotStatus.h>
+
+struct NotArriveData
+{
+  int m_id;
+  double m_dValue;
+};
 
 namespace industrial_robot_client
 {
@@ -75,6 +82,7 @@ private:
    * \brief Internal ROS node handle
    */
   ros::NodeHandle node_;
+  ros::NodeHandle nh_;
 
   /**
    * \brief Internal action server
@@ -85,6 +93,8 @@ private:
    * \brief Publishes desired trajectory (typically to the robot driver)
    */
   ros::Publisher pub_trajectory_command_;
+
+  ros::Publisher pub_trajectory_NotInPlace;
 
   /**
    * \brief Subscribes to trajectory feedback (typically published by the
@@ -109,6 +119,16 @@ private:
    * driver is not responding.
    */
   ros::Timer watchdog_timer_;
+
+  ros::Timer m_timeOut_;
+
+  bool Is_arrivePosition_;  //use check that the motion is timeout?
+
+  int  Count_notArrive_;    //use check that the motion is timeout?
+
+  NotArriveData m_notArriveData;
+
+  std::vector<double> record_angle;   //use check that the motion is timeout?
 
   /**
     * \brief Controller was alive during the last watchdog interval
@@ -140,6 +160,8 @@ private:
    * are joint specific (i.e. radians or meters).
    */
   static const double DEFAULT_GOAL_THRESHOLD_;// = 0.01;
+
+   static const double D_Value;// = 0.01;
 
   /**
    * \brief The goal joint threshold used for determining if a robot
@@ -185,6 +207,8 @@ private:
    *
    */
   void watchdog(const ros::TimerEvent &e);
+
+  void CheckTimeOut(const ros::TimerEvent &e);
 
   /**
    * \brief Action server goal callback method
@@ -246,6 +270,8 @@ private:
    */
   bool withinGoalConstraints(const control_msgs::FollowJointTrajectoryFeedbackConstPtr &msg,
                              const trajectory_msgs::JointTrajectory & traj);
+
+  bool withinRangeAubo(const std::vector<double> &lhs, const std::vector<double> & rhs, double full_range);
 };
 
 } //joint_trajectory_action
