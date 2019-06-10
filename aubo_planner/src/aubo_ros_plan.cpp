@@ -29,6 +29,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <ros/ros.h>
+#include <ros/console.h>
 #include <pluginlib/class_loader.h>
 #include <time.h>
 #include <string.h>
@@ -36,8 +38,6 @@
 #include <condition_variable>
 #include <boost/scoped_ptr.hpp>
 
-#include <ros/ros.h>
-#include <ros/console.h>
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -166,6 +166,7 @@ void AuboRobotPlannerNode::setTargetJointValue(const std_msgs::Float32MultiArray
         ROS_WARN("There is a planning already!");
     }
 }
+
 
 void AuboRobotPlannerNode::planner()
 {

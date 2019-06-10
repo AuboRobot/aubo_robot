@@ -9,6 +9,8 @@ find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs
   control_msgs trajectory_msgs actionlib_msgs actionlib
   urdf industrial_msgs industrial_utils)
 
+#find_package(Eigen REQUIRED)
+
 catkin_package(
   CATKIN_DEPENDS
     roscpp
@@ -36,9 +38,8 @@ catkin_package(
 #elseif(COMPILER_SUPPORTS_CXX0X)
 #    set(CMAKE_CXX_FLAGS "-std=c++0x")
 #else()
-#    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a #different C++ compiler. Suggested solution: update the pkg build-essential ")
+#    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler. Suggested solution: update the pkg build-essential ")
 #endif()
-
 
 include_directories(include  ${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
@@ -48,14 +49,12 @@ ADD_EXECUTABLE(aubo_joint_trajectory_action src/joint_trajectory_action.cpp)
 TARGET_LINK_LIBRARIES(aubo_joint_trajectory_action industrial_robot_client ${catkin_LIBRARIES})
 install(TARGETS aubo_joint_trajectory_action DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-
 #set(${PROJECT_NAME}_SOURCES1
 #    src/aubo_robot_simulator.cpp
 #)
 #ADD_EXECUTABLE(aubo_simulator_controller ${${PROJECT_NAME}_SOURCES1})
 #TARGET_LINK_LIBRARIES(aubo_simulator_controller industrial_robot_client ${catkin_LIBRARIES})
 #install(TARGETS aubo_simulator_controller DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
 
 catkin_install_python(PROGRAMS script/aubo_controller/aubo_robot_simulator
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
