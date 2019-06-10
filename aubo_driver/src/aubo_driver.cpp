@@ -148,8 +148,8 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
             robot_receive_service_.robotServiceGetRobotExtAlexError(m_ExtAxleErrinfo);
 
             ExtAxis_Error = m_ExtAxleErrinfo.extJointErrInfo[0] ? true : false;
-//            ROS_ERROR_STREAM_NAMED("test","test num1:"<<m_ExtAxleErrinfo.extJointErrInfo[0]);
-//            ROS_ERROR_STREAM_NAMED("test","test num2:"<<m_ExtAxleErrinfo.extJointErrInfo[1]);
+            ROS_ERROR_STREAM_NAMED("test","test num1:"<<m_ExtAxleErrinfo.extJointErrInfo[0]);
+            ROS_ERROR_STREAM_NAMED("test","test num2:"<<m_ExtAxleErrinfo.extJointErrInfo[1]);
 
             rib_buffer_size_ = rs.robot_diagnosis_info_.macTargetPosDataSize;
 
