@@ -302,7 +302,7 @@ bool AuboDriver::setRobotJointsByMoveIt()
             //            struct timeb tb;
             //            ftime(&tb);
             //            std::cout<<tb.millitm<<std::endl;
-            std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<std::endl;
+            //std::cout<<ps.joint_pos_[0]<<","<<ps.joint_pos_[1]<<","<<ps.joint_pos_[2]<<","<<ps.joint_pos_[3]<<","<<ps.joint_pos_[4]<<","<<ps.joint_pos_[5]<<std::endl;
 #endif
         }
         setTagrtPosition(ps.joint_pos_);
@@ -311,7 +311,7 @@ bool AuboDriver::setRobotJointsByMoveIt()
     {
         if(start_move_)
             start_move_ = false;
-        std::cout<<"exit robot move"<<std::endl;
+        //std::cout<<"exit robot move"<<std::endl;
     }
 }
 
@@ -374,6 +374,7 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
             ROS_DEBUG("Add new waypoint to the buffer.");
             data_count_ = 0;
             PlanningState ps;
+
             memcpy(ps.joint_pos_, jointAngle, sizeof(double) * axis_number_);
             memcpy(ps.joint_vel_, &msg->velocities[0], sizeof(double) * axis_number_);
             memcpy(ps.joint_acc_, &msg->accelerations[0], sizeof(double) * axis_number_);
@@ -526,12 +527,12 @@ bool AuboDriver::connectToRobotController()
             (real_robot_exist_)? std::cout<<"real robot exist."<<std::endl:std::cout<<"real robot doesn't exist."<<std::endl;
             //power on the robot.
         }
-        ros::param::set("/aubo_driver/robot_connected","1");
+//        ros::param::set("/aubo_driver/robot_connected","1");
         return true;
     }
     else
     {
-        ros::param::set("/aubo_driver/robot_connected","0");
+//        ros::param::set("/aubo_driver/robot_connected","0");
         controller_connected_flag_  = false;
         std::cout<<"login failed."<<std::endl;
         return false;
@@ -596,6 +597,8 @@ void AuboDriver::run()
             ros::param::set("initial_joint_state", joints);
         }
     }
+
+    ros::param::set("/aubo_driver/robot_connected","1");
 
     //communication Timer between ros node and real robot controller.
     timer_ = nh_.createTimer(ros::Duration(1.0 / TIMER_SPAN_), &AuboDriver::timerCallback, this);
