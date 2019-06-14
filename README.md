@@ -1,5 +1,5 @@
 # AUBO Robot
-update time:2019.04.09
+update time:2019.06.13
 
 
 * Aubo_robot [ROS](http://www.ros.org/) meta-package for [ROS-Industrial](http://wiki.ros.org/Industrial). See the [ROS wiki](http://wiki.ros.org/)  page for more information.
