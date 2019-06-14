@@ -1,5 +1,5 @@
 # AUBO Robot
-update time:2019.04.09
+update time:2019.06.13
 
 
 * Aubo_robot [ROS](http://www.ros.org/) meta-package for [ROS-Industrial](http://wiki.ros.org/Industrial). See the [ROS wiki](http://wiki.ros.org/)  page for more information.
@@ -16,7 +16,7 @@ For the latest features and developments you might want to install from source.<
 3. In order to compile the package successfully, you need to install some packages related to `MoveIt` and `industrial_core`package.<br>
 4. Make sure to source the correct setup file according to your workspace hierarchy, then use **catkin_make** to compile.<br>
 
-**5. update Moveit_core_lib : enter the direction `/user_name/catkin_workspace/src/aubo_robot/UpdateMoveitLib/Kinetic/`,Add permissions to the Update.sh file`chmod +x Update.sh` , Execution script file `sudo ./Update.sh`
+5. update Moveit_core_lib : enter the direction `/user_name/catkin_workspace/src/aubo_robot/UpdateMoveitLib/Kinetic/`,Add permissions to the Update.sh file`chmod +x Update.sh` , Execution script file `sudo ./Update.sh`
 
 	The `recommended` gcc version is 4.8 for Ubuntu 14.04; And for Ubuntu 16.04, the gcc version is 5.4.
 
