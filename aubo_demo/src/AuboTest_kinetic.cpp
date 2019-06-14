@@ -47,6 +47,9 @@
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
 #include <tf/LinearMath/Quaternion.h>
+#include <moveit/collision_detection_fcl/collision_robot_fcl.h>
+
+
 
 #define Enable_Path_Constraint false
 #define Enable_Cartesian_Path_Motion false
@@ -219,6 +222,11 @@ int main(int argc, char** argv)
       move_group.move();
 
       //visual_tools.prompt("Press 'next'2 in the RvizVisualToolsGui window to motioning");
+//      fcl::DistanceResult dist_result;
+//      double d = fcl::distance(o1, o2, fcl::DistanceRequest(true), dist_result);
+//      std::cout << "d: " << d << std::endl <<
+//                   "p1: " << dist_result.nearest_points[0] << std::endl <<
+//                   "p2: " << dist_result.nearest_points[1] << std::endl;
       usleep(1000*200);
   }
 
