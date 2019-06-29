@@ -413,10 +413,10 @@ class AuboRobotSimulatorNode():
     def rib_status_callback(self, data):
         try:
             if  data.data[1] == 1:
-                self.EnableFlag = 1
+#                self.EnableFlag = 1
                 rospy.logdebug('True True %d',  self.EnableFlag)
             else:
-                self.EnableFlag = 0
+#                self.EnableFlag = 0
                 rospy.logdebug('False False %d',  self.EnableFlag)
             self.motion_ctrl.ribBufferSize = data.data[0]
             self.motion_ctrl.ControllerConnectedFlag = data.data[2]
@@ -455,7 +455,7 @@ class AuboRobotSimulatorNode():
                         # first remaps point to controller joint order, the add the point to the controller.
                         point = self._to_controller_order(msg_in.joint_names, point)
                         self.motion_ctrl.add_motion_waypoint(point)
-                        rospy.loginfo('Add new position: %s', str(point.positions))
+#                        rospy.loginfo('Add new position: %s', str(point.positions))
 
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)

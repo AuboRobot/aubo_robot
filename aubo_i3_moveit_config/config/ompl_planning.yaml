@@ -66,5 +66,5 @@ manipulator:
     - TRRTkConfigDefault
     - PRMkConfigDefault
     - PRMstarkConfigDefault
-  projection_evaluator: joints(upperArm_Joint,foreArm_Joint)
+  projection_evaluator: joints(upperArm_joint,foreArm_joint)
   longest_valid_segment_fraction: 0.05
