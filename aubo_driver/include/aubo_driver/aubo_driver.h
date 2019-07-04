@@ -42,9 +42,9 @@
 #define SMALL_MODULE_RATIO 2 * M_PI / 60.0 / 101
 #define VMAX 3000
 //#define AMAX 10000
-#define AMAX 1000
+#define AMAX 10000
 //#define JMAX 40000
-#define JMAX 1000
+#define JMAX 40000
 
 //#define LOG_INFO_DEBUG
 
