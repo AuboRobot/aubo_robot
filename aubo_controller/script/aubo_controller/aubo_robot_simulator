@@ -38,6 +38,7 @@ from sensor_msgs.msg import JointState
 from control_msgs.msg import FollowJointTrajectoryFeedback
 from std_msgs.msg import Int32MultiArray
 from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import UInt8
 
 # Subscribe
 from trajectory_msgs.msg import JointTrajectory
@@ -64,6 +65,7 @@ class MotionControllerSimulator():
     def __init__(self, num_joints, update_rate = 200, buffer_size = 0):
         # Class lock
         self.lock = threading.Lock()
+        self.cancle_trajectory = 0;
 
         # Motion loop update rate (higher update rates result in smoother simulated motion)
         self.update_rate = update_rate
@@ -102,6 +104,7 @@ class MotionControllerSimulator():
 
         rospy.logdebug("Creating joint state subscriber!")
         self.update_joint_state_subs = rospy.Subscriber('/aubo_driver/real_pose', Float32MultiArray, self.update_joint_state_callback)
+        self.Is_cancel_trajectory_subs = rospy.Subscriber('aubo_driver/cancel_trajectory', UInt8, self.Is_cancel_trajectory_callback)
 
         self.MinimumBufferSize = 800
         # Shutdown signal
@@ -122,6 +125,12 @@ class MotionControllerSimulator():
         if not self.is_in_motion():
             self.joint_positions = msg_in.data
             rospy.loginfo('update joints, %s' , str(self.joint_positions))
+
+    # The function will recieve info about cancel trajectory because user want the robot stop when the robot running
+    def Is_cancel_trajectory_callback(self, msg_in):
+        self.cancle_trajectory = msg_in.data
+        rospy.loginfo('is cancel trajectory status %d' , self.cancle_trajectory)
+
 
     def add_motion_waypoint(self, point):
     # When add new trajectory into the buffer, here need to handle the accelerations!!
@@ -204,6 +213,7 @@ class MotionControllerSimulator():
 
     def _motion_worker(self):
         # first update the robot real postion
+
         self.positionUpdatedFlag = rospy.get_param('/aubo_driver/robot_connected', '0')
         while self.positionUpdatedFlag == '0':
             rospy.sleep( self.update_rate/400)
@@ -252,7 +262,7 @@ class MotionControllerSimulator():
                     if self.update_rate > 0:
                         tt = last_goal_point.time_from_start.to_sec()
                         ti = tt
-                        while tt < current_goal_point.time_from_start.to_sec():
+                        while ((tt < current_goal_point.time_from_start.to_sec()) and (0 == self.cancle_trajectory)):
                             t1 = tt - ti
                             t2 = t1 * t1
                             t3 = t2 * t1
@@ -276,7 +286,15 @@ class MotionControllerSimulator():
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)
 
+            # if user want stop ,we will clear Trajectory buffer data from moveit
+            if self.cancle_trajectory == 1:
+                self.cancle_trajectory = 0
+                while not self.motion_buffer.empty():
+                    self.motion_buffer.get()
+
         rospy.logdebug("Shutting down motion controller")
+
+
 
 """
 AuboRobotSimulator

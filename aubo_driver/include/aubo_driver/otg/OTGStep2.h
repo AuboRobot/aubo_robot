@@ -3,7 +3,6 @@
 
 #include "OtgType3Com.h"
 
-//#define X 0
 //invalid nodes
 #define Decision_2__022 Decision_2__000
 #define Decision_2__035 Decision_2__000
