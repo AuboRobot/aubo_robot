@@ -119,9 +119,20 @@ void AuboDriver::timerCallback(const ros::TimerEvent& e)
                 robot_status_.mode.val            = (int8)rs.robot_diagnosis_info_.orpeStatus;
                 robot_status_.e_stopped.val       = (int8)(rs.robot_diagnosis_info_.softEmergency || emergency_stopped_);
                 robot_status_.drives_powered.val  = (int8)rs.robot_diagnosis_info_.armPowerStatus;
-                robot_status_.motion_possible.val = (int)(!start_move_);
                 robot_status_.in_motion.val       = (int)start_move_;
-                robot_status_.in_error.val        = (int)protective_stopped_;   //used for protective stop.
+                robot_status_.in_error.val        = 
+                    (int)(protective_stopped_ ||
+                    rs.robot_diagnosis_info_.softEmergency ||
+                    rs.robot_diagnosis_info_.robotCollision ||
+                    rs.robot_diagnosis_info_.staticCollisionDetect ||
+                    rs.robot_diagnosis_info_.remoteEmergency
+                    );
+                robot_status_.motion_possible.val = 
+                    (int)(
+                        !start_move_ && 
+                        robot_status_.drives_powered.val &&
+                        !rs.robot_diagnosis_info_.brakeStuats &&
+                        !robot_status_.in_error.val);
                 robot_status_.error_code          = (int32)rs.robot_diagnosis_info_.singularityOverSpeedAlarm;
             }
         }
