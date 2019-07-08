@@ -36,16 +36,12 @@ You can use MoveIt! to control the simulated robot like ***RVIZ*** ,***Gazebo***
 
 **rviz**
 ```  
-        cd worksapce/src/aubo_robot/aubo_<robot_name>_moveit_config/launch
-
-        roslaunch <robot_name>_moveit_config/launch/moveit_planning_execution.launch robot_ip:=127.0.0.1  
+        roslaunch <robot_name>_moveit_config moveit_planning_execution.launch robot_ip:=127.0.0.1  
 ```
 
 **gazebo**  
 ```
-        cd worksapce/src/aubo_robot/aubo_gazebo/launch
-
-        roslaunch aubo_<robot_name>_gazebo_control.launch
+        roslaunch aubo_gazebo aubo_<robot_name>_gazebo_control.launch
 ```
 * Then select `"Interact"` and move the end-effector to a new goal.
 
