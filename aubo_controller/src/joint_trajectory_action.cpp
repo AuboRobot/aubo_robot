@@ -80,6 +80,7 @@ void JointTrajectoryAction::trajectoryExecutionCallback(const std_msgs::String::
     {
         ROS_INFO("trajectory execution status: stop1");
         // Marks the current goal as canceled.
+
         active_goal_.setAborted();
         has_active_goal_ = false;
     }
@@ -211,6 +212,7 @@ void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
 
 void JointTrajectoryAction::cancelCB(JointTractoryActionServer::GoalHandle & gh)
 {
+
   ROS_DEBUG("Received action cancel request");
   if (active_goal_ == gh)
   {
@@ -305,7 +307,7 @@ void JointTrajectoryAction::abortGoal()
 {
   // Stops the controller.
   trajectory_msgs::JointTrajectory empty;
-  pub_trajectory_command_.publish(empty);
+//  pub_trajectory_command_.publish(empty);
 
   // Marks the current goal as aborted.
   active_goal_.setAborted();
