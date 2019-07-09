@@ -33,16 +33,15 @@ For the latest features and developments you might want to install from source.<
 You can use MoveIt! to control the simulated robot like ***RVIZ*** ,***Gazebo*** or ***VREP*** environment. If you want to simulate the robot in RVIZ:
 
 * First set up the MoveIt nodes to allow motion planning and run:
+
+**rviz**
+```  
+        roslaunch <robot_name>_moveit_config moveit_planning_execution.launch robot_ip:=127.0.0.1  
 ```
-        ** rviz **
-        cd worksapce/src/aubo_robot/aubo_<robot_name>_moveit_config/launch
 
-        roslaunch <robot_name>_moveit_config/launch/moveit_planning_execution.launch robot_ip:=127.0.0.1
-
-        ** gazebo **
-        cd worksapce/src/aubo_robot/aubo_gazebo/launch
-
-        roslaunch aubo_<robot_name>_gazebo_control.launch
+**gazebo**  
+```
+        roslaunch aubo_gazebo aubo_<robot_name>_gazebo_control.launch
 ```
 * Then select `"Interact"` and move the end-effector to a new goal.
 
@@ -58,9 +57,9 @@ You can use MoveIt! to control the simulated robot like ***RVIZ*** ,***Gazebo***
 * Source the correct setup shell files and use a new terminal for each command.
 
 * To bring up the real robot, run:
-```
 
-	roslaunch <robot_name>_moveit_config moveit_planning_execution.launch sim:=false robot_ip:=<192.168.***.***>
+```
+roslaunch <robot_name>_moveit_config moveit_planning_execution.launch sim:=false robot_ip:=<192.168.***.***>
 ```
 
 
