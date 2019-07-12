@@ -97,6 +97,8 @@ This product includes software written by Tim Hudson (tjh@cryptsoft.com)
 class RobotControlServices;
 class RobotMoveService;
 class RobotIoService;
+class RobotConveyorTrack;
+class robotOtherService;
 class ServiceInterface    /** 对外接口类 : 为用户提供开发接口 **/
 {
 public:
@@ -111,6 +113,22 @@ public:
      */
     ~ServiceInterface();
 
+public: /** 数据类型初始化*/
+    static void initPosDataType(aubo_robot_namespace::Pos &postion);
+
+    static void initOriDataType(aubo_robot_namespace::Ori &ori);
+
+    static void initMoveRelativeDataType(aubo_robot_namespace::MoveRelative &moveRelative);
+
+    static void initWayPointDataType(aubo_robot_namespace::wayPoint_S &wayPoint);
+
+    static void initToolInEndDescDataType(aubo_robot_namespace::ToolInEndDesc &toolInEndDesc);
+
+    static void initCoordCalibrateByJointAngleAndToolDataType(aubo_robot_namespace::CoordCalibrateByJointAngleAndTool &coord);
+
+    static void initToolInertiaDataType(aubo_robot_namespace::ToolInertia &toolInertia);
+
+    static void initToolDynamicsParamDataType(aubo_robot_namespace::ToolDynamicsParam &toolDynamicsParam);
 
 
     /**********************************************************************************************************************************************
@@ -130,8 +148,9 @@ public:
      * @return　调用成功返回ErrnoSucc;错误返回错误号
      */
     int  robotServiceLogin(const char* host, int port, const char *userName, const char* possword);
-    
-    
+
+    int  robotServiceLogin(const char* host, int port, const char *userName, const char* possword, aubo_robot_namespace::RobotType &robotType, aubo_robot_namespace::RobotDhPara &robotDhPara);
+
     /**
      * @brief robotServiceGetConnectStatus   获取当前的连接状态
      * @param connectStatus　　　　　　　　　　　输出参数
@@ -145,10 +164,7 @@ public:
      */
     int  robotServiceLogout();
 
-
     int  robotServiceRobotHandShake(bool isBlock);
-
-
 
 
     /**********************************************************************************************************************************************
@@ -208,7 +224,6 @@ public:
     int  robotServiceRegisterRealTimeEndSpeedCallback(const RealTimeEndSpeedCallback ptr, void  *arg);
 
 
-
     /**
      * @brief robotServiceRegisterRobotEventInfoCallback  注册用于获取机械臂事件信息的回调函数
      *              注:关于事件信息信息的推送没有提供是否允许推送的接口，因为机械臂的很多重要通知都是通过事件推送实现的,所以事件信息是系统默认推送的,不允许取消的。
@@ -242,7 +257,6 @@ private:
      * @param eventInfo  事件信息  输入参数
      */
     static void  recvRobotEventPushCallback(const aubo_robot_namespace::RobotEventInfo *info, void *arg);
-
 
 
     /*******************************************************************机械臂运动接口相关的接口*************************************************************
@@ -289,7 +303,7 @@ public:
 
 
     /**
-     * 设置和获取关节型运动的最大速度和加速度
+     * 设置和获取　关节型　运动的最大速度和加速度
      * 关节型运动包含：
      * 　　　　关节运动；
      * 　　　　示教运动中的关节示教（JOINT1，JOINT2，JOINT3，JOINT4，JOINT5，JOINT6）
@@ -297,7 +311,7 @@ public:
      *
      * 注意：用户在设置速度和加速度时，需要根据运动的类型设置，
      * 　　　关节型运动设置关节型运动的最大速度和加速度,关节型运动的最大速度是180度每秒，最大加速度为180度每秒方;
-     * 　　　末端型运动会设置末端型运动的最大速度和加速度，末端型运动的最大速度为５米每秒，最大加速度为５米每秒方;
+     * 　　　末端型运动会设置末端型运动的最大速度和加速度，末端型运动的最大速度为2米每秒，最大加速度为2米每秒方;
      *
      **/
     int   robotServiceSetGlobalMoveJointMaxAcc (const aubo_robot_namespace::JointVelcAccParam  &moveMaxAcc);
@@ -310,14 +324,14 @@ public:
 
 
     /**
-     * 设置和获取末端型运动的最大速度和加速度
+     * 设置和获取　末端型　运动的最大速度和加速度
      * 末端型包含：　直线运动（MODEL）；
      * 　　　　示教运动中的位置示教和姿态示教（MOV_X，MOV_Y，MOV_Z，ROT_X，ROT_Y，ROT_Z）；
      * 　　　　轨迹运动下的（ARC_CIR,　CARTESIAN_MOVEP,　CARTESIAN_CUBICSPLINE,　CARTESIAN_UBSPLINEINTP）
      *
      * 注意：用户在设置速度和加速度时，需要根据运动的类型设置，
      *      关节型运动设置关节型运动的最大速度和加速度,关节型运动的最大速度是180度每秒，最大加速度为180度每秒方;
-     * 　　　末端型运动会设置末端型运动的最大速度和加速度，末端型运动的最大速度为５米每秒，最大加速度为５米每秒方;
+     * 　　　末端型运动会设置末端型运动的最大速度和加速度，末端型运动的最大速度为2米每秒，最大加速度为2米每秒方;
      *
      **/
     int   robotServiceSetGlobalMoveEndMaxLineAcc (double  moveMaxAcc);
@@ -336,8 +350,14 @@ public:
 
     void  robotServiceGetGlobalMoveEndMaxAngleVelc(double  &moveMaxVelc);
 
+    /**
+      *　设置加加速度
+      */
+    int   robotServiceSetJerkAccRatio(double acc);
 
-    /** 运动属性中的路点设置与获取　**/
+    void   robotServiceGetJerkAccRatio(double  &acc);
+
+    /** 运动属性中的路点设置与获取　多用于轨迹运动**/
     void  robotServiceClearGlobalWayPointVector();
 
     /**
@@ -351,10 +371,13 @@ public:
      * @brief robotServiceAddGlobalWayPoint  添加路点，一般用于robotServiceTrackMove中
      * @param jointAngle　　　  关节信息
      * @return　调用成功返回ErrnoSucc;错误返回错误号
-     */
+     **/
+
     int   robotServiceAddGlobalWayPoint(const double jointAngle[aubo_robot_namespace::ARM_DOF]);
 
     void  robotServiceGetGlobalWayPointVector(std::vector<aubo_robot_namespace::wayPoint_S> &wayPointVector);
+
+
 
 
     /** 运动属性之交融半径的设置与获取　交融半径的方位：0.0m~0.05m  注意：交融半径必须大于0.0**/
@@ -401,6 +424,8 @@ public:
 
     int  robotServiceSetArrivalAheadTimeMode(double second /*秒*/);
 
+    int  robotServiceSetArrivalAheadBlendDistanceMode(double distance /*米*/);
+
 
     /**
      * @brief robotServiceSetTeachCoordinateSystem   设置示教运动的坐标系
@@ -408,8 +433,6 @@ public:
      * @return　调用成功返回ErrnoSucc;错误返回错误号
      */
     int robotServiceSetTeachCoordinateSystem(const aubo_robot_namespace::CoordCalibrateByJointAngleAndTool &coordSystem);
-
-
 
 
     /**
@@ -535,7 +558,6 @@ public:
      */
     int  rootServiceRobotMoveControl(aubo_robot_namespace::RobotMoveControlCommand cmd);
 
-
     int  robotMoveFastStop();
 
 
@@ -558,6 +580,9 @@ public:
     int  robotServiceLeaveTcp2CanbusMode();
 
     int  robotServiceSetRobotPosData2Canbus(double jointAngle[aubo_robot_namespace::ARM_DOF]);
+
+    int  robotServiceSetRobotPosData2Canbus(const std::vector<aubo_robot_namespace::wayPoint_S> &wayPointVector);
+
 
     int  startupOfflineExcitTrajService(const char *trackFile, aubo_robot_namespace::Robot_Dyn_identify_traj type, int subtype, bool isBolck);
 
@@ -602,7 +627,7 @@ public:
      */
     int robotServiceRobotIk(const double *startPointJointAngle,const aubo_robot_namespace::Pos &position, const aubo_robot_namespace::Ori &ori, aubo_robot_namespace::wayPoint_S &wayPoint);
 
-
+    int robotServiceRobotIk(const aubo_robot_namespace::Pos &position, const aubo_robot_namespace::Ori &ori, std::vector<aubo_robot_namespace::wayPoint_S> &wayPointVector);
 
 
     //工具标定
@@ -616,6 +641,10 @@ public:
                                     aubo_robot_namespace::ToolInEndDesc &toolInEndDesc);
 
 
+
+
+
+
     /**
      * @brief robotServiceCheckUserCoordinate    检查提供的参数是否标定出一个坐标系
      * @param coordSystem　　　　坐标系提供的参数
@@ -623,6 +652,9 @@ public:
      */
     int robotServiceCheckUserCoordinate(const aubo_robot_namespace::CoordCalibrateByJointAngleAndTool  &coordSystem);
 
+    int robotServiceUserCoordinateCalibration(const aubo_robot_namespace::CoordCalibrateByJointAngleAndTool  &coordSystem, double bInWPos[3], double bInWOri[9], double wInBPos[3]);
+
+    int robotServiceOriMatrixToQuaternion(double eerot[], aubo_robot_namespace::Ori &result);
 
 
     /**
@@ -630,7 +662,7 @@ public:
      *
      *        概述:  将法兰盘中心基于基座标系下的位置和姿态　转成　工具末端基于用户座标系下的位置和姿态。
      *
-     *      　扩展1:  法兰盘中心可以看成是一个特殊的工具，即工具的位置为(0,0,0)
+     *      　扩展1:  法兰盘中心可以看成是一个特殊的工具，即工具的位置为(0,0,0)姿态为（1,0,0,0）
      * 　　　　　　　  因此当工具为(0,0,0)时，相当于将法兰盘中心基于基座标系下的位置和姿态　转成　法兰盘中心基于用户座标系下的位置和姿态。
      *
      * 　　　　扩展2:  用户坐标系也可以选择成基座标系，　　即：userCoord.coordType = BaseCoordinate
@@ -648,7 +680,7 @@ public:
     static int baseToUserCoordinate( const aubo_robot_namespace::Pos            &flangeCenterPositionOnBase,    //基于基座标系的法兰盘中心位置信息
                                      const aubo_robot_namespace::Ori            &flangeCenterOrientationOnBase, //基于基座标系的姿态信息
                                      const aubo_robot_namespace::CoordCalibrateByJointAngleAndTool &userCoord,  //用户坐标系
-                                     const aubo_robot_namespace::ToolInEndDesc  &toolInEndDesc,                 //工具信息
+                                     const aubo_robot_namespace::ToolInEndDesc  &toolInEndDesc,                 //工具参数
                                      aubo_robot_namespace::Pos                  &toolEndPositionOnUserCoord,    //基于用户座标系的工具末端位置信息
                                      aubo_robot_namespace::Ori                  &toolEndOrientationOnUserCoord  //基于用户座标系的工具末端姿态信息
                                      );
@@ -671,25 +703,21 @@ public:
                                          aubo_robot_namespace::Ori                  &toolEndOrientationOnBase  //基于用户座标系的工具末端姿态信息);
                                          );
 
-//    static int baseToBaseRemoveTool( const aubo_robot_namespace::Pos                &toolEndPositionOnBase,         //基于基座标系的工具位置信息
-//                                         const aubo_robot_namespace::Ori            &toolEndOrientationOnBase,      //基于基座标系的工具姿态信息
-//                                         const aubo_robot_namespace::ToolInEndDesc  &toolInEndDesc,                 //工具信息
-//                                         aubo_robot_namespace::Pos                  &flangeCenterPositionOnBase,    //基于基座标系的法兰盘中心位置信息
-//                                         aubo_robot_namespace::Ori                  &flangeCenterOrientationOnBase  //基于基座标系的法兰盘姿态信息);
-//                                         );
-
 
     /**
-     * @brief userToBaseCoordinate                用户坐标系转基座标系
+     * @brief userToBaseCoordinate                用户坐标系位置和姿态信息转基座标系下位置和姿态信息
      *
      *        概述:  将工具末端基于用户座标系下的位置和姿态　转成　法兰盘中心基于基座标系下的位置和姿态。
      *
-     *      　扩展1:  法兰盘中心可以看成是一个特殊的工具，即工具的位置为(0,0,0)
-     * 　　　　　　　  因此当工具为(0,0,0)时，表示toolEndPositionOnUserCoord和toolEndOrientationOnUserCoord是无工具的。
+     *      　扩展1:  法兰盘中心可以看成是一个特殊的工具，即工具的位置为(0,0,0)姿态为（1,0,0,0）
+     * 　　　　　　　  因此当工具工具的位置为(0,0,0)姿态为（1,0,0,0）时，表示toolEndPositionOnUserCoord和toolEndOrientationOnUserCoord是无工具的。
      *
      * 　　　　扩展2:  用户坐标系也可以选择成基座标系，　　即：userCoord.coordType = BaseCoordinate
      *               因此当用户平面为基座标系时，相当于 将工具末端基于基座标系下的位置和姿态　转成　法兰盘中心基于基座标系下的位置和姿态，
      *               即在基座标系去工具.
+     *
+     *       扩展３:  利用该函数和逆解组合实现　　　　　当用户提供自定义坐标系（特殊为基座标系）下工具末端的位置和姿态　得到　基座标系下法兰盘中心的位置和姿态
+     * 　　　　　　　　然后在逆解，得到目标路点。
      *
      * @param toolEndPositionOnUserCoord          基于用户座标系的工具末端位置信息
      * @param toolEndOrientationOnUserCoord       基于用户座标系的工具末端姿态信息
@@ -698,6 +726,8 @@ public:
      * @param flangeCenterPositionOnBase          基于基座标系的法兰盘中心位置信息
      * @param flangeCenterOrientationOnBase       基于基座标系的姿态信息
      * @return　调用成功返回ErrnoSucc;错误返回错误号
+     *
+     * 注：这个的坐标系转换不支持末端系　　即不支持userCoord==EndCoordinate,如果userCoord==EndCoordinate会报参数错误(ErrCode_ParamError)
      */
     static int userToBaseCoordinate( const aubo_robot_namespace::Pos            &toolEndPositionOnUserCoord,    //基于用户座标系的工具末端位置信息
                                      const aubo_robot_namespace::Ori            &toolEndOrientationOnUserCoord, //基于用户座标系的工具末端姿态信息
@@ -709,12 +739,14 @@ public:
 
 
     /**
-     * @brief userCoordPointToBasePoint     基座标系下点　　单纯的点转换
-     *        将用户坐标系下的点转成基座标下的点。
-     * @param userCoordPoint        基于用户坐标系下的位置（必须的基于下面参数提供的坐标系下的）
-     * @param userCoordSystem　　　　用户坐标系    通过该参数确定一个坐标系
-     * @param basePoint　　　　　　　　基于基坐标系下的位置
+     * @brief userCoordPointToBasePoint    将空间内一个基于用户坐标系的位置信息(x,y,z)　转换成基于　基座标下的位置信息(x,y,z)
+     *
+     * @param userCoordPoint        用户坐标系下的位置信息 x,y,z（必须的基于下面参数提供的坐标系下的）
+     * @param userCoordSystem　　　　用户坐标系描述    通过该参数确定一个坐标系　不能为末端坐标系　如果userCoord==EndCoordinate会报参数错误(ErrCode_ParamError)
+     * @param basePoint　　　　　　　　基于基坐标系下的位置信息x,y,z
      * @return　调用成功返回ErrnoSucc;错误返回错误号
+     *
+     * 注：这个的坐标系转换不支持末端系　　即不支持userCoord==EndCoordinate,如果userCoord==EndCoordinate会报参数错误(ErrCode_ParamError)
      */
     static int userCoordPointToBasePoint(const aubo_robot_namespace::Pos &userCoordPoint,
                                          const aubo_robot_namespace::CoordCalibrateByJointAngleAndTool &userCoordSystem,
@@ -729,10 +761,10 @@ public:
 
 
     static int getTargetWaypointByPosition(const aubo_robot_namespace::wayPoint_S       &sourceWayPointOnBaseCoord,
-                                               const aubo_robot_namespace::CoordCalibrateByJointAngleAndTool &userCoordSystem,
-                                               const aubo_robot_namespace::Pos              &toolEndPosition,
-                                               const aubo_robot_namespace::ToolInEndDesc    &toolInEndDesc,
-                                               aubo_robot_namespace::wayPoint_S             &targetWayPointOnBaseCoord);
+                                           const aubo_robot_namespace::CoordCalibrateByJointAngleAndTool &userCoordSystem,
+                                           const aubo_robot_namespace::Pos              &toolEndPosition,
+                                           const aubo_robot_namespace::ToolInEndDesc    &toolInEndDesc,
+                                           aubo_robot_namespace::wayPoint_S             &targetWayPointOnBaseCoord);
 
 
 
@@ -806,7 +838,7 @@ public:
      * @param IsBolck        是否阻塞
      * @return　调用成功返回ErrnoSucc;错误返回错误号
      */
-    int  rootServiceRobotShutdown(bool IsBolck = true);
+    int  robotServiceRobotShutdown(bool IsBolck = true);
 
 
     /**********************************************************************************************************************************************
@@ -889,6 +921,13 @@ public:
     int robotServiceGetIsRealRobotExist(bool &value);
 
     /**
+     * @brief robotServiceGetJoint6Rotate360EnableFlag   获取６关节旋转360使能标志
+     * @param value
+     * @return
+     */
+    int robotServiceGetJoint6Rotate360EnableFlag(bool &value);
+
+    /**
      * @brief robotServiceGetRobotJointStatus   获取机械臂关节状态
      * @param jointStatus    关节角缓冲区　　输出参数
      * @param size           关节角缓冲区长度
@@ -919,8 +958,6 @@ public:
      * @return　调用成功返回ErrnoSucc;错误返回错误号
      */
     int robotServiceGetCurrentWaypointInfo(aubo_robot_namespace::wayPoint_S &wayPoint);
-
-
 
     /*****************************************************************************************************************************************************/
     /*      安全ＩＯ相关                                                                                                                      */
@@ -1174,6 +1211,101 @@ public:
     int robotServiceSetRobotJointOffset(aubo_robot_namespace::RobotJointOffset &jointOffset);
 
 
+public:  //传送带跟踪
+
+    int robotServiceSetConveyorEncoderReset(void);
+
+    /**
+     * @brief 启动传送带
+     * @return
+     */
+    int robotServiceSetConveyorStartup(void);
+
+    /**
+     * @brief 停止传送带
+     * @return
+     */
+    int robotServiceSetConveyorStop(void);
+
+    /**
+     * @brief 设置传送带方向
+     * @param dir
+     * @return
+     */
+    int robotServiceSetConveyorDir(int dir);
+
+
+    /**
+     * @brief 设置手眼标定结果关系
+     * @param robotCameraCalib
+     */
+    int robotServiceSetRobotCameraCalib(const aubo_robot_namespace::RobotCameraCalib &robotCameraCalib);
+
+
+    /**
+     * @brief 设置传送带线速度
+     * @param conveyorVelc (米/秒）
+     */
+    int robotServiceSetConveyorVelc(const double conveyorVelc);
+
+
+    /**
+     * @brief 设置编码器距离关系
+     * @param encoderValPerMeter 编码器距离关系（编码器脉冲个数/米)
+     */
+    int robotServiceSetEncoderValPerMeter(const uint32_t &encoderValPerMeter);
+
+
+    /**
+     * @brief 设置传送带起始窗口上限
+     * @param startWindowUpstream　单位：米
+     */
+    int robotServiceSetStartWindowUpstream(double startWindowUpstream);
+
+
+    /**
+     * @brief 设置传送带起始窗口下限
+     * @param startWindowDownstream 单位：米
+     */
+    int robotServiceSetStartWindowDownstream(double startWindowDownstream);
+
+    /**
+     * @brief 设置传送带跟踪轨迹下限 单位：米
+     * @param trackDownstream
+     */
+    int robotServiceSetConveyorTrackDownstream(double trackDownstream);
+
+
+    int robotServiceAppendObject2ConveyorTrackQueue(const aubo_robot_namespace::Pos &objectPos, const aubo_robot_namespace::Ori &objectOri, uint32_t timestamp);
+
+
+    int robotServiceEnableConveyorTrack();
+
+
+    int robotServiceGetConveyorEncoderVal(int &value);
+
+    //设置传送带跟踪的最大速度
+    int robotServiceSetRobotConveyorTrackMaxVelc(double robotConveyorTrackMaxVelc);
+
+    //设置传送带跟踪的最大加速度
+    int robotServiceSetRobotConveyorTrackMaxAcc(double robotConveyorTrackMaxAcc);
+
+    //设置传送带跟踪的系统延时时间
+    int robotServiceSetRobotConveyorSystemDelay(double robotConveyorSystemDelay);
+
+    //设置机械臂工具
+    int robotServiceSetRobotTool(const aubo_robot_namespace::ToolInEndDesc &robotTool);
+
+public:
+    int robotServiceSetWeaveMoveParameters(const aubo_robot_namespace::WeaveMove &weaveMove);
+
+
+public:
+    int robotServiceSetRobotRecognitionParam(const aubo_robot_namespace::RobotRecongnitionParam &param);
+
+    int robotServiceGetRobotRecognitionParam(int type, aubo_robot_namespace::RobotRecongnitionParam &param);
+
+
 private:   /**SDK内部使用 开发者不需要关心**/
 
     RobotControlServices             *m_robotBaseService;
@@ -1181,6 +1313,10 @@ private:   /**SDK内部使用 开发者不需要关心**/
     RobotIoService                   *m_robotIoService;
 
     RobotMoveService                 *m_robotMoveService;
+
+    RobotConveyorTrack               *m_robotConveyorTrack;
+
+    robotOtherService                *m_robotOtherService;
 
 private:
 
