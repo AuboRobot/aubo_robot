@@ -66,6 +66,7 @@ int main(int argc, char** argv)
 
   // Create a planning group interface object and set up a planning group
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
+  move_group.setPoseReferenceFrame("base_link");
 
 
   // Create a planning scene interface object
