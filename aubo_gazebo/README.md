@@ -1,4 +1,4 @@
-###if you want to use aubo model in gazebo,you need install package as follows:  
+## if you want to use aubo model in gazebo,you need install package as follows: ##
 
 **1.sudo apt-get install ros-kinetic-desktop-full**  
 
