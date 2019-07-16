@@ -43,6 +43,8 @@ You can use MoveIt! to control the simulated robot like ***RVIZ*** ,***Gazebo***
 ```
         2.roslaunch aubo_gazebo aubo_<robot_name>_gazebo_control.launch
 ```
+**you should install some package when you use aubo model in gazebo** [here](https://github.com/lg609/aubo_robot/blob/master/aubo_gazebo/README.md)
+
 * Then select `"Interact"` and move the end-effector to a new goal.
 
 * In  `"Motion Planning"` -> `"Plan and Execute"` to send trajectory to the sim robot
