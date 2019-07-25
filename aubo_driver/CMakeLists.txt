@@ -29,7 +29,7 @@ endif()
 include_directories(include include/otg ${catkin_INCLUDE_DIRS})
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        link_directories(${catkin_LIB_DIRS}  lib/lib64)
+        link_directories(${catkin_LIB_DIRS}  lib/lib64 lib/lib64/log4cplus lib/lib64/config lib/lib64/aubocontroller)
 else()
         link_directories(${catkin_LIB_DIRS}  lib/lib32)
 endif()
@@ -44,15 +44,20 @@ set(${PROJECT_NAME}_SOURCES2
 set(${PROJECT_NAME}_SOURCES3
     src/testAuboAPI.cpp
 )
+
 add_executable(aubo_driver ${${PROJECT_NAME}_SOURCES1})
 add_executable(testIO ${${PROJECT_NAME}_SOURCES2})
 add_executable(testAuboAPI ${${PROJECT_NAME}_SOURCES3})
+add_executable(aubo_gazebo_driver src/aubo_gazebo_driver.cpp)
 
 #LINK_LIBRARIES(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-target_link_libraries(aubo_driver pthread ${catkin_LIBRARIES} libauborobotcontroller.so libotgLib.a)
-target_link_libraries(testAuboAPI ${catkin_LIBRARIES} libauborobotcontroller.so libotgLib.a)
-target_link_libraries(testIO ${catkin_LIBRARIES} libotgLib.a)
+target_link_libraries(aubo_driver pthread ${catkin_LIBRARIES} auborobotcontroller otgLib)
+target_link_libraries(testAuboAPI ${catkin_LIBRARIES} auborobotcontroller otgLib)
+target_link_libraries(testIO ${catkin_LIBRARIES} otgLib)
+target_link_libraries(aubo_gazebo_driver ${catkin_LIBRARIES})
+
+
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 

@@ -7,10 +7,10 @@
 
 typedef struct
 {
-    MotionState ms[ARM_DOF];
+    MotionState ms[20];
     char step1_dof_index;
     bool condChanged;
-    char freedomNum;
+    int freedomNum;
     char reserved;
 }MotionInfo_S;
 

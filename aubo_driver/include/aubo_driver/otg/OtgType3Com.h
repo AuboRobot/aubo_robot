@@ -8,13 +8,6 @@
 #include <vector>
 
 //#define STEP2_TEST
-#ifdef STEP2_TEST
-#define ARM_DOF 1
-#else
-#define ARM_DOF 8
-#endif
-
-#define CTRL_PERIOD 0.005
 
 #define VARIANTB_NODES_NUM 9
 
@@ -164,6 +157,7 @@ struct MotionState
     double ReservedValue[SEG_NUM];
     int IntermediateInversion;
     double SynchronizationTime;
+    double ControlCycle;
     Step1_Profile AppliedProfile;
     Step2_Profile AppliedProfile2;
     Velocity_Profile VelocityProfile;
@@ -194,9 +188,10 @@ struct MotionState
 class JointTrajectoryInput
 {
 public:
-    JointTrajectoryInput(int numDOF)
+    JointTrajectoryInput(int numDOF, double cc)
     {
         numberOfDOFs = numDOF;
+        controlCycle = cc;
         currentPosition.resize(numDOF);
         targetPosition.resize(numDOF);
         currentVelocity.resize(numDOF);
@@ -205,8 +200,9 @@ public:
         maxVelocity.resize(numDOF);
         maxAcceleration.resize(numDOF);
         maxJerk.resize(numDOF);
-    }
-    ~JointTrajectoryInput(){}
+
+    };
+    ~JointTrajectoryInput(){};
 
     std::vector<double> currentPosition;
     std::vector<double> targetPosition;
@@ -217,6 +213,7 @@ public:
     std::vector<double> maxAcceleration;
     std::vector<double> maxJerk;
     int numberOfDOFs;
+    double controlCycle;
 };
 
 class JointTrajectoryOutput
@@ -229,7 +226,7 @@ public:
         newVelocity.resize(numDOF);
         newAcceleration.resize(numDOF);
     }
-    ~JointTrajectoryOutput(){}
+    ~JointTrajectoryOutput(){};
     std::vector<double> newPosition;
     std::vector<double> newVelocity;
     std::vector<double> newAcceleration;

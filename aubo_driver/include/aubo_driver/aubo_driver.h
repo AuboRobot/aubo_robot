@@ -9,6 +9,7 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/UInt8.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <aubo_msgs/SetIO.h>
@@ -40,7 +41,9 @@
 #define BIG_MODULE_RATIO 2 * M_PI / 60.0 / 121
 #define SMALL_MODULE_RATIO 2 * M_PI / 60.0 / 101
 #define VMAX 3000
+//#define AMAX 10000
 #define AMAX 10000
+//#define JMAX 40000
 #define JMAX 40000
 
 //#define LOG_INFO_DEBUG
@@ -158,6 +161,7 @@ namespace aubo_driver
 
             ros::NodeHandle nh_;
             ros::Publisher  rib_pub_;
+            ros::Publisher  cancle_trajectory_pub_;
             ros::Subscriber controller_switch_sub_;
             ros::Timer timer_;
             ros::Timer io_publish_timer;

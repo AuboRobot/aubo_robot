@@ -1,0 +1,45 @@
+<launch>
+
+<!--  <param name="robot_description" textfile="$(find aubo_gazebo)/urdf/aubo_i5.xacro"/>-->
+
+  <!-- 1.startup Gazebo -->
+  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <!-- We resume the logic in empty_world.launch -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="headless" value="$(arg headless)"/>
+  </include>
+
+
+  <!-- 2.Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+	args="-urdf -model arm -param robot_description"/> 		
+
+	<!-- 将Gazebo关节控制器的配置参数加载到参数服务器中 -->
+        <rosparam file="$(find aubo_gazebo)/config/aubo_i5_gazebo_control.yaml" command="load"/>
+							     
+
+        <!-- 加载控制器 -->
+	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+                                        output="screen" ns="/aubo_i5" args="joint_state_controller
+                                                                            shoulder_joint_position_controller
+                                                                            upperArm_joint_position_controller
+                                                                            foreArm_joint_position_controller
+                                                                            wrist1_joint_position_controller
+                                                                            wrist2_joint_position_controller
+                                                                            wrist3_joint_position_controller"/>
+
+  <!-- 3.run transform node /joint_state -> /gazebo every joint/command -->
+  <node name="aubo_gazebo_driver" pkg="aubo_driver" type="aubo_gazebo_driver" />
+
+
+</launch>

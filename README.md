@@ -4,7 +4,7 @@ update time:2019.06.13
 
 * Aubo_robot [ROS](http://www.ros.org/) meta-package for [ROS-Industrial](http://wiki.ros.org/Industrial). See the [ROS wiki](http://wiki.ros.org/)  page for more information.
 
-* This repository provides ROS support for [AUBO robots](https://aubo-robotics.com/en/). This repository holds source code for `indigo` and `kinetic`. The corresponding robot controller software version is `V4`. For those software version < `V4`, can refer to [here]( http://wiki.ros.org/aubo_robot).
+* This repository provides ROS support for [AUBO robots](https://aubo-robotics.com/en/). This repository holds source code for `kinetic`. The corresponding robot controller software version is `V4`. For those software version < `V4`, can refer to [here]( http://wiki.ros.org/aubo_robot).
 
 ### Installation from Source
 ---
@@ -25,15 +25,26 @@ For the latest features and developments you might want to install from source.<
 * The repository contains packages may be unstable, and they will be migrated to the [ROS-I](https://github.com/ros-industrial) repository after sufficient testing.<br>
 * The contents of these packages are subject to change, without prior notice.<br>
 * Any available APIs are to be considered unstable and are not guaranteed to be complete and / or functional.
+
+
 ### MoveIt! with a simulated robot
 ---
 
-You can use MoveIt! to control the simulated robot like ***RVIZ*** or ***VREP*** environment. If you want to simulate the robot in RVIZ:
+You can use MoveIt! to control the simulated robot like ***RVIZ*** ,***Gazebo*** or ***VREP*** environment. If you want to simulate the robot in RVIZ:
 
 * First set up the MoveIt nodes to allow motion planning and run:
+
+**rviz**
+```  
+        1.roslaunch <robot_name>_moveit_config moveit_planning_execution.launch robot_ip:=127.0.0.1  
 ```
-	roslaunch <robot_name>_moveit_config/launch/demo.launch sim:=true
+
+**gazebo**  
 ```
+        2.roslaunch aubo_gazebo aubo_<robot_name>_gazebo_control.launch
+```
+**you should install some package when you use aubo model in gazebo** [here](https://github.com/lg609/aubo_robot/blob/master/aubo_gazebo/README.md)
+
 * Then select `"Interact"` and move the end-effector to a new goal.
 
 * In  `"Motion Planning"` -> `"Plan and Execute"` to send trajectory to the sim robot
@@ -48,9 +59,9 @@ You can use MoveIt! to control the simulated robot like ***RVIZ*** or ***VREP***
 * Source the correct setup shell files and use a new terminal for each command.
 
 * To bring up the real robot, run:
-```
 
-	roslaunch <robot_name>_moveit_config moveit_planning_execution.launch sim:=false robot_ip:=<192.168.***.***>
+```
+roslaunch <robot_name>_moveit_config moveit_planning_execution.launch sim:=false robot_ip:=<192.168.***.***>
 ```
 
 
