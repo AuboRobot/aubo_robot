@@ -81,10 +81,12 @@ if("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
     ## The recommended prefix ensures that target names across packages don't collide
     add_executable(MoveGroupInterface_To_Kinetic src/MoveGroupInterface_To_Kinetic.cpp)
     add_executable(AuboTest_kinetic src/AuboTest_kinetic.cpp)
+    add_executable(Test_Aubokinematic src/AuboTest_kinematic_kinetic.cpp)
 
     ## Specify libraries to link a library or executable target against
     target_link_libraries(MoveGroupInterface_To_Kinetic ${catkin_LIBRARIES} ${Boost_LIBRARIES})
     target_link_libraries(AuboTest_kinetic ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+    target_link_libraries(Test_Aubokinematic ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
     Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note:build aubo_demo node for kinetic")
 endif()

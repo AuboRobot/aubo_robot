@@ -1,5 +1,5 @@
 #manipulator_i5:
-#  kinematics_solver: aubo_kinematics/AuboKinematicsPlugin
+#  kinematics_solver: aubo_kinematics/AuboI5KinematicsPlugin
 #  kinematics_solver_search_resolution: 0.005
 #  kinematics_solver_timeout: 0.005
 #  kinematics_solver_attempts: 3
