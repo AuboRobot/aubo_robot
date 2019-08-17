@@ -284,7 +284,7 @@
     <origin xyz="0.2565 0 0" rpy="3.1416 0 1.5708" />
     <parent link="foreArm_Link" />
     <child link="wrist1_Link" />
-    <axis xyz="0 0 -1" />
+    <axis xyz="0 0 1" />
     <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
   </joint>
 
@@ -350,7 +350,7 @@
     <origin xyz="0 -0.094 0" rpy="1.5708 0 0" />
     <parent link="wrist2_Link" />
     <child link="wrist3_Link" />
-    <axis xyz="0 0 -1" />
+    <axis xyz="0 0 1" />
     <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
   </joint>
 
@@ -362,69 +362,73 @@
 
   <joint name="world_joint" type="fixed">
     <origin xyz="0 0 0.05" rpy="0 0 0" />
+    <!--<origin xyz="0 0 0" rpy="0 0 0" />-->
     <parent link="world" />
     <child link = "pedestal_Link" />
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </joint>
 
- <!--/////////////////////////////// pedestal_Link ////////////////////////////////////-->
+<!--/////////////////////////////// pedestal_Link ////////////////////////////////////-->
 
-  <link name="pedestal_Link">
-    <visual>  
-     <geometry>         
-       <box size="1.5 1.5 0.1" />
-     </geometry>
-     <material name="">
-        <color rgba="0.96 0.96 0.96 1" />
-     </material>
-    </visual>
-   </link>
+ <link name="pedestal_Link">
+   <visual>
+    <geometry>
+      <box size="1.0 1.0 0.1" />
+<!--      <box size="0.0 0.0 0.0" />-->
+    </geometry>
+    <material name="">
+       <color rgba="0.96 0.96 0.96 1" />
+    </material>
+   </visual>
+  </link>
 
- <!--/////////////////////////////// pedestal_JOINIT ////////////////////////////////////-->
+<!--/////////////////////////////// pedestal_JOINIT ////////////////////////////////////-->
 
 <joint name="pedestal_joint" type="fixed">
-    <origin xyz="0 0 0.051" rpy="0 0 0" />
-    <parent link="pedestal_Link" />
-    <child link = "base_link" />
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-  </joint>
+   <origin xyz="0 0 0.051" rpy="0 0 0" />
+   <!--<origin xyz="0 0 0" rpy="0 0 0" />-->
+   <parent link="pedestal_Link" />
+   <child link = "base_link" />
+<!--   <child link = "pedestal_Link" />-->
+   <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+ </joint>
 
 
-  <!-- /////////////////////////////////   gazebo color   ////////////////////////////////////// -->
-  <gazebo reference="pedestal_Link">
-     <material>Gazebo/Grey</material>
-  </gazebo>
+ <!-- /////////////////////////////////   gazebo color   ////////////////////////////////////// -->
+ <gazebo reference="pedestal_Link">
+    <material>Gazebo/Grey</material>
+ </gazebo>
 
-  <!--////////////////////////////////// Transmissions for ROS Control //////////////////////////-->
+ <!--////////////////////////////////// Transmissions for ROS Control //////////////////////////-->
 
-  <xacro:macro name="aubo_arm_transmission" params="joint_name">
-      <transmission name="${joint_name}_trans">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="${joint_name}">
-          <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="${joint_name}_motor">
-          <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-      </transmission>
-  </xacro:macro>
+ <xacro:macro name="aubo_arm_transmission" params="joint_name">
+     <transmission name="${joint_name}_trans">
+       <type>transmission_interface/SimpleTransmission</type>
+       <joint name="${joint_name}">
+         <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+       </joint>
+       <actuator name="${joint_name}_motor">
+         <mechanicalReduction>1</mechanicalReduction>
+       </actuator>
+     </transmission>
+ </xacro:macro>
 
-  <xacro:aubo_arm_transmission joint_name="shoulder_joint"/>
-  <xacro:aubo_arm_transmission joint_name="upperArm_joint"/>
-  <xacro:aubo_arm_transmission joint_name="foreArm_joint"/>
-  <xacro:aubo_arm_transmission joint_name="wrist1_joint"/>
-  <xacro:aubo_arm_transmission joint_name="wrist2_joint"/>
-  <xacro:aubo_arm_transmission joint_name="wrist3_joint"/>
-
-
+ <xacro:aubo_arm_transmission joint_name="shoulder_joint"/>
+ <xacro:aubo_arm_transmission joint_name="upperArm_joint"/>
+ <xacro:aubo_arm_transmission joint_name="foreArm_joint"/>
+ <xacro:aubo_arm_transmission joint_name="wrist1_joint"/>
+ <xacro:aubo_arm_transmission joint_name="wrist2_joint"/>
+ <xacro:aubo_arm_transmission joint_name="wrist3_joint"/>
 
 
-  <!-- ros_control plugin -->
-  <gazebo>
-      <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-          <robotNamespace>/aubo_i3</robotNamespace>
-      </plugin>
-  </gazebo>
+
+
+ <!-- ros_control plugin -->
+ <gazebo>
+     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+         <robotNamespace>/aubo_i3</robotNamespace>
+     </plugin>
+ </gazebo>
 
 
 
