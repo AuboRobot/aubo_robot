@@ -15,10 +15,21 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES aubo_i3_kinematic aubo_i5_kinematic aubo_i10_kinematic aubo_i3_moveit_kinematic_plugin aubo_i5_moveit_kinematic_plugin aubo_i10_moveit_kinematic_plugin
-  CATKIN_DEPENDS roscpp geometry_msgs moveit_core moveit_ros_planning
-                 pluginlib tf_conversions
-  DEPENDS boost
+  LIBRARIES
+    aubo_i3_kinematic
+    aubo_i3_moveit_kinematic_plugin
+    aubo_i5_kinematic
+    aubo_i5_moveit_kinematic_plugin
+    aubo_i10_kinematic
+    aubo_i10_moveit_kinematic_plugin
+  CATKIN_DEPENDS
+    roscpp
+    geometry_msgs
+    pluginlib
+    moveit_core
+    moveit_ros_planning
+    tf_conversions
+  DEPENDS Boost
 )
 
 
@@ -103,4 +114,3 @@ install(DIRECTORY include/${PROJECT_NAME}/
 install(FILES aubo_moveit_plugins.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-
