@@ -493,12 +493,11 @@ int main(int argc, char** argv)
           controller_name = "aubo_i10_controller/follow_joint_trajectory";
   else if(robot_name == "aubo_i5l")
           controller_name = "aubo_i5l_controller/follow_joint_trajectory";
+  else if(robot_name == "aubo_i16")
+          controller_name = "aubo_i16_controller/follow_joint_trajectory";
 
   JointTrajectoryAction action(controller_name);
   action.run();
 
   return 0;
 }
-
-
-
