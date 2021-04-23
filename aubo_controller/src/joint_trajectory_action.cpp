@@ -137,9 +137,10 @@ void JointTrajectoryAction::watchdog(const ros::TimerEvent &e)
   }
 }
 
-void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
+void JointTrajectoryAction::goalCB(const JointTractoryActionServer::GoalHandle &gh)
 {
   ROS_INFO("Received new goal");
+  JointTractoryActionServer::GoalHandle tmp_gh = const_cast<JointTractoryActionServer::GoalHandle&>(gh);
 
   // reject all goals as long as we haven't heard from the remote controller
   if (!controller_alive_)
@@ -147,15 +148,15 @@ void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
     ROS_ERROR("Joint trajectory action rejected: waiting for (initial) feedback from controller");
     control_msgs::FollowJointTrajectoryResult rslt;
     rslt.error_code = control_msgs::FollowJointTrajectoryResult::INVALID_GOAL;
-    gh.setRejected(rslt, "Waiting for (initial) feedback from controller");
+    tmp_gh.setRejected(rslt, "Waiting for (initial) feedback from controller");
 
     // no point in continuing: already rejected
     return;
   }
 
-  if (!gh.getGoal()->trajectory.points.empty())
+  if (!tmp_gh.getGoal()->trajectory.points.empty())
   {
-    if (industrial_utils::isSimilar(joint_names_, gh.getGoal()->trajectory.joint_names))
+    if (industrial_utils::isSimilar(joint_names_, tmp_gh.getGoal()->trajectory.joint_names))
     {
 
       // Cancels the currently active goal.
@@ -165,8 +166,8 @@ void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
         abortGoal();
       }
 
-      gh.setAccepted();
-      active_goal_ = gh;
+      tmp_gh.setAccepted();
+      active_goal_ = tmp_gh;
       has_active_goal_ = true;
       time_to_check_ = ros::Time::now() +
           ros::Duration(active_goal_.getGoal()->trajectory.points.back().time_from_start.toSec() / 2.0);
@@ -183,7 +184,7 @@ void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
       ROS_ERROR("Joint trajectory action failing on invalid joints");
       control_msgs::FollowJointTrajectoryResult rslt;
       rslt.error_code = control_msgs::FollowJointTrajectoryResult::INVALID_JOINTS;
-      gh.setRejected(rslt, "Joint names do not match");
+      tmp_gh.setRejected(rslt, "Joint names do not match");
     }
   }
   else
@@ -191,28 +192,28 @@ void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle & gh)
     ROS_ERROR("Joint trajectory action failed on empty trajectory");
     control_msgs::FollowJointTrajectoryResult rslt;
     rslt.error_code = control_msgs::FollowJointTrajectoryResult::INVALID_GOAL;
-    gh.setRejected(rslt, "Empty trajectory");
+    tmp_gh.setRejected(rslt, "Empty trajectory");
   }
 
   // Adding some informational log messages to indicate unsupported goal constraints
-  if (gh.getGoal()->goal_time_tolerance.toSec() > 0.0)
+  if (tmp_gh.getGoal()->goal_time_tolerance.toSec() > 0.0)
   {
     ROS_WARN_STREAM("Ignoring goal time tolerance in action goal, may be supported in the future");
   }
-  if (!gh.getGoal()->goal_tolerance.empty())
+  if (!tmp_gh.getGoal()->goal_tolerance.empty())
   {
     ROS_WARN_STREAM(
         "Ignoring goal tolerance in action, using paramater tolerance of " << goal_threshold_ << " instead");
   }
-  if (!gh.getGoal()->path_tolerance.empty())
+  if (!tmp_gh.getGoal()->path_tolerance.empty())
   {
     ROS_WARN_STREAM("Ignoring goal path tolerance, option not supported by ROS-Industrial drivers");
   }
 }
 
-void JointTrajectoryAction::cancelCB(JointTractoryActionServer::GoalHandle & gh)
+void JointTrajectoryAction::cancelCB(const JointTractoryActionServer::GoalHandle &gh)
 {
-
+  JointTractoryActionServer::GoalHandle tmp_gh = const_cast<JointTractoryActionServer::GoalHandle&>(gh);
   ROS_DEBUG("Received action cancel request");
   if (active_goal_ == gh)
   {
@@ -222,7 +223,7 @@ void JointTrajectoryAction::cancelCB(JointTractoryActionServer::GoalHandle & gh)
     pub_trajectory_command_.publish(empty);
 
     // Marks the current goal as canceled.
-    active_goal_.setCanceled();
+    tmp_gh.setCanceled();
     has_active_goal_ = false;
   }
   else
