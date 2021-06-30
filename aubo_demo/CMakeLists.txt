@@ -57,12 +57,12 @@ endif()
 ## catkin specific configuration ##
 ###################################
 
-catkin_package(
+# catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES aubo_demo
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
-)
+# )
 
 ###########
 ## Build ##

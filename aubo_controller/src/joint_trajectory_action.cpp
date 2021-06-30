@@ -137,10 +137,9 @@ void JointTrajectoryAction::watchdog(const ros::TimerEvent &e)
   }
 }
 
-void JointTrajectoryAction::goalCB(const JointTractoryActionServer::GoalHandle &gh)
+void JointTrajectoryAction::goalCB(JointTractoryActionServer::GoalHandle  gh)
 {
   ROS_INFO("Received new goal");
-  JointTractoryActionServer::GoalHandle tmp_gh = const_cast<JointTractoryActionServer::GoalHandle&>(gh);
 
   // reject all goals as long as we haven't heard from the remote controller
   if (!controller_alive_)
@@ -148,15 +147,15 @@ void JointTrajectoryAction::goalCB(const JointTractoryActionServer::GoalHandle &
     ROS_ERROR("Joint trajectory action rejected: waiting for (initial) feedback from controller");
     control_msgs::FollowJointTrajectoryResult rslt;
     rslt.error_code = control_msgs::FollowJointTrajectoryResult::INVALID_GOAL;
-    tmp_gh.setRejected(rslt, "Waiting for (initial) feedback from controller");
+    gh.setRejected(rslt, "Waiting for (initial) feedback from controller");
 
     // no point in continuing: already rejected
     return;
   }
 
-  if (!tmp_gh.getGoal()->trajectory.points.empty())
+  if (!gh.getGoal()->trajectory.points.empty())
   {
-    if (industrial_utils::isSimilar(joint_names_, tmp_gh.getGoal()->trajectory.joint_names))
+    if (industrial_utils::isSimilar(joint_names_, gh.getGoal()->trajectory.joint_names))
     {
 
       // Cancels the currently active goal.
@@ -166,8 +165,8 @@ void JointTrajectoryAction::goalCB(const JointTractoryActionServer::GoalHandle &
         abortGoal();
       }
 
-      tmp_gh.setAccepted();
-      active_goal_ = tmp_gh;
+      gh.setAccepted();
+      active_goal_ = gh;
       has_active_goal_ = true;
       time_to_check_ = ros::Time::now() +
           ros::Duration(active_goal_.getGoal()->trajectory.points.back().time_from_start.toSec() / 2.0);
@@ -184,7 +183,7 @@ void JointTrajectoryAction::goalCB(const JointTractoryActionServer::GoalHandle &
       ROS_ERROR("Joint trajectory action failing on invalid joints");
       control_msgs::FollowJointTrajectoryResult rslt;
       rslt.error_code = control_msgs::FollowJointTrajectoryResult::INVALID_JOINTS;
-      tmp_gh.setRejected(rslt, "Joint names do not match");
+      gh.setRejected(rslt, "Joint names do not match");
     }
   }
   else
@@ -192,28 +191,28 @@ void JointTrajectoryAction::goalCB(const JointTractoryActionServer::GoalHandle &
     ROS_ERROR("Joint trajectory action failed on empty trajectory");
     control_msgs::FollowJointTrajectoryResult rslt;
     rslt.error_code = control_msgs::FollowJointTrajectoryResult::INVALID_GOAL;
-    tmp_gh.setRejected(rslt, "Empty trajectory");
+    gh.setRejected(rslt, "Empty trajectory");
   }
 
   // Adding some informational log messages to indicate unsupported goal constraints
-  if (tmp_gh.getGoal()->goal_time_tolerance.toSec() > 0.0)
+  if (gh.getGoal()->goal_time_tolerance.toSec() > 0.0)
   {
     ROS_WARN_STREAM("Ignoring goal time tolerance in action goal, may be supported in the future");
   }
-  if (!tmp_gh.getGoal()->goal_tolerance.empty())
+  if (!gh.getGoal()->goal_tolerance.empty())
   {
     ROS_WARN_STREAM(
         "Ignoring goal tolerance in action, using paramater tolerance of " << goal_threshold_ << " instead");
   }
-  if (!tmp_gh.getGoal()->path_tolerance.empty())
+  if (!gh.getGoal()->path_tolerance.empty())
   {
     ROS_WARN_STREAM("Ignoring goal path tolerance, option not supported by ROS-Industrial drivers");
   }
 }
 
-void JointTrajectoryAction::cancelCB(const JointTractoryActionServer::GoalHandle &gh)
+void JointTrajectoryAction::cancelCB(JointTractoryActionServer::GoalHandle  gh)
 {
-  JointTractoryActionServer::GoalHandle tmp_gh = const_cast<JointTractoryActionServer::GoalHandle&>(gh);
+
   ROS_DEBUG("Received action cancel request");
   if (active_goal_ == gh)
   {
@@ -223,7 +222,7 @@ void JointTrajectoryAction::cancelCB(const JointTractoryActionServer::GoalHandle
     pub_trajectory_command_.publish(empty);
 
     // Marks the current goal as canceled.
-    tmp_gh.setCanceled();
+    active_goal_.setCanceled();
     has_active_goal_ = false;
   }
   else
@@ -494,11 +493,12 @@ int main(int argc, char** argv)
           controller_name = "aubo_i10_controller/follow_joint_trajectory";
   else if(robot_name == "aubo_i5l")
           controller_name = "aubo_i5l_controller/follow_joint_trajectory";
-  else if(robot_name == "aubo_i16")
-          controller_name = "aubo_i16_controller/follow_joint_trajectory";
 
   JointTrajectoryAction action(controller_name);
   action.run();
 
   return 0;
 }
+
+
+

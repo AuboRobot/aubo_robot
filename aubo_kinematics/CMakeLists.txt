@@ -2,11 +2,17 @@ cmake_minimum_required(VERSION 2.8.3)
 project(aubo_kinematics)
 
 add_compile_options(-std=c++11)
-find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs moveit_core moveit_kinematics moveit_ros_planning_interface moveit_ros_planning pluginlib tf_conversions)
+
 if("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
     find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs moveit_core moveit_kinematics moveit_ros_planning_interface
       moveit_ros_planning pluginlib tf_conversions)
     Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find Package for kinetic in kinematics build")
+endif()
+
+if("$ENV{ROS_DISTRO}" STREQUAL "melodic")
+    find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs moveit_core moveit_kinematics moveit_ros_planning_interface
+            moveit_ros_planning pluginlib tf_conversions)
+    Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find Package for melodic in kinematics build")
 endif()
 
 
@@ -18,7 +24,7 @@ catkin_package(
   LIBRARIES aubo_i3_kinematic aubo_i5_kinematic aubo_i10_kinematic aubo_i3_moveit_kinematic_plugin aubo_i5_moveit_kinematic_plugin aubo_i10_moveit_kinematic_plugin
   CATKIN_DEPENDS roscpp geometry_msgs moveit_core moveit_ros_planning
                  pluginlib tf_conversions
-  DEPENDS boost
+  DEPENDS Boost
 )
 
 

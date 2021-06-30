@@ -27,12 +27,15 @@
 #include <aubo_msgs/Analog.h>
 #include <aubo_msgs/JointPos.h>
 #include <industrial_msgs/RobotStatus.h>
-#include "aubo_driver/AuboRobotMetaType.h"
-#include "aubo_driver/serviceinterface.h"
+//#include "aubo_driver/AuboRobotMetaType.h"
+//#include "aubo_driver/serviceinterface.h"
+#include "AuboRobotMetaType.h"
+#include "serviceinterface.h"
 #include "sensor_msgs/JointState.h"
 #include <control_msgs/FollowJointTrajectoryFeedback.h>
 
-#include "otg/otgnewslib.h"
+//#include "otg/otgnewslib.h"
+#include "otgnewslib.h"
 
 #define MINIMUM_BUFFER_SIZE 300
 #define ARM_DOF 8               //support at most 8 axes

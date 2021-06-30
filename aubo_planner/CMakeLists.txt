@@ -14,6 +14,11 @@ if("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
     Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find Eigen3 Package in aubo_planner for kinetic")
 endif()
 
+if("$ENV{ROS_DISTRO}" STREQUAL "melodic")
+    find_package(Eigen3 REQUIRED)
+    Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find Eigen3 Package in aubo_planner for melodic")
+endif()
+
 if("$ENV{ROS_DISTRO}" STREQUAL "indigo")
     find_package(Eigen REQUIRED)
     Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find Eigen Package in aubo_planner for  for indigo")
@@ -58,6 +63,11 @@ include_directories(include  ${catkin_INCLUDE_DIRS})
 if("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
     include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
     Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find EIGEN3_INCLUDE_DIRS Package in aubo_planner for kinetic")
+endif()
+
+if("$ENV{ROS_DISTRO}" STREQUAL "melodic")
+    include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
+    Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find EIGEN3_INCLUDE_DIRS Package in aubo_planner for melodic")
 endif()
 
 if("$ENV{ROS_DISTRO}" STREQUAL "indigo")

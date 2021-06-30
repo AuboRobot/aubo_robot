@@ -1,5 +1,5 @@
-//#include <class_loader/class_loader.h>
-#include <pluginlib/class_loader.h>
+#include <class_loader/class_loader.h>
+
 //#include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_kdl.h>
 #include <kdl_parser/kdl_parser.hpp>

@@ -1,3 +1,0 @@
-<launch>
-	<include file="$(find aubo_i16_moveit_config)/launch/aubo_i16_moveit_controller_manager.launch" />
-</launch>
