@@ -14,7 +14,8 @@ For the latest features and developments you might want to install from source.<
 1. First set up a catkin workspace (see this [tutorials](http://wiki.ros.org/catkin/Tutorials)).<br>
 2. Then clone the repository into the `src/` folder. It should look like `/user_name/catkin_workspace/src/aubo_robot`.<br>
 3. In order to compile the package successfully, you need to install some packages related to `MoveIt` and `industrial_core`package.
-	``` sudo apt-get install ros-melodic-moveit
+	``` 
+	    sudo apt-get install ros-melodic-moveit
 	    sudo apt-get install ros-melodic-industrial-core
 	    sudo apt-get install ros-melodic-moveit-visual-tools
 	```
