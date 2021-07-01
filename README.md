@@ -13,10 +13,16 @@ For the latest features and developments you might want to install from source.<
 
 1. First set up a catkin workspace (see this [tutorials](http://wiki.ros.org/catkin/Tutorials)).<br>
 2. Then clone the repository into the `src/` folder. It should look like `/user_name/catkin_workspace/src/aubo_robot`.<br>
-3. In order to compile the package successfully, you need to install some packages related to `MoveIt` and `industrial_core`package.<br>
-4. Make sure to source the correct setup file according to your workspace hierarchy, then use **catkin_make** to compile.<br>
+3. In order to compile the package successfully, you need to install some packages related to `MoveIt` and `industrial_core`package.
+	``` sudo apt-get install ros-melodic-moveit
+	    sudo apt-get install ros-melodic-industrial-core
+	    sudo apt-get install ros-melodic-moveit-visual-tools
+	```
+5. Make sure to source the correct setup file according to your workspace hierarchy, then use **catkin build -c** to compile.<br>
 
-5. update Moveit_core_lib : enter the direction `/user_name/catkin_workspace/src/aubo_robot/UpdateMoveitLib/Kinetic/`,Add permissions to the Update.sh file`chmod +x Update.sh` , Execution script file `sudo ./Update.sh`
+### Potential Moveit library errors that were solved in a pretty iffy way (needs to be tested if this is really needed. Only try this if build fails)
+1. update Moveit_core_lib : enter the direction `/user_name/catkin_workspace/src/aubo_robot/UpdateMoveitLib/Kinetic/`, and run `cp libmoveit_trajectory_processing.so* /opt/ros/melodic/lib/`
+2. Make a copy of `libmoveit_robot_model.so.1.0.8`, `libmoveit_robot_state.so.1.0.8`, `libmoveit_robot_trajectory.so.1.0.8` and rename to `libmoveit_robot_model.so.0.9.15`, `libmoveit_robot_state.so.0.9.15` and `libmoveit_robot_trajectory.so.0.9.15` respectively.
 
 	The `recommended` gcc version is 4.8 for Ubuntu 14.04; And for Ubuntu 16.04, the gcc version is 5.4.
 
