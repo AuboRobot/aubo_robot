@@ -1,12 +1,6 @@
 <?xml version="1.0"?>
 <robot  name="aubo_i5">
 
-  <xacro:property name="endEffectorPoleLength" value="0.325"/>
-  <xacro:property name="endEffectorPoleRadius" value="0.007"/>
-    <xacro:property name="endEffectorBoxLength" value="0.09"/>
-    <xacro:property name="endEffectorBoxWidth" value="0.130"/>
-    <xacro:property name="endEffectorBoxHeight" value="0.080"/>
-
   <link name="base_link">
     <inertial>
       <origin xyz="-1.4795E-13 0.0015384 0.020951" rpy="0 0 0" />
@@ -214,46 +208,6 @@
     <child link="wrist3_Link" />
     <axis xyz="0 0 1" />
     <limit lower="-3.05" upper="3.05" effort="0" velocity="0" />
-  </joint>
-
-  <link name="end_effector_Link">
-    <inertial>
-      <origin xyz="0 0 ${endEffectorPoleLength/2}" rpy="0 0 0" />
-      <mass value="0.158309554874285" />
-      <inertia ixx="7.31376196034769E-05" ixy="0" ixz="0" iyy="7.19528188876563E-05" iyz="0" izz="0.000108772439051422" />
-    </inertial>
-    <visual>
-      <origin xyz="0 0 ${endEffectorPoleLength/2}" rpy="0 0 0" />
-      <geometry>
-        <!-- <mesh filename="package://harvester_description/meshes/end_effector.DAE" /> -->
-        <cylinder length="${endEffectorPoleLength}" radius="${endEffectorPoleRadius}"/>
-      </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
-      </material>
-    </visual>
-    <visual>
-      <origin xyz="0 0 ${endEffectorBoxLength/2}" rpy="0 0 0"/>
-      <geometry>
-        <box size="${endEffectorBoxWidth} ${endEffectorBoxHeight} ${endEffectorBoxLength}"/>
-      </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 ${endEffectorPoleLength/2}" rpy="0 0 0" />
-      <geometry>
-        <!-- <mesh filename="package://harvester_description/meshes/end_effector_new.STL" /> -->
-        <cylinder length="${endEffectorPoleLength}" radius="${endEffectorPoleRadius}"/>
-      </geometry>
-    </collision>
-  </link>
-
-  <joint name="end_effector_joint" type="fixed">
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-    <parent link="wrist3_Link" />
-    <child link="end_effector_Link" />
   </joint>
 
   <link name="world" />

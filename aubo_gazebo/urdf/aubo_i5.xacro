@@ -24,18 +24,9 @@
 
     <!-- Constants -->
     <xacro:property name="M_PI" value="3.14159"/>
-    <xacro:property name="endEffectorPoleLength" value="0.325"/>
-    <xacro:property name="endEffectorPoleRadius" value="0.007"/>
-    <xacro:property name="endEffectorBoxLength" value="0.09"/>
-    <xacro:property name="endEffectorBoxWidth" value="0.130"/>
-    <xacro:property name="endEffectorBoxHeight" value="0.080"/>
-
-
-
 
 
     <!--/////////////////// DYNAMICS PARAM //////////////////////-->
-
     <xacro:macro name="I5_Shoulder_Inertia">
         <origin xyz="0.0 0.006 -0.002"
                 rpy="0 0 0" />
@@ -108,28 +99,8 @@
                  izz="0.0224092" />
     </xacro:macro>
 
-    <xacro:macro name="I5_End_Effector_Inertia">
-        <origin xyz="0.0 0.0 -0.0071"
-                rpy="0 0 0" />
-        <mass value="0.40" />
-        <inertia ixx="0.013939"
-                 ixy="0"
-                 ixz="0"
-                 iyy="0.013988"
-                 iyz="0.0"
-                 izz="0.0224092" />
-    </xacro:macro>
-
-
-
-
-
-
-
-
 
     <!--/////////////////////////////// BASE_LINK ////////////////////////////////////-->
-   
    <link name="base_link">
     <inertial>
       <origin xyz="-1.4795E-13 0.0015384 0.020951" rpy="0 0 0" />
@@ -153,6 +124,7 @@
     </collision>
   </link>
 
+
   <!--/////////////////////////////// SHOULDER_LINK ////////////////////////////////////-->
   <link name="shoulder_Link">
     <inertial>
@@ -174,7 +146,6 @@
       </geometry>
     </collision>
   </link>
-
 
   <!--/////////////////////////////// SHOULDER_JOINT ////////////////////////////////////-->
   <joint name="shoulder_joint" type="revolute">
@@ -240,7 +211,6 @@
     </collision>
   </link>
 
-
   <!--/////////////////////////////// FOREARM_JOINT ////////////////////////////////////-->
   <joint name="foreArm_joint" type="revolute">
     <origin xyz="0.408 0 0" rpy="-3.1416 -5.1632E-18 -5.459E-16" />
@@ -273,7 +243,6 @@
     </collision>
   </link>
 
-
   <!--/////////////////////////////// WRIST1_JOINT ////////////////////////////////////-->
   <joint name="wrist1_joint" type="revolute">
     <origin xyz="0.376 0 0" rpy="3.1416 -1.8323E-15 1.5708" />
@@ -282,6 +251,7 @@
     <axis xyz="0 0 1" />
     <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
   </joint>
+
 
   <!--/////////////////////////////// WRIST2_LINK ////////////////////////////////////-->
   <link name="wrist2_Link">
@@ -313,6 +283,7 @@
     <axis xyz="0 0 1" />
     <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
   </joint>
+
 
   <!--/////////////////////////////// WRIST3_LINK ////////////////////////////////////-->
   <link name="wrist3_Link">
@@ -346,48 +317,6 @@
   </joint>
 
 
-    <!--/////////////////////////////// END_EFFECTOR_LINK ////////////////////////////////////-->
-  <link name="end_effector_Link">
-    <inertial>
-      <xacro:I5_End_Effector_Inertia />
-    </inertial>
-    <visual>
-      <origin xyz="0 0 ${endEffectorPoleLength/2}" rpy="0 0 0" />
-      <geometry>
-        <!-- <mesh filename="package://harvester_description/meshes/end_effector.DAE" /> -->
-      <cylinder length="${endEffectorPoleLength}" radius="${endEffectorPoleRadius}"/>
-      </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
-      </material>
-    </visual>
-    <visual>
-      <origin xyz="0 0 ${endEffectorBoxLength/2}" rpy="0 0 0"/>
-      <geometry>
-        <box size="${endEffectorBoxWidth} ${endEffectorBoxHeight} ${endEffectorBoxLength}"/>
-      </geometry>
-      <material name="">
-        <color rgba="1 1 1 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 ${endEffectorPoleLength/2}" rpy="0 0 0" />
-      <geometry>
-        <!-- <mesh filename="package://harvester_description/meshes/end_effector_new.STL" /> -->
-      <cylinder length="${endEffectorPoleLength}" radius="${endEffectorPoleRadius}"/>
-      </geometry>
-    </collision>
-  </link>
-
-  <!--/////////////////////////////// END_EFFECTOR_JOINT ////////////////////////////////////-->
-  <joint name="end_effector_joint" type="fixed">
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
-    <parent link="wrist3_Link" />
-    <child link="end_effector_Link" />
-  </joint>
-
-
-
   <!-- /////////////////////////////////   i5 pedestal_Link   ////////////////////////////////////// -->
   <!-- <link name="pedestal_Link">
     <visual>
@@ -413,11 +342,12 @@
     <origin xyz="0.0 0.0 0.1" rpy="0.0 0.0 0.0" />
   </joint> -->
 
+ <!-- /////////////////////////////////   burro bed   ////////////////////////////////////// -->
   <joint name="base_link_joint" type="fixed">
     <parent link="bed" />
     <child link ="base_link" />
     <origin xyz="0 0 0" rpy="0 0 0" />
-  </joint> -->
+  </joint>
 
 
   <!-- /////////////////////////////////   gazebo color   ////////////////////////////////////// -->
@@ -426,7 +356,6 @@
   </gazebo> -->
 
   <!--////////////////////////////////// Transmissions for ROS Control //////////////////////////-->
-
 <xacro:macro name="aubo_arm_transmission" params="joint_name">
      <transmission name="${joint_name}_trans">
        <type>transmission_interface/SimpleTransmission</type>
@@ -448,15 +377,11 @@
   <xacro:aubo_arm_transmission joint_name="wrist3_joint"/>
 
 
-
-
   <!-- ros_control plugin -->
   <gazebo>
       <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
           <robotNamespace>/aubo_i5</robotNamespace>
       </plugin>
   </gazebo>
-
-
 
 </robot>
