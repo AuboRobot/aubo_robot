@@ -66,9 +66,9 @@
      </gazebo>
 
      <!--pedestal_Link-->
-     <gazebo reference = "${prefix}pedestal_Link">
+     <!-- <gazebo reference = "${prefix}pedestal_Link">
 	<material>Gazebo/Green</material>
-     </gazebo>
+     </gazebo> -->
 
   </xacro:macro>
 </robot>

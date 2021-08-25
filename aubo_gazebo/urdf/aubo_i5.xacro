@@ -24,8 +24,11 @@
 
     <!-- Constants -->
     <xacro:property name="M_PI" value="3.14159"/>
-
-
+    <xacro:property name="endEffectorPoleLength" value="0.325"/>
+    <xacro:property name="endEffectorPoleRadius" value="0.007"/>
+    <xacro:property name="endEffectorBoxLength" value="0.09"/>
+    <xacro:property name="endEffectorBoxWidth" value="0.130"/>
+    <xacro:property name="endEffectorBoxHeight" value="0.080"/>
 
 
 
@@ -94,6 +97,18 @@
     </xacro:macro>
 
     <xacro:macro name="I5_Wrist3_Inertia">
+        <origin xyz="0.0 0.0 -0.0071"
+                rpy="0 0 0" />
+        <mass value="0.40" />
+        <inertia ixx="0.013939"
+                 ixy="0"
+                 ixz="0"
+                 iyy="0.013988"
+                 iyz="0.0"
+                 izz="0.0224092" />
+    </xacro:macro>
+
+    <xacro:macro name="I5_End_Effector_Inertia">
         <origin xyz="0.0 0.0 -0.0071"
                 rpy="0 0 0" />
         <mass value="0.40" />
@@ -331,9 +346,50 @@
   </joint>
 
 
+    <!--/////////////////////////////// END_EFFECTOR_LINK ////////////////////////////////////-->
+  <link name="end_effector_Link">
+    <inertial>
+      <xacro:I5_End_Effector_Inertia />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 ${endEffectorPoleLength/2}" rpy="0 0 0" />
+      <geometry>
+        <!-- <mesh filename="package://harvester_description/meshes/end_effector.DAE" /> -->
+      <cylinder length="${endEffectorPoleLength}" radius="${endEffectorPoleRadius}"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 ${endEffectorBoxLength/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${endEffectorBoxWidth} ${endEffectorBoxHeight} ${endEffectorBoxLength}"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${endEffectorPoleLength/2}" rpy="0 0 0" />
+      <geometry>
+        <!-- <mesh filename="package://harvester_description/meshes/end_effector_new.STL" /> -->
+      <cylinder length="${endEffectorPoleLength}" radius="${endEffectorPoleRadius}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!--/////////////////////////////// END_EFFECTOR_JOINT ////////////////////////////////////-->
+  <joint name="end_effector_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <parent link="wrist3_Link" />
+    <child link="end_effector_Link" />
+  </joint>
+
+
 
   <!-- /////////////////////////////////   i5 pedestal_Link   ////////////////////////////////////// -->
-  <link name="pedestal_Link">
+  <!-- <link name="pedestal_Link">
     <visual>
       <geometry>
         <mesh filename="package://aubo_description/meshes/aubo_i5/collision/pedestal.STL" />
@@ -345,23 +401,29 @@
     <parent link="pedestal_Link"/>
     <child link="base_link"/>
     <origin xyz="0.0 0.0 0.402" rpy="0.0 0.0 0.0" />
-  </joint>
+  </joint> -->
 
 
  <!-- /////////////////////////////////   world   ////////////////////////////////////// -->
-  <link name="world" />
+  <!-- <link name="world" />
 
   <joint name="world_joint" type="fixed">
     <parent link="world" />
     <child link ="pedestal_Link" />
     <origin xyz="0.0 0.0 0.1" rpy="0.0 0.0 0.0" />
-  </joint>
+  </joint> -->
+
+  <joint name="base_link_joint" type="fixed">
+    <parent link="bed" />
+    <child link ="base_link" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint> -->
 
 
   <!-- /////////////////////////////////   gazebo color   ////////////////////////////////////// -->
-  <gazebo reference="pedestal_Link">
+  <!-- <gazebo reference="pedestal_Link">
      <material>Gazebo/Grey</material>
-  </gazebo>
+  </gazebo> -->
 
   <!--////////////////////////////////// Transmissions for ROS Control //////////////////////////-->
 
@@ -369,7 +431,6 @@
      <transmission name="${joint_name}_trans">
        <type>transmission_interface/SimpleTransmission</type>
        <joint name="${joint_name}">
-         <!--<hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>-->
          <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
        </joint>
        <actuator name="${joint_name}_motor">
