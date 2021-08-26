@@ -342,13 +342,6 @@
     <origin xyz="0.0 0.0 0.1" rpy="0.0 0.0 0.0" />
   </joint> -->
 
- <!-- /////////////////////////////////   burro bed   ////////////////////////////////////// -->
-  <joint name="base_link_joint" type="fixed">
-    <parent link="bed" />
-    <child link ="base_link" />
-    <origin xyz="0 0 0" rpy="0 0 0" />
-  </joint>
-
 
   <!-- /////////////////////////////////   gazebo color   ////////////////////////////////////// -->
   <!-- <gazebo reference="pedestal_Link">
