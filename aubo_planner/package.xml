@@ -12,6 +12,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>aubo_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>control_msgs</build_depend>
   <build_depend>trajectory_msgs</build_depend>
