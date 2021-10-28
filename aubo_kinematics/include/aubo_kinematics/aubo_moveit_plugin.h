@@ -21,7 +21,7 @@
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/chainiksolverpos_nr_jl.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
-#include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>>
+#include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>
 #include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>
 
 // MoveIt!
