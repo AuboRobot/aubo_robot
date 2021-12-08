@@ -45,7 +45,7 @@
 #define AMAX 10000
 //#define JMAX 40000
 #define JMAX 40000
-
+#define STOP_DELAY_CLEAR_TIMES 10
 //#define LOG_INFO_DEBUG
 
 namespace aubo_driver
@@ -178,6 +178,8 @@ namespace aubo_driver
             int collision_class_;
             std_msgs::Int32MultiArray rib_status_;
             industrial_msgs::RobotStatus robot_status_;
+
+            int delay_clear_times;
     };
 }
 
