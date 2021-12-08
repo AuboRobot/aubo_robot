@@ -35,7 +35,7 @@ namespace aubo_driver {
 
 std::string AuboDriver::joint_name_[ARM_DOF] = {"shoulder_joint","upperArm_joint","foreArm_joint","wrist1_joint","wrist2_joint","wrist3_joint"};
 
-AuboDriver::AuboDriver(int num = 0):buffer_size_(400),io_flag_delay_(0.02),data_recieved_(false),data_count_(0),real_robot_exist_(false),emergency_stopped_(false),protective_stopped_(false),normal_stopped_(false),
+AuboDriver::AuboDriver(int num = 0):delay_clear_times(0),buffer_size_(400),io_flag_delay_(0.02),data_recieved_(false),data_count_(0),real_robot_exist_(false),emergency_stopped_(false),protective_stopped_(false),normal_stopped_(false),
     controller_connected_flag_(false),start_move_(false),control_mode_ (aubo_driver::SendTargetGoal),rib_buffer_size_(0),jti(ARM_DOF,1.0/200),jto(ARM_DOF),collision_class_(6)
 {
     axis_number_ = 6 + num;
@@ -301,7 +301,10 @@ bool AuboDriver::setRobotJointsByMoveIt()
 
                 //clear the flag
                 if(normal_stopped_)
+                {
                     normal_stopped_ = false;
+                    delay_clear_times = STOP_DELAY_CLEAR_TIMES;
+                }
             }
             else
             {
@@ -440,6 +443,14 @@ void AuboDriver::updateControlStatus()
         /** If the total size of the trajectory is less than buffer_size_, then it will move after 0.1s **/
         if(buf_queue_.size() > 0 && !start_move_ )
             start_move_ = true;
+    }
+
+    if(delay_clear_times > 0)
+    {
+      while(!buf_queue_.empty())
+          buf_queue_.pop();
+      start_move_ = false;
+      delay_clear_times--;
     }
     if(start_move_ && rib_buffer_size_ < MINIMUM_BUFFER_SIZE)
     {
