@@ -129,6 +129,10 @@ class MotionControllerSimulator():
     # The function will recieve info about cancel trajectory because user want the robot stop when the robot running
     def Is_cancel_trajectory_callback(self, msg_in):
         self.cancle_trajectory = msg_in.data
+        if self.cancle_trajectory == 1:
+            if not self.motion_buffer.empty():
+                self._clear_buffer()
+            self.cancle_trajectory = 0
         rospy.loginfo('is cancel trajectory status %d' , self.cancle_trajectory)
 
 
@@ -190,7 +194,7 @@ class MotionControllerSimulator():
     """
     def _move_to(self, point, dur):
         while self.ribBufferSize > self.MinimumBufferSize:
-            rospy.loginfo('The number of driver Buffer Data is big enough, not send this time: %d', self.ribBufferSize)
+            #rospy.loginfo('The number of driver Buffer Data is big enough, not send this time: %d', self.ribBufferSize)
             rospy.sleep(dur)
 
         if self.ribBufferSize == 0 and self.ControllerConnectedFlag == 0:      # motion start or no robot connected!
@@ -253,6 +257,7 @@ class MotionControllerSimulator():
                     a3 = [0] *N
                     a4 = [0] *N
                     a5 = [0] *N
+
                     for i in range(0,N):
                         a2[i] = 0.5 * last_goal_point.accelerations[i]
                         h[i] = current_goal_point.positions[i] - last_goal_point.positions[i]
@@ -262,6 +267,7 @@ class MotionControllerSimulator():
                     if self.update_rate > 0:
                         tt = last_goal_point.time_from_start.to_sec()
                         ti = tt
+
                         while ((tt < current_goal_point.time_from_start.to_sec()) and (0 == self.cancle_trajectory)):
                             t1 = tt - ti
                             t2 = t1 * t1
@@ -283,14 +289,16 @@ class MotionControllerSimulator():
                 self.joint_state_publisher()
                 last_goal_point = copy.deepcopy(current_goal_point)
 
+
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)
 
             # if user want stop ,we will clear Trajectory buffer data from moveit
-            if self.cancle_trajectory == 1:
-                self.cancle_trajectory = 0
-                while not self.motion_buffer.empty():
-                    self.motion_buffer.get()
+            #if self.cancle_trajectory == 1:
+            #    if not self.motion_buffer.empty():
+            #        self.motion_buffer.queue.clear()
+            #    self.cancle_trajectory = 0
+            #    rospy.logerr("ssssss")
 
         rospy.logdebug("Shutting down motion controller")
 
@@ -392,7 +400,7 @@ class AuboRobotSimulatorNode():
     feedback state (as these are closely related)
     """
     def joint_state_publisher(self):
-        if self.EnableFlag == 1 and self.motion_ctrl.positionUpdatedFlag == '1':
+        if 1:#self.EnableFlag == 1 and self.motion_ctrl.positionUpdatedFlag == '1':
             try:
                 joint_state_msg = JointState()
                 joint_fb_msg = FollowJointTrajectoryFeedback()
@@ -410,7 +418,7 @@ class AuboRobotSimulatorNode():
                     joint_fb_msg.joint_names = self.joint_names
                     joint_fb_msg.actual.positions = self.motion_ctrl.get_joint_positions()
 
-                    # self.joint_feedback_pub.publish(joint_fb_msg)
+                    self.joint_feedback_pub.publish(joint_fb_msg)
 
             except Exception as e:
                 rospy.loginfo('Unexpected exception in joint state publisher: %s', e)
@@ -456,6 +464,9 @@ class AuboRobotSimulatorNode():
             rospy.logdebug('handle joint_path_command')
             try:
                 rospy.loginfo('Received trajectory with %s points, executing callback', str(len(msg_in.points)))
+                #if self.motion_ctrl.cancle_trajectory:
+                #    while self.motion_ctrl.cancle_trajectory:
+                #        rospy.spin()
 
                 if self.motion_ctrl.is_in_motion():
                     if len(msg_in.points) > 0:
@@ -466,6 +477,7 @@ class AuboRobotSimulatorNode():
                     self.motion_ctrl.stop()
 
                 else:
+
                     self.velocity_scale_factor = rospy.get_param('/aubo_controller/velocity_scale_factor', 1.0)
                     rospy.loginfo('The velocity scale factor is: %s', str(self.velocity_scale_factor))
                     new_traj = scale_trajectory_speed(msg_in, self.velocity_scale_factor)
@@ -473,7 +485,7 @@ class AuboRobotSimulatorNode():
                         # first remaps point to controller joint order, the add the point to the controller.
                         point = self._to_controller_order(msg_in.joint_names, point)
                         self.motion_ctrl.add_motion_waypoint(point)
-#                        rospy.loginfo('Add new position: %s', str(point.positions))
+                    rospy.loginfo('Add new position: %s', str(point.positions))
 
             except Exception as e:
                 rospy.logerr('Unexpected exception: %s', e)

@@ -376,6 +376,7 @@ void AuboDriver::moveItPosCallback(const trajectory_msgs::JointTrajectoryPoint::
     double jointAngle[axis_number_];
     for(int i = 0; i < axis_number_; i++)
         jointAngle[i] = msg->positions[i];
+
     if(controller_connected_flag_)
     {
         /** The need a buffer to connect to the RIB to confirm the REAL TIME**/
@@ -452,6 +453,7 @@ void AuboDriver::updateControlStatus()
       start_move_ = false;
       delay_clear_times--;
     }
+
     if(start_move_ && rib_buffer_size_ < MINIMUM_BUFFER_SIZE)
     {
         setRobotJointsByMoveIt();
