@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     std::string wrist2_command_topic   = robot_name+wrist2_joint_command_name;
     std::string wrist3_command_topic   = robot_name+wrist3_joint_command_name;
 
-    ROS_ERROR_STREAM_NAMED("test_Topic_name",shoulder_command_topic);
+    //ROS_ERROR_STREAM_NAMED("test_Topic_name",shoulder_command_topic);
 
     ros::Publisher  pub_gazebo_shoulder_joint = nh.advertise<std_msgs::Float64>(shoulder_command_topic,1000);
     ros::Publisher  pub_gazebo_upperArm_joint = nh.advertise<std_msgs::Float64>(upperArm_command_topic,1000);

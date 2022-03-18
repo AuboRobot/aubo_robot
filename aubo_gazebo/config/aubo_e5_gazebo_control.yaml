@@ -39,9 +39,9 @@ aubo_e5:
   # No Pid gains specified error fix
 #aubo_e5/gazebo_ros_control:
 #   pid_gains:
-#     shoulder_joint: {p: 1200.0, i: 5.0, d: 10.0}
-#     upperArm_joint: {p: 1400.0, i: 5.0, d: 10.0}
-#     foreArm_joint: {p: 1200.0, i: 5.0, d: 5.0}
-#     wrist1_joint: {p: 850.0, i: 3.0, d: 5.0}
-#     wrist2_joint: {p: 500.0, i: 3.0, d: 1.0}
-#     wrist3_joint: {p: 500.0, i: 1.0, d: 1.0}
+#     shoulder_joint: {p: 0.0,  i: 0.0, d: 0.0, i_clamp: 1}
+#     upperArm_joint: {p: 0.0,  i: 0.00, d: 0.0, i_clamp: 1}
+#     foreArm_joint: {p: 0.0,  i: 0.0, d: 0.0, i_clamp: 1}
+#     wrist1_joint: {p: 0.0,  i: 0.00, d: 0.0, i_clamp: 1}
+#     wrist2_joint: {p: 0.0,  i: 0.00, d: 0.0, i_clamp: 1}
+#     wrist3_joint: {p: 0.0,  i: 0.00, d: 0.0, i_clamp: 1}
