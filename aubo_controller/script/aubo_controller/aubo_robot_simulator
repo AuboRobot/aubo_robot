@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 # Copyright (c) 2017-2018, Aubo Robotics
@@ -31,7 +31,15 @@
 import rospy
 import copy
 import threading
-import Queue
+import sys
+import os
+path = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0,path)
+print(path)
+if sys.version > '3':
+    import queue as Queue
+else:
+    import Queue
 
 # Publish
 from sensor_msgs.msg import JointState
@@ -225,7 +233,7 @@ class MotionControllerSimulator():
 
         rospy.loginfo('Starting motion worker in motion controller simulator')
         move_duration = rospy.Duration()
-        if self.update_rate <> 0.:
+        if self.update_rate != 0:
             update_duration = rospy.Duration(1./self.update_rate)
         last_goal_point = JointTrajectoryPoint()
 
