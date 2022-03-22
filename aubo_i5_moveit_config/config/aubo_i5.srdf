@@ -26,7 +26,7 @@
         <joint name="shoulder_joint" value="0" />
         <joint name="upperArm_joint" value="0" />
         <joint name="wrist1_joint" value="0" />
-        <joint name="wrist2_joint" value="-1.3742" />
+        <joint name="wrist2_joint" value="-1.5209" />
         <joint name="wrist3_joint" value="0" />
     </group_state>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->

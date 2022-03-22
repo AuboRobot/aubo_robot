@@ -57,7 +57,7 @@
     <parent link="base_link"/>
     <child link="shoulder_Link"/>
     <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-3.05" upper="3.05" velocity="0"/>
+    <limit effort="0" lower="-3.04" upper="3.04" velocity="0"/>
   </joint>
   <link name="upperArm_Link">
     <inertial>
@@ -86,7 +86,7 @@
     <parent link="shoulder_Link"/>
     <child link="upperArm_Link"/>
     <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-3.05" upper="3.05" velocity="0"/>
+    <limit effort="0" lower="-3.04" upper="3.04" velocity="0"/>
   </joint>
   <link name="foreArm_Link">
     <inertial>
@@ -115,7 +115,7 @@
     <parent link="upperArm_Link"/>
     <child link="foreArm_Link"/>
     <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-3.05" upper="3.05" velocity="0"/>
+    <limit effort="0" lower="-3.04" upper="3.04" velocity="0"/>
   </joint>
   <link name="wrist1_Link">
     <inertial>
@@ -144,7 +144,7 @@
     <parent link="foreArm_Link"/>
     <child link="wrist1_Link"/>
     <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-3.05" upper="3.05" velocity="0"/>
+    <limit effort="0" lower="-3.04" upper="3.04" velocity="0"/>
   </joint>
   <link name="wrist2_Link">
     <inertial>
@@ -173,7 +173,7 @@
     <parent link="wrist1_Link"/>
     <child link="wrist2_Link"/>
     <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-3.05" upper="3.05" velocity="0"/>
+    <limit effort="0" lower="-3.04" upper="3.04" velocity="0"/>
   </joint>
   <link name="wrist3_Link">
     <inertial>
@@ -202,7 +202,7 @@
     <parent link="wrist2_Link"/>
     <child link="wrist3_Link"/>
     <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-3.05" upper="3.05" velocity="0"/>
+    <limit effort="0" lower="-3.04" upper="3.04" velocity="0"/>
   </joint>
   <link name="w2_Link">
     <inertial>
@@ -292,7 +292,7 @@
     <inertial>
       <origin rpy="0 0 0" xyz="0.30397 -0.00049907 0.08414"/>
       <mass value="0.22341"/>
-      <inertia ixx="0.00030759" ixy="3.3453E-05" ixz="0.00029518" iyy="0.021935" iyz="-3.0561E-06" izz="0.022161"/>
+      <inertia ixx="0.00030759" ixy="3.3453E-05" ixz="0.00029518" iyy="0.021935" iyz="-3.0461E-06" izz="0.022161"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>

@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="MoveGroupInterface_To_Melodic" pkg="aubo_demo" type="MoveGroupInterface_To_Melodic" respawn="false" output="screen">
+  </node>
+
+</launch>

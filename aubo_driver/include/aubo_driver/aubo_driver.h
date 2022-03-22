@@ -45,7 +45,7 @@
 #define AMAX 10000
 //#define JMAX 40000
 #define JMAX 40000
-
+#define STOP_DELAY_CLEAR_TIMES 100
 //#define LOG_INFO_DEBUG
 
 namespace aubo_driver
@@ -104,7 +104,7 @@ namespace aubo_driver
             bool getFK(aubo_msgs::GetFKRequest& req, aubo_msgs::GetFKResponse& resp);
             bool getIK(aubo_msgs::GetIKRequest& req, aubo_msgs::GetIKResponse& resp);
 
-            const int UPDATE_RATE_ = 400;
+            const int UPDATE_RATE_ = 500;
             const int TIMER_SPAN_ = 50;
             const double THRESHHOLD = 0.000001;
 
@@ -178,6 +178,8 @@ namespace aubo_driver
             int collision_class_;
             std_msgs::Int32MultiArray rib_status_;
             industrial_msgs::RobotStatus robot_status_;
+
+            int delay_clear_times;
     };
 }
 

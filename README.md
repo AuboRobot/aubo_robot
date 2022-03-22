@@ -1,12 +1,12 @@
 # AUBO Robot
-**Maintainer: zhaoyu@aubo-robotics.cn**
+**Maintainer: chenshudong@aubo-robotics.cn**
 
 
 
 
 * Aubo_robot [ROS](http://www.ros.org/) meta-package for [ROS-Industrial](http://wiki.ros.org/Industrial). See the [ROS wiki](http://wiki.ros.org/)  page for more information.
 
-* This repository provides ROS support for [AUBO robots](https://aubo-robotics.com/en/). This repository holds source code for `kinetic`. The corresponding robot controller software version is `V4`. For those software version < `V4`, can refer to [here]( http://wiki.ros.org/aubo_robot).
+* This repository provides ROS support for [AUBO robots](https://aubo-robotics.com/en/). This repository holds source code for 'Noetic'. The corresponding robot controller software version is 'V4'. For those software version < 'V4', can refer to [here]( http://wiki.ros.org/aubo_robot).
 
 ### Installation from Source
 ---
