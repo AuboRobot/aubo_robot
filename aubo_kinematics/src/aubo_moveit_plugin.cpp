@@ -28,8 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <class_loader/class_loader.h>
-
+//#include <class_loader/class_loader.h>
+#include <pluginlib/class_loader.h>
 //#include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_kdl.h>
 #include <kdl_parser/kdl_parser.hpp>

@@ -192,7 +192,7 @@ private:
    * \param gh goal handle
    *
    */
-  void goalCB(JointTractoryActionServer::GoalHandle & gh);
+  void goalCB(const JointTractoryActionServer::GoalHandle &gh);
 
   /**
    * \brief Action server cancel callback method
@@ -201,7 +201,7 @@ private:
    *
    */
 
-  void cancelCB(JointTractoryActionServer::GoalHandle & gh);
+  void cancelCB(const JointTractoryActionServer::GoalHandle &gh);
   /**
    * \brief Controller state callback (executed when feedback message
    * received)

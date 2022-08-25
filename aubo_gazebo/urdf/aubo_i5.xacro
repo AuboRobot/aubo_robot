@@ -167,7 +167,7 @@
     <parent link="base_link" />
     <child link="shoulder_Link" />
     <axis xyz="0 0 1" />
-    <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
+    <limit lower="-3.04" upper="3.04" effort="300" velocity="100" />
   </joint>
 
 
@@ -199,7 +199,7 @@
     <parent link="shoulder_Link" />
     <child link="upperArm_Link" />
     <axis xyz="0 0 1" />
-    <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
+    <limit lower="-3.04" upper="3.04" effort="300" velocity="100" />
   </joint>
 
 
@@ -232,7 +232,7 @@
     <parent link="upperArm_Link" />
     <child link="foreArm_Link" />
     <axis xyz="0 0 1" />
-    <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
+    <limit lower="-3.04" upper="3.04" effort="300" velocity="100" />
   </joint>
 
 
@@ -265,7 +265,7 @@
     <parent link="foreArm_Link" />
     <child link="wrist1_Link" />
     <axis xyz="0 0 1" />
-    <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
+    <limit lower="-3.04" upper="3.04" effort="300" velocity="100" />
   </joint>
 
   <!--/////////////////////////////// WRIST2_LINK ////////////////////////////////////-->
@@ -296,7 +296,7 @@
     <parent link="wrist1_Link" />
     <child link="wrist2_Link" />
     <axis xyz="0 0 1" />
-    <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
+    <limit lower="-3.04" upper="3.04" effort="300" velocity="100" />
   </joint>
 
   <!--/////////////////////////////// WRIST3_LINK ////////////////////////////////////-->
@@ -327,7 +327,7 @@
     <parent link="wrist2_Link" />
     <child link="wrist3_Link" />
     <axis xyz="0 0 1" />
-    <limit lower="-3.05" upper="3.05" effort="300" velocity="100" />
+    <limit lower="-3.04" upper="3.04" effort="300" velocity="100" />
   </joint>
 
 

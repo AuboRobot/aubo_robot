@@ -16,10 +16,10 @@
   </include>
 
  <!-- industrial_robot_simulator: accepts robot commands and reports status -->
-  <node pkg="aubo_controller" type="aubo_robot_simulator" name="aubo_robot_simulator"/>
+  <node pkg="aubo_controller" type="aubo_robot_simulator" name="aubo_robot_simulator"  output="screen"/>
   
   <!-- joint_trajectory_action: provides actionlib interface for high-level robot control -->
-  <node pkg="aubo_controller" type="aubo_joint_trajectory_action" name="aubo_joint_trajectory_action"/>
+  <node pkg="aubo_controller" type="aubo_joint_trajectory_action" name="aubo_joint_trajectory_action" output="screen"/>
 
   <!-- run the "real robot" interface nodes -->
   <!--   - this typically includes: robot_state, motion_interface, and joint_trajectory_action nodes -->
