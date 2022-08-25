@@ -1,13 +1,27 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(aubo_planner)
 
-find_package(catkin REQUIRED COMPONENTS aubo_msgs  moveit_core moveit_ros_planning moveit_ros_planning_interface pluginlib cmake_modules)
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+  sensor_msgs
+  control_msgs
+  urdf
+  pluginlib
+  actionlib
+  actionlib_msgs
+  moveit_core
+  moveit_ros_planning
+  moveit_ros_planning_interface
+  trajectory_msgs
+  industrial_utils
+  industrial_msgs
+  cmake_modules
+  aubo_msgs
+)
 
 find_package(Boost REQUIRED system filesystem date_time thread)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs
-  control_msgs trajectory_msgs actionlib_msgs actionlib
-  urdf industrial_msgs industrial_utils)
 
 if("$ENV{ROS_DISTRO}" STREQUAL "kinetic")
     find_package(Eigen3 REQUIRED)
@@ -25,17 +39,18 @@ catkin_package(
     std_msgs
     sensor_msgs
     control_msgs
-    actionlib
-    moveit_core
-    moveit_ros_planning_interface
-    interactive_markers
-    trajectory_msgs
-    industrial_msgs
+    urdf
+    pluginlib
     actionlib
     actionlib_msgs
+    moveit_core
+    moveit_ros_planning_interface
+    trajectory_msgs
+    interactive_markers
     industrial_utils
-    urdf
-    LIBRARIES ${PROJECT_NAME}_dummy
+    industrial_msgs
+    aubo_msgs
+  LIBRARIES ${PROJECT_NAME}_dummy
 )
 
 # check c++11 / c++0x
@@ -65,7 +80,7 @@ if("$ENV{ROS_DISTRO}" STREQUAL "indigo")
     Message(STATUS "<<<<<<<<<<<<<<<<<<<<<<<<<Note: Find EIGEN_INCLUDE_DIRS Package in aubo_planner for  for indigo")
 endif()
 
-link_directories(${catkin_LIBRARY_DIRS} )
+link_directories(${catkin_LIBRARY_DIRS})
 
 ADD_EXECUTABLE(aubo_planner_test src/aubo_planner_test.cpp)
 TARGET_LINK_LIBRARIES(aubo_planner_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})

@@ -1,13 +1,26 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(aubo_controller)
 
-find_package(catkin REQUIRED COMPONENTS aubo_msgs  moveit_core moveit_ros_planning moveit_ros_planning_interface pluginlib cmake_modules)
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+  sensor_msgs
+  control_msgs
+  trajectory_msgs
+  urdf
+  pluginlib
+  actionlib
+  actionlib_msgs
+  moveit_core
+  moveit_ros_planning
+  moveit_ros_planning_interface
+  industrial_utils
+  industrial_msgs
+  cmake_modules
+  aubo_msgs
+)
 
 find_package(Boost REQUIRED system filesystem date_time thread)
-
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs
-  control_msgs trajectory_msgs actionlib_msgs actionlib
-  urdf industrial_msgs industrial_utils)
 
 #find_package(Eigen REQUIRED)
 
@@ -17,18 +30,19 @@ catkin_package(
     std_msgs
     sensor_msgs
     control_msgs
-    actionlib
-    moveit_core
-    moveit_ros_planning_interface
-    interactive_markers
     trajectory_msgs
-    industrial_msgs
+    urdf
+    pluginlib
     actionlib
     actionlib_msgs
+    moveit_core
+    moveit_ros_planning_interface
     industrial_utils
-    urdf
-    INCLUDE_DIRS include
-    LIBRARIES ${PROJECT_NAME}_dummy
+    industrial_msgs
+    interactive_markers
+    aubo_msgs
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}_dummy
 )
 
 #CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -47,7 +61,10 @@ link_directories(${catkin_LIBRARY_DIRS} )
 
 ADD_EXECUTABLE(aubo_joint_trajectory_action src/joint_trajectory_action.cpp)
 TARGET_LINK_LIBRARIES(aubo_joint_trajectory_action industrial_robot_client ${catkin_LIBRARIES})
-install(TARGETS aubo_joint_trajectory_action DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(
+  TARGETS aubo_joint_trajectory_action
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 #set(${PROJECT_NAME}_SOURCES1
 #    src/aubo_robot_simulator.cpp
@@ -56,5 +73,7 @@ install(TARGETS aubo_joint_trajectory_action DESTINATION ${CATKIN_PACKAGE_BIN_DE
 #TARGET_LINK_LIBRARIES(aubo_simulator_controller industrial_robot_client ${catkin_LIBRARIES})
 #install(TARGETS aubo_simulator_controller DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-catkin_install_python(PROGRAMS script/aubo_controller/aubo_robot_simulator
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_install_python(
+  PROGRAMS script/aubo_controller/aubo_robot_simulator
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
