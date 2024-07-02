@@ -1,0 +1,46 @@
+<!--
+Copyright (c) 2019 Pilz GmbH & Co. KG
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<launch>
+  <!-- Modbus config -->
+  <arg name="modbus_server_ip" default="127.0.0.1"/>
+  <arg name="modbus_server_port" default="20702"/>
+  <arg name="safety_hw" default="pss4000" />
+  <rosparam ns="/prbt/read_api_spec" command="load" file="$(find prbt_hardware_support)/config/modbus_read_api_spec_$(arg safety_hw).yaml" />
+  <rosparam ns="/prbt/write_api_spec" command="load" file="$(find prbt_hardware_support)/config/modbus_write_api_spec_$(arg safety_hw).yaml" />
+
+  <group ns="prbt">
+    <rosparam ns="driver/" command="load"
+              file="$(find prbt_hardware_support)/test/config/prbt_manipulator_driver_nodes.yaml">
+    </rosparam>
+    <rosparam command="load" file="$(find prbt_hardware_support)/test/config/joint_names.yaml" />
+    <node name="modbus_adapter_brake_test_node" pkg="prbt_hardware_support" type="modbus_adapter_brake_test_node" />
+    <node name="brake_test_executor_node" pkg="prbt_hardware_support" type="brake_test_executor_node" />
+    <node name="braketest_adapter_node" pkg="prbt_hardware_support" type="canopen_braketest_adapter_node" />
+    <node name="pilz_modbus_client_node" pkg="prbt_hardware_support" type="pilz_modbus_client_node">
+      <param name="modbus_server_ip" value="$(arg modbus_server_ip)"/>
+      <param name="modbus_server_port" value="$(arg modbus_server_port)"/>
+      <param name="modbus_response_timeout" value="100"/>
+    </node>
+    <test test-name="integrationtest_execute_brake_test" pkg="prbt_hardware_support" type="integrationtest_execute_brake_test">
+      <param name="modbus_server_ip" value="$(arg modbus_server_ip)"/>
+      <param name="modbus_server_port" value="$(arg modbus_server_port)"/>
+    </test>
+  </group>
+
+
+</launch>

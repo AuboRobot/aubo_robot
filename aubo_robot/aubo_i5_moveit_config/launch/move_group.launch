@@ -1,7 +1,8 @@
 <launch>
 
   <include file="$(find aubo_i5_moveit_config)/launch/planning_context.launch" />
-
+  <arg name="pipeline" default="ompl" />
+  
   <!-- GDB Debug Option -->
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
@@ -39,10 +40,26 @@
   -->
 
   <!-- Planning Functionality -->
-  <include ns="move_group" file="$(find aubo_i5_moveit_config)/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="ompl" />
+  
+  <group ns="move_group/planning_pipelines">
+  
+  <!-- Pilz motion Planner-->
+  <include ns="pilz_industrial_motion_planner" file="$(find aubo_i5_moveit_config)/launch/planning_pipeline.launch.xml">
+    <arg name="pipeline" value="pilz_industrial_motion_planner" />
   </include>
 
+  <!-- OMPL motion Planner-->
+  <include ns="ompl" file="$(find aubo_i5_moveit_config)/launch/planning_pipeline.launch.xml">
+    <arg name="pipeline" value="ompl" />
+  </include>
+ 
+  <!-- for other Planners Loader -->
+  <include if="$(eval arg('pipeline') not in ['ompl', 'pilz_industrial_motion_planner'])" ns="$(arg pipeline)"
+             file="$(find aubo_i5_moveit_config)/launch/planning_pipeline.launch.xml">
+  <arg name="pipeline" value="$(arg pipeline)" />  
+  </include>
+    
+  </group>  
   <!-- Trajectory Execution Functionality -->
   <include ns="move_group" file="$(find aubo_i5_moveit_config)/launch/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_manage_controllers" value="true" />

@@ -1,0 +1,53 @@
+<!--
+Copyright (c) 2018 Pilz GmbH & Co. KG
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<launch>
+
+<!-- Services -->
+<arg name="recover_service_name" default="driver/recover"/>
+<arg name="halt_service_name" default="driver/halt"/>
+<arg name="hold_service_name" default="manipulator_joint_trajectory_controller/hold"/>
+<arg name="unhold_service_name" default="manipulator_joint_trajectory_controller/unhold"/>
+
+<!-- Modbus config -->
+<arg name="modbus_server_ip" default="127.0.0.1"/>
+<arg name="modbus_server_port" default="20704"/>
+
+<arg name="safety_hw" default="pss4000" />
+<rosparam ns="read_api_spec" command="load" file="$(find prbt_hardware_support)/config/modbus_read_api_spec_$(arg safety_hw).yaml" />
+
+<node name="pilz_modbus_client_node" pkg="prbt_hardware_support" type="pilz_modbus_client_node">
+  <param name="modbus_server_ip" value="$(arg modbus_server_ip)"/>
+  <param name="modbus_server_port" value="$(arg modbus_server_port)"/>
+  <param name="modbus_response_timeout" value="100"/>
+</node>
+
+<node name="modbus_adapter_run_permitted_node" pkg="prbt_hardware_support" type="modbus_adapter_run_permitted_node">
+</node>
+<node name="stop1_executor_node" pkg="prbt_hardware_support" type="stop1_executor_node">
+</node>
+
+<test test-name="integrationtest_stop1" pkg="prbt_hardware_support" type="integrationtest_stop1">
+  <param name="modbus_server_ip" value="$(arg modbus_server_ip)"/>
+  <param name="modbus_server_port" value="$(arg modbus_server_port)"/>
+  <remap from="recover" to="$(arg recover_service_name)"/>
+  <remap from="halt" to="$(arg halt_service_name)"/>
+  <remap from="hold" to="$(arg hold_service_name)"/>
+  <remap from="unhold" to="$(arg unhold_service_name)"/>
+</test>
+
+</launch>

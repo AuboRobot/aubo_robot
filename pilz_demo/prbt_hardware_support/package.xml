@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<package>
+  <name>prbt_hardware_support</name>
+  <version>0.6.0</version>
+  <description>Control hardware functions of the PRBT manipulator like RUN_PERMITTED for Stop1 functionality.</description>
+
+  <maintainer email="i.martini@pilz.de">Immanuel Martini</maintainer>
+
+  <license>LGPLv3</license>
+
+  <url type="website">https://wiki.ros.org/prbt_hardware_support</url>
+  <url type="bugtracker">https://github.com/PilzDE/pilz_robots/issues</url>
+  <url type="repository">https://github.com/PilzDE/pilz_robots</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>canopen_chain_node</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>libmodbus-dev</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>pilz_utils</build_depend>
+  <build_depend>pilz_msgs</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>std_srvs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>pilz_msgs</run_depend>
+  <run_depend>rosservice</run_depend>
+
+  <!-- Test dependencies -->
+  <test_depend>rostest</test_depend>
+  <test_depend>rosunit</test_depend>
+  <test_depend>cmake_modules</test_depend>
+  <test_depend>code_coverage</test_depend>
+  <test_depend>pilz_testutils</test_depend>
+
+</package>

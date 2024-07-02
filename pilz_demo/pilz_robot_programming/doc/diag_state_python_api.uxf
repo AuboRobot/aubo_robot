@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?><diagram program="umlet" version="13.3">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>250</x>
+      <y>50</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>1. Motion Idle
+(No Pause Buffered)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>250</x>
+      <y>240</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>3. Motion Active </panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>670</x>
+      <y>240</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>4. Motion Paused</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>670</x>
+      <y>50</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>2. Motion Idle
+(One Pause Buffered)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>160</x>
+      <y>60</y>
+      <w>20</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>type=initial</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>170</x>
+      <y>60</y>
+      <w>100</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>430</x>
+      <y>40</y>
+      <w>260</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+pause()</panel_attributes>
+    <additional_attributes>10.0;20.0;240.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>760</x>
+      <y>80</y>
+      <w>80</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+move()</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>360</x>
+      <y>80</y>
+      <w>80</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+move()</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>770</x>
+      <y>0</y>
+      <w>160</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+pause()</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;20.0;140.0;20.0;140.0;70.0;90.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>430</x>
+      <y>250</y>
+      <w>260</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+pause()</panel_attributes>
+    <additional_attributes>10.0;20.0;240.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>430</x>
+      <y>230</y>
+      <w>260</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+resume()</panel_attributes>
+    <additional_attributes>240.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>420</x>
+      <y>80</y>
+      <w>310</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+stop()</panel_attributes>
+    <additional_attributes>290.0;160.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>260</x>
+      <y>80</y>
+      <w>100</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+stop()
+
+move()
+succeeded</panel_attributes>
+    <additional_attributes>10.0;160.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>430</x>
+      <y>60</y>
+      <w>260</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+stop(), resume()</panel_attributes>
+    <additional_attributes>240.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>290</x>
+      <y>0</y>
+      <w>130</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+stop(), resume()</panel_attributes>
+    <additional_attributes>110.0;50.0;110.0;20.0;10.0;20.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>720</x>
+      <y>270</y>
+      <w>100</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+pause()</panel_attributes>
+    <additional_attributes>80.0;10.0;80.0;50.0;10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>300</x>
+      <y>270</y>
+      <w>100</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+resume()</panel_attributes>
+    <additional_attributes>80.0;10.0;80.0;50.0;10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>540</x>
+      <y>270</y>
+      <w>180</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+move()</panel_attributes>
+    <additional_attributes>160.0;10.0;10.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>540</x>
+      <y>430</y>
+      <w>20</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>type=final</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>410</x>
+      <y>270</y>
+      <w>180</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+move()
+move() failed</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>580</x>
+      <y>430</y>
+      <w>130</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>style=wordwrap
+Exception ends thread/script</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>100</x>
+      <y>480</y>
+      <w>910</w>
+      <h>240</h>
+    </coordinates>
+    <panel_attributes>_User acceptance tests:_
+- Test 1: 1 -&gt; pause -&gt; 2 -&gt; move -&gt; 4 -&gt; resume -&gt; 3 -&gt; move succeeded -&gt; 1
+- Test 2: 1 -&gt; move -&gt; 3 -&gt; pause -&gt; 4 -&gt; resume -&gt; 3 -&gt; move succeeded -&gt; 1
+- Test 3: 1 -&gt; move -&gt; 3 -&gt; pause -&gt; 4 -&gt; stop -&gt; 1 -&gt; move -&gt; 3
+- Test 4: 1 -&gt; pause -&gt; 2 -&gt; resume -&gt; 1 -&gt; move -&gt; 3
+- Test 5: 1 -&gt; pause -&gt; 2 -&gt; move -&gt; 4 -&gt; stop -&gt; 1
+- Test 6: 1 -&gt; pause -&gt; 2 -&gt; pause -&gt; 2 -&gt; move -&gt; 4 -&gt; resume -&gt;3 -&gt; move succeeded -&gt; 1
+- Test 7: 1 -&gt; move -&gt; 3 -&gt; resume -&gt; 3 -&gt; move succeed -&gt; 1
+- Test 8: 1 -&gt; pause -&gt; 2 -&gt; move -&gt; 4 -&gt; pause -&gt; 4 -&gt; resume -&gt; 3 -&gt; pause -&gt; 4 -&gt; resume -&gt; 3 -&gt; move succeeded -&gt; 1
+- Test 9: 1 -&gt; pause -&gt; 2 -&gt; stop -&gt; 1 -&gt; move -&gt; 3 -&gt; move succeeded -&gt; 1
+- Test 10: 1 -&gt; stop -&gt; 1 -&gt; move -&gt; 3 -&gt; move succeeded -&gt; 1
+- Test 11: 1 -&gt; resume -&gt; 1 -&gt; move -&gt; 3 -&gt; move succeeded -&gt; 1
+- Test 12: 1 -&gt; move -&gt; 3 -&gt; pause -&gt; 4 -&gt; move -&gt; exception -&gt; 4 -&gt; resume -&gt; 3 -&gt;move succeeded -&gt; 1
+- Test 13: 1 -&gt; move1 -&gt; 3 -&gt; move2 -&gt; move2 exception -&gt; move1 succeeded -&gt; 1
+
+
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>100</x>
+      <y>730</y>
+      <w>560</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>_Threading tests:_
+- Test 1: 1 -&gt; pause || move -&gt; robot stands still // Could go wrong since sending goal and cancel in quick succession can be problematic with actionlib.
+- Test 2: 4 -&gt; resume || stop -&gt; 1 (robot stands still)
+- Test 3: 2 -&gt; resume || move -&gt; 3</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

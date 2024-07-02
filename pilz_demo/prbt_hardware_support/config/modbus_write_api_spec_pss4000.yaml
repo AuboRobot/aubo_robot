@@ -1,0 +1,4 @@
+# Braketest: Disabled per default, can be enabled in robot.launch with parameter "has_braketest_support"
+ENABLE_TEMPORARY_MOVEMENT: 979  # 1 = Enable temporary movement for 20 min when brake test wasn't successfull
+BRAKETEST_PERFORMED: 982        # 1 = Test not performed, 2 = Test performed
+BRAKETEST_RESULT: 983           # 1 = Test not passed, 2 = Test passed

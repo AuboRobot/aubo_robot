@@ -1,0 +1,44 @@
+<!--
+Copyright (c) 2018 Pilz GmbH & Co. KG
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<launch>
+
+  <!-- default modbus server ip (PSS400) and port number -->
+  <arg name="modbus_server_ip" default="192.168.0.10" />
+  <arg name="modbus_server_port" default="502" />
+
+  <!-- the register range for reading is determined automatically from the api spec,
+       however this can be overruled by specifying the following arguments -->
+  <arg name="index_of_first_register_to_read" default="" />
+  <arg name="num_registers_to_read" default="" />
+
+  <!-- define the connected safety hardware -->
+  <arg name="safety_hw" default="pss4000" />
+  <arg name="read_api_spec_file" default="$(find prbt_hardware_support)/config/modbus_read_api_spec_$(arg safety_hw).yaml" />
+
+  <rosparam ns="/prbt/read_api_spec" command="load" file="$(arg read_api_spec_file)" />
+  <arg name="has_register_range_parameters"
+       value="$(eval arg('index_of_first_register_to_read')!='' and arg('num_registers_to_read')!='')" />
+
+  <node ns="prbt" required="true" pkg="prbt_hardware_support" type="pilz_modbus_client_node" name="pilz_modbus_client_node" output="screen">
+    <param name="modbus_server_ip" value="$(arg modbus_server_ip)"/>
+    <param name="modbus_server_port" value="$(arg modbus_server_port)"/>
+    <param if="$(arg has_register_range_parameters)" name="index_of_first_register_to_read" value="$(arg index_of_first_register_to_read)"/>
+    <param if="$(arg has_register_range_parameters)" name="num_registers_to_read" value="$(arg num_registers_to_read)"/>
+  </node>
+
+</launch>

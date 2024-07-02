@@ -1,0 +1,10 @@
+# PNOZMulti Software V2.1dev
+# Generic: Enabled the whole time
+RUN_PERMITTED: 512 # robot is only allowed to move when the signal is 1
+VERSION: 513 # version of modbus register specification
+
+# Braketest: This is used to signalize that a brake test is requested by the safety controller
+BRAKETEST_REQUEST: 514 # 0 = Test not required, 1 = Test required
+
+# Operation mode: Disabled per default, can be enabled in robot.launch with parameter "has_operation_mode_support"
+OPERATION_MODE: 515 # 0 = No Operation mode, 1 = T1, 2 = T2, 3 = Automatik, Operation modes according to EN ISO 10218

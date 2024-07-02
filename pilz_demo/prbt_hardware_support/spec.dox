@@ -1,0 +1,160 @@
+/*
+ * Copyright (c) 2019 Pilz GmbH & Co. KG
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @page Spec
+ *
+ *  @tableofcontents
+ *  @section system_specification System Specification
+ *  @brief System Specification
+ *
+ *  @subsection ISO-10218-1
+ *
+ *
+ *
+ * @subsubsection run_permitted_stop1 Run permitted and Stop 1
+ *
+ * @note RUN_PERMITTED == 1/TRUE  <-> manipulator is allowed to move freely
+ * @note RUN_PERMITTED == 0/FALSE <-> manipulator is NOT allowed to move (except for stop motion)
+ *
+ * @definereq{execution_of_stop1}
+ * - The execution of a Stop1 consists of the following steps:
+ * Controller:hold (includes execution of Stop1 trajectory) -> Driver:halt
+ *
+ * - If a release_of_stop1 is in progress, the Stop1 is executed as soon as the release_of_stop1 has finished.
+ *
+ * - If the hold step fails, the system still tries to execute the halt service.
+ *    (see also \refspec{hold_service_fail})
+ *
+ * Please note:
+ * - The stop1 process cannot be interrupted, even if the RUN_PERMITTED changes to TRUE.
+ *
+ * @definereq{release_of_stop1}
+ * - The release of a Stop1 consists of the following steps:
+ * Driver:recover -> Controller:unhold
+ *
+ * - If a execution_of_stop1 is in progress, the Stop1 is released as soon as the execution_of_stop1 has finished.
+ *
+ * @definereq{release_of_stop1_interrupt}
+ * - The system ends the release of the Stop1 after the recover step in the following cases:
+ *   - If a execution_of_stop1 is triggered during the recover step,
+ *   - If the recover step fails.
+ *
+ * @definereq{Stop1_Trigger}
+ *  - The execution of a Stop 1 is triggered, if at least one of the following cases is true:
+ *    - the state of the RUN_PERMITTED changes from TRUE -> FALSE
+ *    - connection to safety controller is lost,
+ *    - the messages informing about the RUN_PERMITTED (coming from the
+ *      safety controller) is incomplete or in any way corrupted,
+ *    - the communication protocol used by the safety controller
+ *      does not fulfill the expected specification
+ *      (defined by the version of the protocol).
+ *  - The release of a Stop 1 is triggered, if the state of the RUN_PERMITTED changes from FALSE -> TRUE
+ *
+ *
+ * @definereq{unhold_service_fails}
+ *  - If the controller unhold service fails, Stop1 can still be triggered.
+ *
+ * @definereq{hold_service_fail}
+ *  - If the controller hold service fails during Stop1, the driver is still halted.
+ *
+ * @definereq{stop1_missing_services}
+ *  - The system is not allowed to complete the startup procedure until
+ *    all necessary services are available.
+ *
+ * @subsubsection brake_test Braketest
+ *
+ * @definereq{Is_BrakeTest_required_mechanism}
+ *  - The system provides a mechanism which allows to determine if
+ *    a braketest is requested by the safety controller.
+ *
+ *  - The value returned will indicate if a braketest is requested, not requested or
+ *    if it is currently unknown if a braketest has to be performed. It is unknown if a braketest
+ *    has to be performed if the communication with the safety control is lost or corrupted.
+ *
+ * @definereq{Execute_BrakeTest_mechanism}
+ * - The system provides a mechanism which allows to execute a brake test.
+ * - The brake test is performed for all axes.
+ * - The brake test mechanism returns a status stating if the
+ *    brake test was successful xor what error occured.
+ * - At the beginning of the brake test it is checked if the manipulator is
+ *    currently moving. In case the manipulator is moving, the brake test is not
+ *    performed and an error is retured.
+ * - As long as the brake test is performed no motion is allowed. Commands
+ *    send during the execution of the brake test are rejected.
+ * - Brake tests are only performed for drives which define that they require
+ *    a brake test (configurable via config file or parameter server).
+ * - After the brake test is performed the result of the brake test is
+ *    reported back to the safety controller. The result is also reported back
+ *    to the safety controller if the brake test was not required by the
+ *    safety controller.
+ * - If the connection to the safety controller is lost, no further
+ *    action regarding the sending of the brake test result is taken (e.g. NO
+ *    result sending as soon as the connection is established again).
+ *
+ *
+ *
+ * @subsubsection operation_mode Operation Mode
+ *
+ * @definereq{Get_OperationMode_mechanism}
+ *  - The system provides a mechanism which allows to request the current
+ *    operation mode of the safety controller.
+ *
+ *  - The mechanism to request the operation mode returns UNKNOWN,
+ *    if at least one of the following cases comes true:
+ *    - the connection to the safety controller is lost,
+ *    - the messages informing about the operation mode (coming from the
+ *      safety controller) is incomplete or in any way corrupted,
+ *    - the communication protocol used by the safety controller
+ *      does not fulfill the expected specification
+ *      (defined by the version of the protocol).
+ *
+ *
+ *
+ * @subsubsection speed_monitoring Speed Monitoring
+ *
+ * @definereq{speed_monitoring_per_operation_mode}
+ *  - The Controller speed monitoring is active dependent on the operation mode.
+ *  - In operation mode T1 it is always active.
+ *  - In operation mode AUTOMATIC it is never active.
+ *
+ * @subsubsection speed_override Speed Override
+ * - The speed override is a global factor in the range [0, 1] which is applied
+ *   to the velocity scale of all motion commands (expect gripper).
+ *
+ * @definereq{speed_override_per_operation_mode}
+ *  - The currently active speed_override depends on the operation mode:
+ *    - In T1 the speed override is 0.1.
+ *    - In AUTOMATIC the speed override is 1.0.
+ *    - If the operation mode is unknown, the speed override is set to zero.
+ *
+ *
+ * @subsection no_safety Other Setups (No ISO-10218-1 Support)
+ *
+ * @subsubsection simulated_robot Simulated Robot
+ *
+ * @definereq{speed_override_for_simulated_robot}
+ * - If the system is connected to a simulated robot instead of a real robot, the speed override (\ref speed_override) is 1.0.
+ *
+ *
+ * @subsubsection no_operation_mode No Operation Mode Support
+ *
+ * @definereq{speed_override_without_operation_mode_support}
+ * - If the system does not support operation modes, the speed override (\ref speed_override) is 1.0.
+ *
+ * @definereq{speed_monitoring_without_operation_mode_support}
+ * - If the system does not support operation modes, the speed monitoring (\ref speed_monitoring) is deactivated.
+ */

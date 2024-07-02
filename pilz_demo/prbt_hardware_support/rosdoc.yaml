@@ -1,0 +1,11 @@
+- builder: doxygen
+  name: Documentation of prbt_hardware_support package
+  output_dir: prbt_hardware_support
+  file_patterns: '*.c *.cpp *.h *.cc *.hh *.dox *.md'
+  aliases: '
+  definereq{1}="\b Spec - \b \1 (\ref test_list_\1 \"Tests\") \anchor spec_def_\1"
+  refspec{1}="\ref spec_def_\1 \"Spec - \1\""
+  tests{2}="\xrefitem test_list_\1 \"\" \"Test list for specification: \1\" - \2 (\ref spec_def_\1 \"Spec\")"
+  '
+  exclude_patterns: '*/test/acceptance_tests/*'
+  use_mdfile_as_mainpage: 'README.md'
